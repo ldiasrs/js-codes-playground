@@ -1,0 +1,21 @@
+{
+  "name": "js-codes-playground",
+  "version": "1.0.0",
+  "scripts": {
+    "user": "node --experimental-modules src/user-test.js",
+    "pdf": "node --experimental-modules src/pdf-reader.js"
+  },
+  "type": "module",
+  "author": "Leonardo Dias",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "fs": "^0.0.1-security",
+    "pdfreader": "^3.0.0",
+    "puppeteer": "^18.0.5",
+    "xml-formatter": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=12.0"
+  }
+}
