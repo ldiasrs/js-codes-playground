@@ -1,0 +1,29 @@
+<form id="user-form">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br>
+    <label for="age">Age:</label>
+    <input type="number" id="age" name="age"><br><br>
+    <button type="submit" onclick="submitForm()">Submit</button>
+  </form>
+  
+  <script>
+    function submitForm() {
+      var name = document.getElementById("name").value;
+      var age = document.getElementById("age").value;
+  
+      // Use Express to send a POST request to the server
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/user", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.send(JSON.stringify({ name: name, age: age }));
+  
+      // Handle the server's response
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var user = JSON.parse(xhr.responseText);
+          console.log("User:", user);
+        }
+      };
+    }
+  </script>
+  
