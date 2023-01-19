@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config()
+
 // import { readPdfToText, readPDFFileAsText } from "./commons.js"
 
 // const processData = (data) => {
@@ -10,7 +13,7 @@
 //     }
 // } 
 
-// const filePath = "/Users/leonardodias/Downloads/pdfs/extrato-posicao-renda-fixa.pdf"
+// const filePath = process.env.FILE_PDF
 // const lines = await readPDFFileAsText(filePath)
 // console.log(lines)
 
@@ -20,8 +23,8 @@
 // const pdf = require('pdf-parse');
 
 // const dataBuffer = fs.readFileSync('path/to/pdf');
-import dotenv from 'dotenv';
-dotenv.config()
+// import dotenv from 'dotenv';
+// dotenv.config()
 
 import pdf from 'pdf-parse';
 import { readFileSync} from 'fs';
