@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="bootstrap.min.css">
+<!-- <link rel="stylesheet" type="text/css" href="styles.css"> -->
+<html>
+<head>
+    <title>Users</title>
+</head>
+<body>
+    <script src="bootstrap.min.js"></script>
+    <div class="container">
+        <div class="row">
+          <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(function(user) { %>
+                    <tr>
+                        <td><%= user.name %></td>
+                        <td><%= user.age %></td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+</body>
+</html>
