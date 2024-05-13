@@ -40,7 +40,7 @@ const filterInvestProducts = (investProducts, filterOptions) => {
     .filter(
       (invest) => invest.taxaEmPorcentagem >= filterOptions.taxaEmPorcentagem
     )
-    .filter((invest) => invest.grauRisco < filterOptions.grauRisco)
+    .filter((invest) => invest.grauRisco <= filterOptions.grauRisco)
     .sort(
       (a, b) =>
         moment(a.resgate, "DD/MM/YYYY") - moment(b.resgate, "DD/MM/YYYY")
