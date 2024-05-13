@@ -1,5 +1,7 @@
 import { readFile2 } from "../commons.js";
 
+import moment from "moment";
+
 const bestInvestProduct = {
   taxaEmPorcentagem: 1,
   tipo: "CDB",
@@ -32,51 +34,62 @@ const mapToBestInvestProducts = (products) => {
 };
 
 const filterInvestProducts = (investProducts, filterOptions) => {
-  return investProducts
+  const investProductsFiltered = investProducts
     .filter((invest) => invest.tipo === filterOptions.tipo)
     .filter((invest) => invest.indexador === filterOptions.indexador)
     .filter(
       (invest) => invest.taxaEmPorcentagem >= filterOptions.taxaEmPorcentagem
     )
     .filter((invest) => invest.grauRisco < filterOptions.grauRisco)
-    .sort((a, b) => a.grauRisco - b.grauRisco)
+    .sort(
+      (a, b) =>
+        moment(a.resgate, "DD/MM/YYYY") - moment(b.resgate, "DD/MM/YYYY")
+    )
+    .sort((a, b) => (a.grauRisco < b.grauRisco ? -1 : 1))
     .sort((a, b) => b.taxaEmPorcentagem - a.taxaEmPorcentagem);
+  return {
+    filterName: `${filterOptions.tipo} ${filterOptions.indexador}`,
+    investProducts: investProductsFiltered,
+  };
 };
 const products = await readFile2("data/produtos-para-investir.json");
 const investProducts = mapToBestInvestProducts(JSON.parse(products));
 
-console.log("CDB DI");
 const cdbDi = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "DI",
   taxaEmPorcentagem: 120,
   grauRisco: 5,
 });
-console.log(cdbDi);
 
-console.log("CDB IPCA");
 const cdbIpca = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "IPCA",
   taxaEmPorcentagem: 5,
   grauRisco: 5,
 });
-console.log(cdbIpca);
 
-console.log("LCI DI");
+const cdbPre = filterInvestProducts(investProducts, {
+  tipo: "CDB",
+  indexador: "PRE",
+  taxaEmPorcentagem: 11,
+  grauRisco: 5,
+});
+
 const lciDi = filterInvestProducts(investProducts, {
   tipo: "LCI",
   indexador: "DI",
   taxaEmPorcentagem: 100,
   grauRisco: 5,
 });
-console.log(lciDi);
 
-console.log("LCI IPCA");
 const lciIpca = filterInvestProducts(investProducts, {
   tipo: "LCI",
   indexador: "IPCA",
   taxaEmPorcentagem: 5,
   grauRisco: 5,
 });
-console.log(lciIpca);
+
+const allProducts = [cdbPre, cdbDi, cdbIpca, lciDi, lciIpca];
+
+console.log(JSON.stringify(allProducts, null, 2));
