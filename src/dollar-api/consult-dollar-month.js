@@ -23,39 +23,73 @@ const print = (message) => {
   console.log(message);
 };
 
-const getStartDay = () => {
-  const date = moment().subtract(1, "months").startOf("month");
-  return {
-    date,
-    formatted: date.format(formatPattern),
-  };
-};
-
-const getEndDay = () => {
-  const date = moment().subtract(1, "months").endOf("month");
-  return {
-    date,
-    formatted: date.format(formatPattern),
-  };
-};
-
 const getLowestCotacaoCompra = (cotacoes) => {
   return cotacoes.value.reduce((acc, curr) =>
     acc.cotacaoCompra < curr.cotacaoCompra ? acc : curr
   );
 };
-const startDate = getStartDay();
-const endDate = getEndDay();
 
-const cotacoes = await consultDolarMonth(
-  "USD-BRL",
-  startDate.formatted,
-  endDate.formatted
-);
-const menorCotacao = getLowestCotacaoCompra(cotacoes);
-print(
-  `Periodo: ${startDate.date.format("YYYY-MM-DD")} - ${endDate.date.format(
-    "YYYY-MM-DD"
-  )} `
-);
-print("Menor cotacao: " + JSON.stringify(menorCotacao.cotacaoCompra));
+const getHighestCotacaoCompra = (cotacoes) => {
+  return cotacoes.value.reduce((acc, curr) =>
+    acc.cotacaoCompra > curr.cotacaoCompra ? acc : curr
+  );
+};
+
+const printHelp = () => {
+  console.log("Usage: npm run dollar [mode]");
+  console.log("-mode:[dia/day, mesAnterior/lastMonth, mesAtual/thisMonth]");
+};
+
+const getRangeForMode = (mode) => {
+  const aliases = {
+    dia: "day",
+    mesAnterior: "lastMonth",
+    mesPassado: "lastMonth",
+    mesAtual: "thisMonth",
+  };
+  const rangeMap = {
+    day: () => ({ startDate: moment(), endDate: moment() }),
+    lastMonth: () => ({
+      startDate: moment().subtract(1, "months").startOf("month"),
+      endDate: moment().subtract(1, "months").endOf("month"),
+    }),
+    thisMonth: () => ({
+      startDate: moment().startOf("month"),
+      endDate: moment().endOf("month"),
+    }),
+  };
+
+  const rangeFn = rangeMap[aliases[mode] ?? mode];
+  if (!rangeFn) {
+    throw new Error(`Unsupported mode: ${mode}`);
+  }
+  return rangeFn();
+};
+
+const main = async () => {
+  try {
+    const mode = process.argv[2] ?? "lastMonth";
+    const { startDate, endDate } = getRangeForMode(mode);
+
+    const cotacoes = await consultDolarMonth(
+      "USD-BRL",
+      startDate.format(formatPattern),
+      endDate.format(formatPattern)
+    );
+    const menorCotacao = getLowestCotacaoCompra(cotacoes);
+    const maiorCotacao = getHighestCotacaoCompra(cotacoes);
+    print("Mode: " + mode);
+    print(
+      `Periodo: ${startDate.format("YYYY-MM-DD")} - ${endDate.format(
+        "YYYY-MM-DD"
+      )} `
+    );
+    print("Menor cotacao: " + JSON.stringify(menorCotacao.cotacaoCompra));
+    print("Maior cotacao: " + JSON.stringify(maiorCotacao.cotacaoCompra));
+  } catch (error) {
+    printHelp();
+    print("Error: " + error.message);
+  }
+};
+
+await main();
