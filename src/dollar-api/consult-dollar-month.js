@@ -1,22 +1,21 @@
-//https://economia.awesomeapi.com.br/json/daily/${moeda}?start_date=20180901&end_date=20180930
 import fetch from "node-fetch";
 import moment from "moment";
 
-const formatPattern = "MM-DD-YYYY";
-const debugFlag = false;
-
+const FORMAT_DATE_API = "MM-DD-YYYY";
+/*
+ * Outra fonte: `https://economia.awesomeapi.com.br/json/daily/${moeda}?start_date=${starData}&end_date=${endDate}`;
+ */
 export const consultDolarMonth = async (moeda, starData, endDate) => {
   debug("consultDolarMonth:", { moeda, starData, endDate });
   const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='${starData}'&@dataFinalCotacao='${endDate}'&$top=100&$format=json&$select=cotacaoCompra,cotacaoVenda`;
-  //const url = `https://economia.awesomeapi.com.br/json/daily/${moeda}?start_date=${starData}&end_date=${endDate}`;
   const response = await fetch(url, { method: "GET" });
   const data = await response.json();
   return data;
 };
 
 const debug = (message, data) => {
-  if (!debugFlag) return;
-  console.log(message, data ? JSON.stringify(data) : "");
+  if (!process.env.DEBUG) return;
+  console.log("debug:" + message, data ? JSON.stringify(data) : "");
 };
 
 const print = (message) => {
@@ -73,8 +72,8 @@ const main = async () => {
 
     const cotacoes = await consultDolarMonth(
       "USD-BRL",
-      startDate.format(formatPattern),
-      endDate.format(formatPattern)
+      startDate.format(FORMAT_DATE_API),
+      endDate.format(FORMAT_DATE_API)
     );
     const menorCotacao = getLowestCotacaoCompra(cotacoes);
     const maiorCotacao = getHighestCotacaoCompra(cotacoes);
