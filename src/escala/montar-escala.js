@@ -46,9 +46,11 @@ export const montarEscalaDoDia = (dia, locaisDeEscala, profissionais) => {
     const tagsNecessarias = localEscala.necessidades.filter((necessidade) => {
       return !!necessidade.tag;
     });
-    const tagsNaoEncontradas = tagsNecessarias.map((necessidade) => {
-      return necessidade.tag;
-    });
+    const tagsNaoEncontradas = localEscala.necessidades.filter(
+      (necessidade) => {
+        return !!necessidade.tag;
+      }
+    );
     const cargosNecessarios = localEscala.necessidades.filter((necessida) => {
       return necessida.cargo;
     });
@@ -89,24 +91,27 @@ export const montarEscalaDoDia = (dia, locaisDeEscala, profissionais) => {
       }
     });
     tagsNaoEncontradas.forEach((tagNaoEncontrada) => {
-      debug("--tagNaoEncontrada", tagNaoEncontrada);
-      const filaDeProfissionaisPorTag = profissionaisMap[tagNaoEncontrada];
-      if (!filaDeProfissionaisPorTag) {
-        throw new Error(
-          `Profissional tag "${tagNaoEncontrada}" não encontrado para o dia "${dia}" no local "${regra.local}"`
+      for (let i = 0; i < tagNaoEncontrada.quantidade; i++) {
+        debug("--tagNaoEncontrada", tagNaoEncontrada);
+        const filaDeProfissionaisPorTag =
+          profissionaisMap[tagNaoEncontrada.tag];
+        if (!filaDeProfissionaisPorTag) {
+          throw new Error(
+            `Profissional tag "${tagNaoEncontrada}" não encontrado para o dia "${dia}" no local "${regra.local}"`
+          );
+        }
+        const profissionalTagEscolhido = filaDeProfissionaisPorTag.shift();
+        filaDeProfissionaisPorTag.push(profissionalTagEscolhido);
+        const escala = mapEscala(
+          profissionalTagEscolhido,
+          tagNaoEncontrada.tag,
+          localEscala.local,
+          dia
         );
+        debug("profissionalTagEscolhido", profissionalTagEscolhido);
+        debug("escala", escala);
+        escalas.push(escala);
       }
-      const profissionalTagEscolhido = filaDeProfissionaisPorTag.shift();
-      filaDeProfissionaisPorTag.push(profissionalTagEscolhido);
-      const escala = mapEscala(
-        profissionalTagEscolhido,
-        tagNaoEncontrada,
-        localEscala.local,
-        dia
-      );
-      debug("profissionalTagEscolhido", profissionalTagEscolhido);
-      debug("escala", escala);
-      escalas.push(escala);
     });
   });
   return escalas;
