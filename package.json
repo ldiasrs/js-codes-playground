@@ -5,8 +5,9 @@
     "test": "vitest",
     "user": "node --experimental-modules src/user-test.js",
     "pdf": "node --experimental-modules src/pdf-reader.js",
-    "dollar": "node --experimental-modules src/dollar-api/consult-dollar-month.js",
-    "login-ssn": "node src/auto-login/auto-login-with-ssh.js local"
+    "dollar": "node --experimental-modules src/dollar-api/consult-dollar-api.js",
+    "update-invest": "node src/investing/update-invest-spreadsheet.js",
+    "find-best-invest": "node src/investing/find-best-product.js"
   },
   "type": "module",
   "author": "Leonardo Dias",

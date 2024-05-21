@@ -1,16 +1,6 @@
-import { readFile2 } from "../commons.js";
-
+import config from "../../config/global-config.prod.json" assert { type: "json" };
 import moment from "moment";
-
-const bestInvestProduct = {
-  taxaEmPorcentagem: 1,
-  tipo: "CDB",
-  indexador: "DI", //DI ou IPCA
-  aplicacaoMinima: 0,
-  resgate: "22/01/2035",
-  grauRisco: 5,
-  garantidoFgc: true,
-};
+import { readFileSync } from "fs";
 
 const extractTaxaFromText = (text) => {
   const taxa = text.match(/(\d+,?\d*)%/);
@@ -52,7 +42,9 @@ const filterInvestProducts = (investProducts, filterOptions) => {
     investProducts: investProductsFiltered,
   };
 };
-const products = await readFile2("data/produtos-para-investir.json");
+const products = await readFileSync(
+  config.find_best_investment.input_data_file
+);
 const investProducts = mapToBestInvestProducts(JSON.parse(products));
 
 const cdbDi = filterInvestProducts(investProducts, {

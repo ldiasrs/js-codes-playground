@@ -3,5 +3,5 @@ node_modules
 saida.txt
 .DS_Store
 users.db
-config
 data
+config/global-config.prod.json
