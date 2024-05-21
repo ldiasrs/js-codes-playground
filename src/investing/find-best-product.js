@@ -1,6 +1,7 @@
 import config from "../../config/global-config.prod.json" assert { type: "json" };
 import moment from "moment";
 import { readFileSync } from "fs";
+import { writeFile } from "../common/commons.js";
 
 const extractTaxaFromText = (text) => {
   const taxa = text.match(/(\d+,?\d*)%/);
@@ -47,41 +48,44 @@ const products = await readFileSync(
 );
 const investProducts = mapToBestInvestProducts(JSON.parse(products));
 
+const grauRisco = 3;
 const cdbDi = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "DI",
   taxaEmPorcentagem: 120,
-  grauRisco: 5,
+  grauRisco,
 });
 
 const cdbIpca = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "IPCA",
   taxaEmPorcentagem: 5,
-  grauRisco: 5,
+  grauRisco,
 });
 
 const cdbPre = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "PRE",
   taxaEmPorcentagem: 11,
-  grauRisco: 5,
+  grauRisco,
 });
 
 const lciDi = filterInvestProducts(investProducts, {
   tipo: "LCI",
   indexador: "DI",
   taxaEmPorcentagem: 100,
-  grauRisco: 5,
+  grauRisco,
 });
 
 const lciIpca = filterInvestProducts(investProducts, {
   tipo: "LCI",
   indexador: "IPCA",
   taxaEmPorcentagem: 5,
-  grauRisco: 5,
+  grauRisco,
 });
-
+const timeFileIdName = moment().format("YYYYMMDDHHmmss");
 const allProducts = [cdbPre, cdbDi, cdbIpca, lciDi, lciIpca];
-
-console.log(JSON.stringify(allProducts, null, 2));
+await writeFile(
+  `output/best-investment-products.${timeFileIdName}.json`,
+  JSON.stringify(allProducts, null, 2)
+);
