@@ -1,8 +1,7 @@
 import { montarEscalaDoDia } from "./montar-escala.js";
-import { expect, test, describe } from "vitest";
 
 describe("montarEscalaDoDia", () => {
-  test("deve montar escala com cargo e tag", () => {
+  it("deve montar escala com cargo e tag", () => {
     const locaisDeEscala = [
       {
         local: "Vac Gasômetro",
@@ -55,7 +54,7 @@ describe("montarEscalaDoDia", () => {
     ]);
   });
 
-  test("deve utilizar mesma pessoa com tag quando já esta na escala", () => {
+  it("deve utilizar mesma pessoa com tag quando já esta na escala", () => {
     const locaisDeEscala = [
       {
         local: "Vac Gasômetro",
@@ -100,7 +99,7 @@ describe("montarEscalaDoDia", () => {
     ]);
   });
 
-  test("deve utilizar mesma pessoa com multiplas tag quando já esta na escala", () => {
+  it("deve utilizar mesma pessoa com multiplas tag quando já esta na escala", () => {
     const locaisDeEscala = [
       {
         local: "Vac Gasômetro",

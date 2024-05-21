@@ -2,7 +2,6 @@
   "name": "js-codes-playground",
   "version": "1.0.0",
   "scripts": {
-    "test": "vitest",
     "user": "node --experimental-modules src/user-test.js",
     "pdf": "node --experimental-modules src/pdf-reader.js",
     "dollar": "node --experimental-modules src/dollar-api/consult-dollar-api.js",

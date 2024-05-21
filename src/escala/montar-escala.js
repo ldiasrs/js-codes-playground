@@ -1,4 +1,4 @@
-import { debug } from "..//commons.js";
+import { debug } from "../commons.js";
 const createMappingProfissionaisPorCargo = (profissionais) => {
   const stack = [];
   profissionais.forEach((profissional) => {
