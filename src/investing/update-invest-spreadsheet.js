@@ -3,6 +3,9 @@ import { JWT } from "google-auth-library";
 import { readFileSync } from "fs";
 import config from "../../config/global-config.prod.json" assert { type: "json" };
 import { debug } from "../common/commons.js";
+import moment from "moment";
+import { writeFile } from "../common/commons.js";
+import { v4 as uuidv4 } from "uuid";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
@@ -16,19 +19,117 @@ const readInvestList = () => {
   );
   investList.data.forEach((invest) => {
     invest.notas.forEach((nota) => {
+      const dataVencimento = nota.dataVencimento.includes("-")
+        ? moment(nota.dataVencimento, "YYYY-MM-DD").format("DD/MM/YYYY")
+        : nota.dataVencimento;
+
+      const dataCompra = nota.dataOperacao.includes("-")
+        ? moment(nota.dataOperacao, "YYYY-MM-DD").format("DD/MM/YYYY")
+        : nota.dataOperacao;
       investFlatList.push({
+        id: uuidv4(),
         ativo: invest.produto,
         taxa: `${nota.tipo}: ${nota.indexador}`,
+        numeroNota: nota.numeroNota,
         aplicado: nota.valorOperacao,
         valorBruto: nota.valorBruto,
-        dataCompra: nota.dataOperacao,
-        dataVencimento: nota.dataVencimento,
+        dataCompra,
+        dataVencimento,
         valorLiquido: nota.valorLiquido,
       });
     });
   });
   return investFlatList;
 };
+async function readBaseData(doc) {
+  await doc.loadInfo();
+  const baseSheetTab = await doc.sheetsByTitle["base"];
+  const rows = await baseSheetTab.getRows();
+  const current = [];
+  rows.forEach((row) => {
+    current.push({
+      id: uuidv4(),
+      ativo: row.get("Ativo"),
+      taxa: row.get("Taxa"),
+      aplicado: row.get("Aplicado"),
+      valorBruto: row.get("Atual Bruto"),
+      dataCompra: row.get("Data compra"),
+      dataVencimento: row.get("Vencimento"),
+      valorLiquido: 0,
+    });
+  });
+  return current;
+}
+
+async function deleteOldData(doc) {
+  await doc.sheetsByTitle["ativos"]?.delete();
+  await doc.sheetsByTitle["merge"]?.delete();
+  await doc.sheetsByTitle["Copy of base"]?.delete();
+  await doc.sheetsByTitle["bank-conflicts"]?.delete();
+  await doc.sheetsByTitle["base-conflicts"]?.delete();
+  await doc.sheetsByTitle["base-updated"]?.delete();
+}
+
+async function writeSheet(doc, sheetTabName, data) {
+  const sheet = await doc.addSheet({
+    title: sheetTabName,
+    headerValues: [
+      "ativo",
+      "taxa",
+      "numeroNota",
+      "aplicado",
+      "valorBruto",
+      "dataCompra",
+      "dataVencimento",
+      "valorLiquido",
+    ],
+  });
+  await sheet.addRows(data);
+}
+
+async function duplicateBase(doc) {
+  const base = doc.sheetsByTitle["base"];
+  await base.copyToSpreadsheet(
+    config.update_invest_spread_sheet.spread_sheet_id
+  );
+}
+
+function mergeInvests(baseInvests, bankInvests) {
+  const baseConflicts = [];
+  const matchedAtivos = [];
+  const bankInvestMap = new Map();
+  bankInvests.forEach((ativo) => {
+    bankInvestMap.set(ativo.id, ativo);
+  });
+  baseInvests.forEach((ativoBase) => {
+    const ativoBaseAplicado = ativoBase?.aplicado
+      ?.replace(",", "")
+      ?.replace("R$", "")
+      ?.trim();
+    const matchBankAtivo = bankInvests.find(
+      (ativoBank) =>
+        ativoBank.ativo?.trim() === ativoBase.ativo?.trim() &&
+        ativoBase.dataCompra?.trim() === ativoBank.dataCompra?.trim() &&
+        ativoBase.dataVencimento?.trim() === ativoBank.dataVencimento?.trim() &&
+        Number(ativoBaseAplicado) === ativoBank?.aplicado
+    );
+    if (!matchBankAtivo) {
+      baseConflicts.push(ativoBase);
+    } else {
+      matchedAtivos.push({
+        ...ativoBase,
+        valorBruto: matchBankAtivo.valorBruto,
+        numeroNota: matchBankAtivo.numeroNota,
+      });
+      bankInvestMap.delete(matchBankAtivo.id);
+    }
+  });
+  return {
+    matchedAtivos,
+    baseConflicts,
+    bankConflicts: Array.from(bankInvestMap.values()),
+  };
+}
 
 const updateInvestSpreadSheet = async (data) => {
   try {
@@ -48,26 +149,35 @@ const updateInvestSpreadSheet = async (data) => {
       .toISOString()
       .replace(/:/g, "-");
 
-    debug(`Creating sheet name: ${sheetNameCurrentDateTime} ...`);
-    const sheet = await doc.addSheet({
-      title: sheetNameCurrentDateTime,
-      headerValues: [
-        "ativo",
-        "taxa",
-        "aplicado",
-        "valorBruto",
-        "dataCompra",
-        "dataVencimento",
-        "valorLiquido",
-      ],
-    });
-    debug(`Adding rows...`);
-    await sheet.addRows(data);
+    debug("Removing old data");
+    await deleteOldData(doc);
+
+    debug("Reading investimentos from bank");
+    const data = readInvestList();
+
+    debug(`Writing ativos tab`);
+    await writeSheet(doc, "ativos", data);
+
+    debug("Read base data");
+    const current = await readBaseData(doc);
+
+    debug("Merging and getting conflics");
+    const mergeResponse = mergeInvests(current, data);
+    const outputFile = "output/conflicts-invest-updates.json";
+    await writeFile(outputFile, JSON.stringify(mergeResponse, null, 2));
+    debug("Conflicts written to file: " + outputFile);
+
+    debug(`Writing base-updated tab`);
+    await writeSheet(doc, "base-updated", mergeResponse.matchedAtivos);
+    debug(`Writing conflicts tab`);
+    await writeSheet(doc, "base-conflicts", mergeResponse.baseConflicts);
+    debug(`Writing new-invests tab`);
+    await writeSheet(doc, "bank-conflicts", mergeResponse.bankConflicts);
+    //debug(`Duplicating base tab...`);
+    //await duplicateBase(doc);
   } catch (error) {
     console.error("Error writing data to spreadsheet:", error);
   }
 };
 
-const data = readInvestList();
-await updateInvestSpreadSheet(data);
-debug("Data written to spreadsheet");
+await updateInvestSpreadSheet();

@@ -2,6 +2,7 @@ import config from "../../config/global-config.prod.json" assert { type: "json" 
 import moment from "moment";
 import { readFileSync } from "fs";
 import { writeFile } from "../common/commons.js";
+import { debug } from "../common/commons.js";
 
 const extractTaxaFromText = (text) => {
   const taxa = text.match(/(\d+,?\d*)%/);
@@ -85,7 +86,6 @@ const lciIpca = filterInvestProducts(investProducts, {
 });
 const timeFileIdName = moment().format("YYYYMMDDHHmmss");
 const allProducts = [cdbPre, cdbDi, cdbIpca, lciDi, lciIpca];
-await writeFile(
-  `output/best-investment-products.${timeFileIdName}.json`,
-  JSON.stringify(allProducts, null, 2)
-);
+const outputFile = `output/best-investment-products.${timeFileIdName}.json`;
+await writeFile(outputFile, JSON.stringify(allProducts, null, 2));
+debug("File created with the best investment products on: " + outputFile);
