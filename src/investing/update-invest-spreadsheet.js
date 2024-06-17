@@ -147,6 +147,7 @@ const updateInvestSpreadSheet = async (data) => {
       key: config.update_invest_spread_sheet.private_key,
       scopes: SCOPES,
     });
+    debug("ATENTION: Remeber to update base tab...");
     debug("Accessing document...");
     const doc = new GoogleSpreadsheet(
       config.update_invest_spread_sheet.spread_sheet_id,
