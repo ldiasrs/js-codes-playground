@@ -13,10 +13,10 @@ const SCOPES = [
 ];
 
 const readInvestList = () => {
+  const inputDataFile = process.argv[2];
+
   const investFlatList = [];
-  const investList = JSON.parse(
-    readFileSync(config.update_invest_spread_sheet.input_data_file)
-  );
+  const investList = JSON.parse(readFileSync(inputDataFile));
   investList.data.forEach((invest) => {
     invest.notas.forEach((nota) => {
       const dataVencimento = nota.dataVencimento.includes("-")
@@ -133,6 +133,15 @@ function mergeInvests(baseInvests, bankInvests) {
 
 const updateInvestSpreadSheet = async (data) => {
   try {
+    if (!process.argv[2]) {
+      console.error(
+        "\nERROR: Please provide the input file with the bank data"
+      );
+      console.log(
+        "Example: npm run update-invest ./data/investimentos-2024-06-17.json"
+      );
+      process.exit(1);
+    }
     const jwt = new JWT({
       email: config.update_invest_spread_sheet.client_email,
       key: config.update_invest_spread_sheet.private_key,
