@@ -6,7 +6,8 @@
     "pdf": "node --experimental-modules src/pdf-reader.js",
     "dollar": "node --experimental-modules src/dollar-api/consult-dollar-api.js",
     "update-invest": "node src/investing/update-invest-spreadsheet.js",
-    "find-best-invest": "node --experimental-modules src/investing/find-best-product.js"
+    "find-best-invest": "node --experimental-modules src/investing/find-best-product.js",
+    "airbnb-hosting-invoice": "node --experimental-modules src/airbnb-hosting-invoice/airbnb-hosting-invoice.js"
   },
   "type": "module",
   "author": "Leonardo Dias",
