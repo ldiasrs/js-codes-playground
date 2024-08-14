@@ -102,8 +102,9 @@ function mergeInvests(baseInvests, bankInvests) {
     bankInvestMap.set(ativo.id, ativo);
   });
   baseInvests.forEach((ativoBase) => {
-    const ativoBaseAplicado = ativoBase?.aplicado
-      ?.replace(",", "")
+    const ativoBaseValorAplicado = ativoBase?.aplicado
+      ?.replace(".", "")
+      ?.replace(",", ".")
       ?.replace("R$", "")
       ?.trim();
     const matchBankAtivo = bankInvests.find(
@@ -111,7 +112,7 @@ function mergeInvests(baseInvests, bankInvests) {
         ativoBank.ativo?.trim() === ativoBase.ativo?.trim() &&
         ativoBase.dataCompra?.trim() === ativoBank.dataCompra?.trim() &&
         ativoBase.dataVencimento?.trim() === ativoBank.dataVencimento?.trim() &&
-        Number(ativoBaseAplicado) === ativoBank?.aplicado
+        Number(ativoBaseValorAplicado) === ativoBank?.aplicado
     );
     if (!matchBankAtivo) {
       baseConflicts.push(ativoBase);

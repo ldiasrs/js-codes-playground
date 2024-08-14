@@ -18,6 +18,10 @@ export function printoutput(output) {
   console.log("\n" + output);
 }
 
+export const writeJSONFile = async (filePath, jsonContent) => {
+  await writeFile(filePath, JSON.stringify(jsonContent, null, 2));
+};
+
 export function writeFile(filePath, content) {
   _writeFile(filePath, content, (err) => {
     if (err) {
