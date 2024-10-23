@@ -26,6 +26,7 @@ const mapToBestInvestProducts = (products) => {
 };
 
 const filterInvestProducts = (investProducts, filterOptions) => {
+  debug("Filtering investment products", filterOptions);
   const investProductsFiltered = investProducts
     .filter((invest) => invest.tipo === filterOptions.tipo)
     .filter((invest) => invest.indexador === filterOptions.indexador)
@@ -39,14 +40,19 @@ const filterInvestProducts = (investProducts, filterOptions) => {
     )
     .sort((a, b) => (a.grauRisco < b.grauRisco ? -1 : 1))
     .sort((a, b) => b.taxaEmPorcentagem - a.taxaEmPorcentagem);
+  debug("Investment products filtered: " + investProductsFiltered.length);
   return {
     filterName: `${filterOptions.tipo} ${filterOptions.indexador}`,
     investProducts: investProductsFiltered,
   };
 };
+
+debug("Reading file: " + config.find_best_investment.input_data_file);
 const products = await readFileSync(
   config.find_best_investment.input_data_file
 );
+
+debug("Parsing products size: " + products?.length);
 const investProducts = mapToBestInvestProducts(JSON.parse(products));
 
 const grauRisco = 3;
