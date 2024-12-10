@@ -113,7 +113,9 @@ function mergeInvests(baseInvests, bankInvests) {
     const matchBankAtivo = bankInvests.find(
       (ativoBank) =>
         ativoBank.ativo?.trim() === ativoBase.ativo?.trim() &&
-        ativoBase.dataCompra?.trim() === ativoBank.dataCompra?.trim() &&
+        moment(ativoBase.dataCompra?.trim(), "DD/MM/YYYY").isSame(
+          moment(ativoBank.dataCompra?.trim(), "DD/MM/YYYY")
+        ) &&
         ativoBase.dataVencimento?.trim() === ativoBank.dataVencimento?.trim() &&
         Number(ativoBaseValorAplicado) === ativoBank?.aplicado
     );
