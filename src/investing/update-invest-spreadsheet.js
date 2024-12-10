@@ -65,24 +65,27 @@ async function deleteOldData(doc) {
   await doc.sheetsByTitle["ativos"]?.delete();
   await doc.sheetsByTitle["merge"]?.delete();
   await doc.sheetsByTitle["Copy of base"]?.delete();
-  await doc.sheetsByTitle["bank-conflicts"]?.delete();
-  await doc.sheetsByTitle["base-conflicts"]?.delete();
+  await doc.sheetsByTitle["conflicts"]?.delete();
   await doc.sheetsByTitle["base-updated"]?.delete();
 }
 
-async function writeSheet(doc, sheetTabName, data) {
+async function writeSheetInvest(doc, sheetTabName, data) {
+  await writeSheet(doc, sheetTabName, data, [
+    "ativo",
+    "taxa",
+    "numeroNota",
+    "aplicado",
+    "valorBruto",
+    "dataCompra",
+    "dataVencimento",
+    "valorLiquido",
+  ]);
+}
+
+async function writeSheet(doc, sheetTabName, data, headerValues) {
   const sheet = await doc.addSheet({
     title: sheetTabName,
-    headerValues: [
-      "ativo",
-      "taxa",
-      "numeroNota",
-      "aplicado",
-      "valorBruto",
-      "dataCompra",
-      "dataVencimento",
-      "valorLiquido",
-    ],
+    headerValues,
   });
   await sheet.addRows(data);
 }
@@ -115,6 +118,7 @@ function mergeInvests(baseInvests, bankInvests) {
         Number(ativoBaseValorAplicado) === ativoBank?.aplicado
     );
     if (!matchBankAtivo) {
+      debug("Invest not found on bank: ", ativoBase);
       baseConflicts.push(ativoBase);
     } else {
       matchedAtivos.push({
@@ -125,10 +129,41 @@ function mergeInvests(baseInvests, bankInvests) {
       bankInvestMap.delete(matchBankAtivo.id);
     }
   });
+  bankInvestMap.forEach((ativoBank) => {
+    debug("Invest not found on base: ", ativoBank);
+  });
+  const finalConflicts = [];
+  bankInvestMap.forEach((value) => {
+    finalConflicts.push({
+      source: "bank",
+      id: value.id,
+      ativo: value.ativo,
+      taxa: value.taxa,
+      numeroNota: value.numeroNota,
+      aplicado: value.aplicado,
+      valorBruto: value.valorBruto,
+      dataCompra: value.dataCompra,
+      dataVencimento: value.dataVencimento,
+      valorLiquido: value.valorLiquido,
+    });
+  });
+  baseConflicts.forEach((value) => {
+    finalConflicts.push({
+      source: "base",
+      id: value.id,
+      ativo: value.ativo,
+      taxa: value.taxa,
+      numeroNota: value.numeroNota,
+      aplicado: value.aplicado,
+      valorBruto: value.valorBruto,
+      dataCompra: value.dataCompra,
+      dataVencimento: value.dataVencimento,
+      valorLiquido: value.valorLiquido,
+    });
+  });
   return {
     matchedAtivos,
-    baseConflicts,
-    bankConflicts: Array.from(bankInvestMap.values()),
+    conflicts: finalConflicts,
   };
 }
 
@@ -167,7 +202,7 @@ const updateInvestSpreadSheet = async (data) => {
     const data = readInvestList();
 
     debug(`Writing ativos tab`);
-    await writeSheet(doc, "ativos", data);
+    await writeSheetInvest(doc, "ativos", data);
 
     debug("Read base data");
     const current = await readBaseData(doc);
@@ -179,11 +214,19 @@ const updateInvestSpreadSheet = async (data) => {
     debug("Conflicts written to file: " + outputFile);
 
     debug(`Writing base-updated tab`);
-    await writeSheet(doc, "base-updated", mergeResponse.matchedAtivos);
+    await writeSheetInvest(doc, "base-updated", mergeResponse.matchedAtivos);
     debug(`Writing conflicts tab`);
-    await writeSheet(doc, "base-conflicts", mergeResponse.baseConflicts);
-    debug(`Writing new-invests tab`);
-    await writeSheet(doc, "bank-conflicts", mergeResponse.bankConflicts);
+    await writeSheet(doc, "conflicts", mergeResponse.conflicts, [
+      "source",
+      "ativo",
+      "taxa",
+      "numeroNota",
+      "aplicado",
+      "valorBruto",
+      "dataCompra",
+      "dataVencimento",
+      "valorLiquido",
+    ]);
     //debug(`Duplicating base tab...`);
     //await duplicateBase(doc);
   } catch (error) {

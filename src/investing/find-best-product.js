@@ -44,6 +44,7 @@ const filterInvestProducts = (investProducts, filterOptions) => {
   return {
     filterName: `${filterOptions.tipo} ${filterOptions.indexador}`,
     investProducts: investProductsFiltered,
+    comentario: filterOptions.comentario,
   };
 };
 
@@ -59,14 +60,7 @@ const grauRisco = 3;
 const cdbDi = filterInvestProducts(investProducts, {
   tipo: "CDB",
   indexador: "DI",
-  taxaEmPorcentagem: 120,
-  grauRisco,
-});
-
-const cdbIpca = filterInvestProducts(investProducts, {
-  tipo: "CDB",
-  indexador: "IPCA",
-  taxaEmPorcentagem: 5,
+  taxaEmPorcentagem: 110,
   grauRisco,
 });
 
@@ -90,6 +84,17 @@ const lciIpca = filterInvestProducts(investProducts, {
   taxaEmPorcentagem: 5,
   grauRisco,
 });
+
+//Os ultimos investimentos em IPCA tiveram resultado muito ruim nao recomendo
+const cdbIpca = filterInvestProducts(investProducts, {
+  tipo: "CDB",
+  indexador: "IPCA",
+  taxaEmPorcentagem: 12,
+  comentario:
+    "Os ultimos investimentos em IPCA tiveram resultado muito ruim nao recomendo",
+  grauRisco,
+});
+
 const timeFileIdName = moment().format("YYYYMMDDHHmmss");
 const allProducts = [cdbPre, cdbDi, cdbIpca, lciDi, lciIpca];
 const outputFile = `output/best-investment-products.${timeFileIdName}.json`;
