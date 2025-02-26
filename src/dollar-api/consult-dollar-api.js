@@ -1,5 +1,5 @@
-import fetch from "node-fetch";
 import moment from "moment";
+import fetch from "node-fetch";
 
 const FORMAT_DATE_API = "MM-DD-YYYY";
 /*
@@ -78,6 +78,7 @@ const getRangeForMode = (mode) => {
 
 const main = async (mode) => {
   try {
+    printHelp();
     print("Mode: " + mode);
     const { startDate, endDate } = getRangeForMode(mode);
     print(
