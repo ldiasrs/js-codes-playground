@@ -86,7 +86,16 @@ fs.readdir(folderPath, (err, files) => {
         const sortedCategories = Object.entries(result.dataByCategory).sort(
           ([, a], [, b]) => b.total - a.total
         );
-        const filtroCategorias = process.env.FILTRO_CATEGORIA ?? ["OUTROS"];
+        const filtroCategorias = process.env.FILTRO_CATEGORIA;
+        // ?? [
+        //   "SUPERMERCADO",
+        //   "VESTUARIO",
+        //   "COMPRAS",
+        //   "ENTRETENIMENTO",
+        //   "CULTURA",
+        //   "CONSTRUCAO",
+        //   "SERVICOS",
+        // ];
         sortedCategories
           .filter(([categoria]) =>
             filtroCategorias && filtroCategorias.length > 0

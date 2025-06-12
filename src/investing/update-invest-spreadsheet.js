@@ -55,6 +55,7 @@ async function readBaseData(doc) {
       valorBruto: row.get("Atual Bruto"),
       dataCompra: row.get("Data compra"),
       dataVencimento: row.get("Vencimento"),
+      numeroNota: row.get("numeroNota"),
       valorLiquido: 0,
     });
   });
