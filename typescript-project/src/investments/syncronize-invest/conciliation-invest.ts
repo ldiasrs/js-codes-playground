@@ -1,15 +1,17 @@
 import { debug } from "../common/commons";
+import moment from "moment";
+import Dinero from "dinero.js";
 
 interface InvestItem {
   id: string;
   ativo: string;
   taxa: string;
   numeroNota: string;
-  aplicado: any; // Dinero object or number
-  valorBruto: any; // Dinero object or number
-  dataCompra: any; // Moment object
-  dataVencimento: any; // Moment object
-  valorLiquido: any; // Dinero object or number
+  aplicado: Dinero.Dinero;
+  valorBruto: Dinero.Dinero;
+  dataCompra: moment.Moment;
+  dataVencimento: moment.Moment;
+  valorLiquido: Dinero.Dinero;
 }
 
 interface ConflictItem extends InvestItem {
@@ -40,21 +42,13 @@ export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[
       // Compare dates safely
       const baseDataCompra = ativoBase.dataCompra;
       const bankDataCompra = ativoBank.dataCompra;
-      if (
-        !!baseDataCompra &&
-        !!bankDataCompra &&
-        !baseDataCompra.isSame(bankDataCompra)
-      ) {
+      if (!baseDataCompra.isSame(bankDataCompra)) {
         return false;
       }
 
       const baseDataVencimento = ativoBase.dataVencimento;
       const bankDataVencimento = ativoBank.dataVencimento;
-      if (
-        !!baseDataVencimento &&
-        !!bankDataVencimento &&
-        !baseDataVencimento.isSame(bankDataVencimento)
-      ) {
+      if (!baseDataVencimento.isSame(bankDataVencimento)) {
         return false;
       }
 
@@ -62,29 +56,8 @@ export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[
       const baseAplicado = ativoBase.aplicado;
       const bankAplicado = ativoBank.aplicado;
 
-      // If both are Dinero objects, use equals method
-      if (
-        baseAplicado &&
-        bankAplicado &&
-        typeof baseAplicado.equals === "function" &&
-        typeof bankAplicado.equals === "function"
-      ) {
-        return baseAplicado.equals(bankAplicado);
-      }
-
-      // Fallback: convert to numbers for comparison
-      const baseAmount = baseAplicado
-        ? typeof baseAplicado.toUnit === "function"
-          ? baseAplicado.toUnit()
-          : Number(baseAplicado)
-        : 0;
-      const bankAmount = bankAplicado
-        ? typeof bankAplicado.toUnit === "function"
-          ? bankAplicado.toUnit()
-          : Number(bankAplicado)
-        : 0;
-
-      return baseAmount === bankAmount;
+      // Use Dinero's equals method for comparison
+      return baseAplicado.equalsTo(bankAplicado);
     });
 
     if (!matchBankAtivo) {

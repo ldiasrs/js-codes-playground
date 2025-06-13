@@ -1,17 +1,19 @@
 import { readFileSync } from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { normalizeCurrency, normalizeDate } from "../common/common-helpers";
+import moment from "moment";
+import Dinero from "dinero.js";
 
 interface InvestItem {
   id: string;
   ativo: string;
   taxa: string;
   numeroNota: string;
-  aplicado: any; // Dinero object or number
-  valorBruto: any; // Dinero object or number
-  dataCompra: any; // Moment object
-  dataVencimento: any; // Moment object
-  valorLiquido: any; // Dinero object or number
+  aplicado: Dinero.Dinero;
+  valorBruto: Dinero.Dinero;
+  dataCompra: moment.Moment;
+  dataVencimento: moment.Moment;
+  valorLiquido: Dinero.Dinero;
 }
 
 interface BankInvestData {
@@ -72,7 +74,7 @@ export async function parseBaseData(doc: any): Promise<InvestItem[]> {
       dataCompra: normalizeDate(row.get("Data compra")?.trim()),
       dataVencimento: normalizeDate(row.get("Vencimento")?.trim()),
       numeroNota: row.get("numeroNota")?.toString()?.trim() || "",
-      valorLiquido: 0,
+      valorLiquido: normalizeCurrency(0),
     });
   });
   return current;

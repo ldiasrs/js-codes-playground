@@ -1,51 +1,60 @@
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import { JWT } from "google-auth-library";
-import config from "../../config/global-config.prod.json" assert { type: "json" };
-import { debug } from "../common/commons.js";
-import { writeFile } from "../common/commons.js";
-import { parseBankList, parseBaseData } from "./parse-invest-data.js";
-import { mergeInvests } from "./invest-conciliation.js";
-import { writeSheetInvest, writeSheet, deleteOldData, } from "./write-invest-sheet.js";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateInvestSpreadSheet = void 0;
+const google_spreadsheet_1 = require("google-spreadsheet");
+const google_auth_library_1 = require("google-auth-library");
+const fs_1 = require("fs");
+const parser_invest_1 = require("./parser-invest");
+const conciliation_invest_1 = require("./conciliation-invest");
+const write_invest_sheet_1 = require("./write-invest-sheet");
+const commons_1 = require("../common/commons");
+const path_1 = __importDefault(require("path"));
 const SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
 ];
-export const updateInvestSpreadSheet = async () => {
+// Import config using absolute path
+const configPath = path_1.default.join(__dirname, "../../../config/global-config.prod.json");
+const config = JSON.parse((0, fs_1.readFileSync)(configPath, 'utf8'));
+const updateInvestSpreadSheet = async () => {
     try {
         if (!process.argv[2]) {
             console.error("\nERROR: Please provide the input file with the bank data");
             console.log("Example: npm run update-invest ./data/investimentos-2024-06-17.json");
             process.exit(1);
         }
-        const jwt = new JWT({
+        const jwt = new google_auth_library_1.JWT({
             email: config.update_invest_spread_sheet.client_email,
             key: config.update_invest_spread_sheet.private_key,
             scopes: SCOPES,
         });
-        debug("ATENTION: Remeber to update base tab...");
-        debug("Accessing document...");
-        const doc = new GoogleSpreadsheet(config.update_invest_spread_sheet.spread_sheet_id, jwt);
-        debug("Loanding document...");
+        (0, commons_1.debug)("ATENTION: Remeber to update base tab...");
+        (0, commons_1.debug)("Accessing document...");
+        const doc = new google_spreadsheet_1.GoogleSpreadsheet(config.update_invest_spread_sheet.spread_sheet_id, jwt);
+        (0, commons_1.debug)("Loanding document...");
         await doc.loadInfo();
         const sheetNameCurrentDateTime = new Date()
             .toISOString()
             .replace(/:/g, "-");
-        debug("Removing old data");
-        await deleteOldData(doc);
-        debug("Reading investimentos from bank");
-        const data = parseBankList();
-        debug(`Writing ativos tab`);
-        await writeSheetInvest(doc, "ativos", data);
-        debug("Read base data");
-        const current = await parseBaseData(doc);
-        debug("Merging and getting conflics");
-        const mergeResponse = mergeInvests(current, data);
+        (0, commons_1.debug)("Removing old data");
+        await (0, write_invest_sheet_1.deleteOldData)(doc);
+        (0, commons_1.debug)("Reading investimentos from bank");
+        const data = (0, parser_invest_1.parseBankList)();
+        (0, commons_1.debug)(`Writing ativos tab`);
+        await (0, write_invest_sheet_1.writeSheetInvest)(doc, "ativos", data);
+        (0, commons_1.debug)("Read base data");
+        const current = await (0, parser_invest_1.parseBaseData)(doc);
+        (0, commons_1.debug)("Merging and getting conflics");
+        const mergeResponse = (0, conciliation_invest_1.mergeInvests)(current, data);
         const outputFile = "output/conflicts-invest-updates.json";
-        await writeFile(outputFile, JSON.stringify(mergeResponse, null, 2));
-        debug("Conflicts written to file: " + outputFile);
-        debug(`Writing base-updated tab`);
-        await writeSheetInvest(doc, "base-updated", mergeResponse.matchedAtivos);
-        debug(`Writing conflicts tab`);
+        await (0, commons_1.writeFile)(outputFile, JSON.stringify(mergeResponse, null, 2));
+        (0, commons_1.debug)("Conflicts written to file: " + outputFile);
+        (0, commons_1.debug)(`Writing base-updated tab`);
+        await (0, write_invest_sheet_1.writeSheetInvest)(doc, "base-updated", mergeResponse.matchedAtivos);
+        (0, commons_1.debug)(`Writing conflicts tab`);
         const convertedConflicts = mergeResponse.conflicts.map((item) => ({
             ...item,
             aplicado: item.aplicado ? item.aplicado.toUnit() : 0,
@@ -56,7 +65,7 @@ export const updateInvestSpreadSheet = async () => {
                 : "",
             valorLiquido: item.valorLiquido ? item.valorLiquido.toUnit() : 0,
         }));
-        await writeSheet(doc, "conflicts", convertedConflicts, [
+        await (0, write_invest_sheet_1.writeSheet)(doc, "conflicts", convertedConflicts, [
             "source",
             "ativo",
             "taxa",
@@ -67,12 +76,11 @@ export const updateInvestSpreadSheet = async () => {
             "dataVencimento",
             "valorLiquido",
         ]);
-        //debug(`Duplicating base tab...`);
-        //await duplicateBase(doc);
     }
     catch (error) {
         console.error("Error writing data to spreadsheet:", error);
     }
 };
-await updateInvestSpreadSheet();
+exports.updateInvestSpreadSheet = updateInvestSpreadSheet;
+(0, exports.updateInvestSpreadSheet)();
 //# sourceMappingURL=update-invest-spreadsheet.js.map

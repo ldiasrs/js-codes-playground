@@ -1,8 +1,8 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { JWT } from "google-auth-library";
 import { readFileSync } from "fs";
-import { parseBankList, parseBaseData } from "./parse-invest-data";
-import { mergeInvests } from "./invest-conciliation";
+import { parseBankList, parseBaseData } from "./parser-invest";
+import { mergeInvests } from "./conciliation-invest";
 import {
   writeSheetInvest,
   writeSheet,

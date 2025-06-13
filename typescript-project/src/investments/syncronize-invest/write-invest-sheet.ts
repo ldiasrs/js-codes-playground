@@ -3,9 +3,11 @@ import { JWT } from "google-auth-library";
 import { readFileSync } from "fs";
 import { debug } from "../common/commons";
 import { writeFile } from "../common/commons";
-import { parseBankList, parseBaseData } from "./parse-invest-data";
-import { mergeInvests } from "./invest-conciliation";
+import { parseBankList, parseBaseData } from "./parser-invest";
+import { mergeInvests } from "./conciliation-invest";
 import path from "path";
+import moment from "moment";
+import Dinero from "dinero.js";
 
 // Import config using absolute path
 const configPath = path.join(__dirname, "../../../config/global-config.prod.json");
@@ -16,11 +18,11 @@ interface InvestItem {
   ativo: string;
   taxa: string;
   numeroNota: string;
-  aplicado: any; // Dinero object or number
-  valorBruto: any; // Dinero object or number
-  dataCompra: any; // Moment object
-  dataVencimento: any; // Moment object
-  valorLiquido: any; // Dinero object or number
+  aplicado: Dinero.Dinero;
+  valorBruto: Dinero.Dinero;
+  dataCompra: moment.Moment;
+  dataVencimento: moment.Moment;
+  valorLiquido: Dinero.Dinero;
 }
 
 export async function deleteOldData(doc: GoogleSpreadsheet): Promise<void> {
@@ -35,13 +37,11 @@ export async function writeSheetInvest(doc: GoogleSpreadsheet, sheetTabName: str
   // Convert data for spreadsheet writing
   const convertedData = data.map((item) => ({
     ...item,
-    aplicado: item.aplicado ? item.aplicado.toUnit() : 0,
-    valorBruto: item.valorBruto ? item.valorBruto.toUnit() : 0,
-    dataCompra: item.dataCompra ? item.dataCompra.format("DD/MM/YYYY") : "",
-    dataVencimento: item.dataVencimento
-      ? item.dataVencimento.format("DD/MM/YYYY")
-      : "",
-    valorLiquido: item.valorLiquido ? item.valorLiquido.toUnit() : 0,
+    aplicado: item.aplicado.toUnit(),
+    valorBruto: item.valorBruto.toUnit(),
+    dataCompra: item.dataCompra.format("DD/MM/YYYY"),
+    dataVencimento: item.dataVencimento.format("DD/MM/YYYY"),
+    valorLiquido: item.valorLiquido.toUnit(),
   }));
 
   await writeSheet(doc, sheetTabName, convertedData, [
