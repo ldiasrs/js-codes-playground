@@ -65,8 +65,8 @@ describe('mergeInvests', () => {
     });
   });
 
-  describe('Conflict Scenarios', () => {
-    test('should identify conflicts when no investments match', () => {
+  describe('Conflict Scenarios with Cause Identification', () => {
+    test('should identify conflicts when no investments match and set appropriate causes', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -79,11 +79,17 @@ describe('mergeInvests', () => {
 
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(2);
-      expect(result.conflicts.find(c => c.source === 'base')?.ativo).toBe("CDB Banco ABC");
-      expect(result.conflicts.find(c => c.source === 'bank')?.ativo).toBe("Tesouro Direto");
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      const bankConflict = result.conflicts.find(c => c.source === 'bank');
+      
+      expect(baseConflict?.ativo).toBe("CDB Banco ABC");
+      expect(bankConflict?.ativo).toBe("Tesouro Direto");
+      expect(baseConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BANK");
+      expect(bankConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BASE");
     });
 
-    test('should identify conflicts when ativo names differ', () => {
+    test('should identify conflicts when ativo names differ and set appropriate cause', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -96,9 +102,15 @@ describe('mergeInvests', () => {
 
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      const bankConflict = result.conflicts.find(c => c.source === 'bank');
+      
+      expect(baseConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BANK");
+      expect(bankConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BASE");
     });
 
-    test('should identify conflicts when purchase dates differ', () => {
+    test('should identify conflicts when purchase dates differ and set DATE_MISSMATCH_PURCHASE cause', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -111,9 +123,12 @@ describe('mergeInvests', () => {
 
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("DATE_MISSMATCH_PURCHASE");
     });
 
-    test('should identify conflicts when maturity dates differ', () => {
+    test('should identify conflicts when maturity dates differ and set DATE_MISSMATCH_DUE cause', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -126,9 +141,12 @@ describe('mergeInvests', () => {
 
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("DATE_MISSMATCH_DUE");
     });
 
-    test('should identify conflicts when amounts differ', () => {
+    test('should identify conflicts when amounts differ and set AMOUNT_MISSMATCH cause', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -141,6 +159,27 @@ describe('mergeInvests', () => {
 
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("AMOUNT_MISSMATCH");
+    });
+
+    test('should identify multiple criteria mismatch when several fields differ', () => {
+      const baseInvests = [
+        createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
+      ];
+
+      const bankInvests = [
+        createInvestItem("2", "CDB Banco ABC", "12.5%", "002", 1100000, 1100000, "2023-01-16", "2024-01-16", 1237500),
+      ];
+
+      const result = mergeInvests(baseInvests, bankInvests);
+
+      expect(result.matchedAtivos).toHaveLength(0);
+      expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("DATE_MISSMATCH_PURCHASE");
     });
   });
 
@@ -164,6 +203,15 @@ describe('mergeInvests', () => {
       expect(result.conflicts).toHaveLength(2);
       expect(result.matchedAtivos.map(m => m.ativo)).toContain("CDB Banco ABC");
       expect(result.matchedAtivos.map(m => m.ativo)).toContain("Tesouro Direto");
+      
+      // Check that conflicts have appropriate causes
+      const baseConflicts = result.conflicts.filter(c => c.source === 'base');
+      const bankConflicts = result.conflicts.filter(c => c.source === 'bank');
+      
+      expect(baseConflicts).toHaveLength(1);
+      expect(bankConflicts).toHaveLength(1);
+      expect(baseConflicts[0].cause).toBe("ASSET_NOT_FOUND_IN_BANK");
+      expect(bankConflicts[0].cause).toBe("ASSET_NOT_FOUND_IN_BASE");
     });
   });
 
@@ -185,6 +233,7 @@ describe('mergeInvests', () => {
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(1);
       expect(result.conflicts[0].source).toBe("bank");
+      expect(result.conflicts[0].cause).toBe("ASSET_NOT_FOUND_IN_BASE");
     });
 
     test('should handle empty bank array', () => {
@@ -197,11 +246,12 @@ describe('mergeInvests', () => {
       expect(result.matchedAtivos).toHaveLength(0);
       expect(result.conflicts).toHaveLength(1);
       expect(result.conflicts[0].source).toBe("base");
+      expect(result.conflicts[0].cause).toBe("ASSET_NOT_FOUND_IN_BANK");
     });
   });
 
   describe('Complex Scenarios', () => {
-    test('should handle multiple matches with conflicts', () => {
+    test('should handle multiple matches with conflicts and identify causes', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
         createInvestItem("2", "Tesouro Direto", "10.0%", "002", 500000, 500000, "2023-02-20", "2024-02-20", 550000),
@@ -231,6 +281,12 @@ describe('mergeInvests', () => {
       const baseConflicts = result.conflicts.filter(c => c.source === 'base');
       expect(bankConflicts).toHaveLength(2);
       expect(baseConflicts).toHaveLength(2);
+      
+      // Check that all conflicts have causes
+      result.conflicts.forEach(conflict => {
+        expect(conflict.cause).toBeDefined();
+        expect(conflict.cause).not.toBe("");
+      });
     });
   });
 
@@ -260,7 +316,7 @@ describe('mergeInvests', () => {
       expect(matched.numeroNota).toBe("002");
     });
 
-    test('should mark conflicts with correct source', () => {
+    test('should mark conflicts with correct source and cause', () => {
       const baseInvests = [
         createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
       ];
@@ -280,6 +336,46 @@ describe('mergeInvests', () => {
       expect(bankConflict).toBeDefined();
       expect(baseConflict?.ativo).toBe("CDB Banco ABC");
       expect(bankConflict?.ativo).toBe("Tesouro Direto");
+      expect(baseConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BANK");
+      expect(bankConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BASE");
+    });
+  });
+
+  describe('Conflict Cause Specificity', () => {
+    test('should prioritize first mismatch found in comparison order', () => {
+      const baseInvests = [
+        createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
+      ];
+
+      const bankInvests = [
+        createInvestItem("2", "CDB Banco ABC", "12.5%", "002", 1100000, 1100000, "2023-01-16", "2024-01-16", 1237500),
+      ];
+
+      const result = mergeInvests(baseInvests, bankInvests);
+
+      expect(result.matchedAtivos).toHaveLength(0);
+      expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("DATE_MISSMATCH_PURCHASE");
+    });
+
+    test('should handle case sensitivity in ativo names', () => {
+      const baseInvests = [
+        createInvestItem("1", "CDB Banco ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
+      ];
+
+      const bankInvests = [
+        createInvestItem("2", "CDB BANCO ABC", "12.5%", "001", 1000000, 1000000, "2023-01-15", "2024-01-15", 1125000),
+      ];
+
+      const result = mergeInvests(baseInvests, bankInvests);
+
+      expect(result.matchedAtivos).toHaveLength(0);
+      expect(result.conflicts).toHaveLength(2);
+      
+      const baseConflict = result.conflicts.find(c => c.source === 'base');
+      expect(baseConflict?.cause).toBe("ASSET_NOT_FOUND_IN_BANK");
     });
   });
 }); 

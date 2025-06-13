@@ -82,6 +82,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
 
     await writeSheet(doc, "conflicts", convertedConflicts, [
       "source",
+      "cause",
       "ativo",
       "taxa",
       "numeroNota",

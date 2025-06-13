@@ -6,6 +6,8 @@ js-project/users.db
 js-project/data
 js-project/config/global-config.prod.json
 js-project/output
+js-project/coverage
+js-project/dist
 
 typescript-project/node_modules
 typescript-project/.env
@@ -15,3 +17,16 @@ typescript-project/users.db
 typescript-project/data
 typescript-project/config/global-config.prod.json
 typescript-project/output
+typescript-project/coverage
+typescript-project/dist
+typescript-project/dist/**
+typescript-project/dist/investments/common/common-helpers.d.ts.map
+typescript-project/dist/investments/common/common-helpers.js
+typescript-project/dist/investments/common/common-helpers.js.map
+typescript-project/dist/investments/syncronize-invest/conciliation-invest.d.ts
+typescript-project/dist/investments/syncronize-invest/conciliation-invest.d.ts.map
+typescript-project/dist/investments/syncronize-invest/conciliation-invest.js
+typescript-project/dist/investments/syncronize-invest/conciliation-invest.js.map
+typescript-project/dist/investments/syncronize-invest/update-invest-spreadsheet.d.ts.map
+typescript-project/dist/investments/syncronize-invest/update-invest-spreadsheet.js
+typescript-project/dist/investments/syncronize-invest/update-invest-spreadsheet.js.map

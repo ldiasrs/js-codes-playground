@@ -16,6 +16,7 @@ interface InvestItem {
 
 interface ConflictItem extends InvestItem {
   source: "bank" | "base";
+  cause: string;
 }
 
 interface MergeResult {
@@ -24,7 +25,7 @@ interface MergeResult {
 }
 
 export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[]): MergeResult {
-  const baseConflicts: InvestItem[] = [];
+  const baseConflicts: (InvestItem & { cause: string })[] = [];
   const matchedAtivos: InvestItem[] = [];
   const bankInvestMap = new Map<string, InvestItem>();
 
@@ -33,23 +34,29 @@ export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[
   });
 
   baseInvests.forEach((ativoBase) => {
-    const matchBankAtivo = bankInvests.find((ativoBank) => {
+    let matchFound = false;
+    let conflictCause = "";
+
+    // Try to find a match in bank invests
+    for (const ativoBank of bankInvests) {
       // Compare ativo name
       if (ativoBank.ativo !== ativoBase.ativo) {
-        return false;
+        continue;
       }
 
       // Compare dates safely
       const baseDataCompra = ativoBase.dataCompra;
       const bankDataCompra = ativoBank.dataCompra;
       if (!baseDataCompra.isSame(bankDataCompra)) {
-        return false;
+        conflictCause = "DATE_MISSMATCH_PURCHASE";
+        continue;
       }
 
       const baseDataVencimento = ativoBase.dataVencimento;
       const bankDataVencimento = ativoBank.dataVencimento;
       if (!baseDataVencimento.isSame(bankDataVencimento)) {
-        return false;
+        conflictCause = "DATE_MISSMATCH_DUE";
+        continue;
       }
 
       // Compare currency values safely
@@ -57,25 +64,49 @@ export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[
       const bankAplicado = ativoBank.aplicado;
 
       // Use Dinero's equals method for comparison
-      return baseAplicado.equalsTo(bankAplicado);
-    });
+      if (!baseAplicado.equalsTo(bankAplicado)) {
+        conflictCause = "AMOUNT_MISSMATCH";
+        continue;
+      }
 
-    if (!matchBankAtivo) {
-      baseConflicts.push(ativoBase);
-    } else {
+      // If we reach here, we found a match
+      matchFound = true;
       matchedAtivos.push({
         ...ativoBase,
-        valorBruto: matchBankAtivo.valorBruto,
-        numeroNota: matchBankAtivo.numeroNota,
+        valorBruto: ativoBank.valorBruto,
+        numeroNota: ativoBank.numeroNota,
       });
-      bankInvestMap.delete(matchBankAtivo.id);
+      bankInvestMap.delete(ativoBank.id);
+      break;
+    }
+
+    if (!matchFound) {
+      // If no match was found, determine the cause
+      const potentialMatch = bankInvests.find(ativoBank => ativoBank.ativo === ativoBase.ativo);
+      
+      if (!potentialMatch) {
+        conflictCause = "ASSET_NOT_FOUND_IN_BANK";
+      } else {
+        // We already determined the cause in the loop above
+        if (!conflictCause) {
+          conflictCause = "MULTIPLE_CRITERIA_MISSMATCH";
+        }
+      }
+      
+      baseConflicts.push({
+        ...ativoBase,
+        cause: conflictCause,
+      });
     }
   });
 
   const finalConflicts: ConflictItem[] = [];
+  
+  // Add bank conflicts
   bankInvestMap.forEach((value) => {
     finalConflicts.push({
       source: "bank",
+      cause: "ASSET_NOT_FOUND_IN_BASE",
       id: value.id,
       ativo: value.ativo,
       taxa: value.taxa,
@@ -88,9 +119,11 @@ export function mergeInvests(baseInvests: InvestItem[], bankInvests: InvestItem[
     });
   });
 
+  // Add base conflicts
   baseConflicts.forEach((value) => {
     finalConflicts.push({
       source: "base",
+      cause: value.cause,
       id: value.id,
       ativo: value.ativo,
       taxa: value.taxa,
