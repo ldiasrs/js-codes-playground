@@ -1,0 +1,11 @@
+{
+    "update_invest_spread_sheet": {
+        "input_data_file": "data/investimentos-2024-05-20.json",
+        "spread_sheet_id": "",
+        "private_key": "",
+        "client_email": ""
+    },
+    "find_best_investment": {
+        "input_data_file": "data/produtos-para-investir.json"
+    }
+}
