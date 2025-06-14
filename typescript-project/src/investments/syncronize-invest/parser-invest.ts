@@ -6,6 +6,7 @@ import Dinero from "dinero.js";
 
 interface InvestItem {
   id: string;
+  source: "bank" | "base";
   ativo: string;
   taxa: string;
   numeroNota: string;
@@ -45,6 +46,7 @@ export const parseBankList = (): InvestItem[] => {
     invest.notas.forEach((nota) => {
       investFlatList.push({
         id: uuidv4(),
+        source: "bank",
         ativo: invest.produto?.trim() || "",
         taxa: `${nota.tipo}: ${nota.indexador}`,
         numeroNota: nota?.numeroNota?.toString()?.trim() || "",
@@ -67,6 +69,7 @@ export async function parseBaseData(doc: any): Promise<InvestItem[]> {
   rows.forEach((row: any) => {
     current.push({
       id: uuidv4(),
+      source: "base",
       ativo: row.get("Ativo")?.trim() || "",
       taxa: row.get("Taxa")?.trim() || "",
       aplicado: normalizeCurrency(row.get("Aplicado")),

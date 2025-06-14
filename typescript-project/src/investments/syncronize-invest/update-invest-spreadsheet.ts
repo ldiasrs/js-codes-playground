@@ -52,16 +52,16 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
     await deleteOldData(doc);
 
     debug("Reading investimentos from bank");
-    const data = parseBankList();
+    const bankInvests = parseBankList();
 
     debug(`Writing ativos tab`);
-    await writeSheetInvest(doc, "ativos", data);
+    await writeSheetInvest(doc, "ativos", bankInvests);
 
     debug("Read base data");
-    const current = await parseBaseData(doc);
+    const baseInvests = await parseBaseData(doc);
 
     debug("Merging and getting conflics");
-    const mergeResponse = mergeInvests(current, data);
+    const mergeResponse = mergeInvests(baseInvests, bankInvests);
     const outputFile = "output/conflicts-invest-updates.json";
     await writeFile(outputFile, JSON.stringify(mergeResponse, null, 2));
     debug("Conflicts written to file: " + outputFile);
@@ -71,6 +71,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
     debug(`Writing conflicts tab`);
     const convertedConflicts = mergeResponse.conflicts.map((item) => ({
       ...item,
+      level: item.validationLvl,
       aplicado: item.aplicado ? item.aplicado.toUnit() : 0,
       valorBruto: item.valorBruto ? item.valorBruto.toUnit() : 0,
       dataCompra: item.dataCompra ? item.dataCompra.format("DD/MM/YYYY") : "",
@@ -83,6 +84,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
     await writeSheet(doc, "conflicts", convertedConflicts, [
       "source",
       "cause",
+      "level",
       "ativo",
       "taxa",
       "numeroNota",
