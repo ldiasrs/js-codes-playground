@@ -6,6 +6,7 @@ import { EmailSenderFactory } from '../infrastructure/factories/EmailSenderFacto
 
 import { GenerateAndEmailTopicHistoryCommand, GenerateAndEmailTopicHistoryCommandData } from '../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 import { GenerateAndEmailTopicHistoryFeature } from '../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
+import { GenerateTopicHistoryFeature } from '../domain/topic-history/features/GenerateTopicHistoryFeature';
 
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../application/dto/TopicDTO';
 
@@ -22,11 +23,16 @@ async function generateAndEmailExample() {
     const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv();
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();
 
-    // Initialize feature
-    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+    // Initialize features
+    const generateTopicHistoryFeature = new GenerateTopicHistoryFeature(
       topicRepository,
       topicHistoryRepository,
-      generateTopicHistoryPort,
+      generateTopicHistoryPort
+    );
+
+    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+      generateTopicHistoryFeature,
+      topicRepository,
       sendTopicHistoryByEmailPort
     );
 
@@ -119,10 +125,15 @@ async function generateAndEmailWithCustomConfig() {
     const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGenerator(customApiKey);
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();
 
-    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+    const generateTopicHistoryFeature = new GenerateTopicHistoryFeature(
       topicRepository,
       topicHistoryRepository,
-      generateTopicHistoryPort,
+      generateTopicHistoryPort
+    );
+
+    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+      generateTopicHistoryFeature,
+      topicRepository,
       sendTopicHistoryByEmailPort
     );
 
@@ -159,10 +170,15 @@ async function generateAndEmailMultipleTopics() {
     const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv();
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();
 
-    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+    const generateTopicHistoryFeature = new GenerateTopicHistoryFeature(
       topicRepository,
       topicHistoryRepository,
-      generateTopicHistoryPort,
+      generateTopicHistoryPort
+    );
+
+    const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
+      generateTopicHistoryFeature,
+      topicRepository,
       sendTopicHistoryByEmailPort
     );
 

@@ -1,8 +1,7 @@
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
 import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { GenerateTopicHistoryFeature } from './GenerateTopicHistoryFeature';
 
 export interface GenerateAndEmailTopicHistoryFeatureData {
   topicId: string;
@@ -11,9 +10,8 @@ export interface GenerateAndEmailTopicHistoryFeatureData {
 
 export class GenerateAndEmailTopicHistoryFeature {
   constructor(
+    private readonly generateTopicHistoryFeature: GenerateTopicHistoryFeature,
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
     private readonly sendTopicHistoryByEmailPort: SendTopicHistoryByEmailPort
   ) {}
 
@@ -26,26 +24,16 @@ export class GenerateAndEmailTopicHistoryFeature {
   async execute(data: GenerateAndEmailTopicHistoryFeatureData): Promise<TopicHistory> {
     const { topicId, recipientEmail } = data;
 
-    // Step 1: Verify topic exists
+    // Step 1: Get topic to retrieve the subject for email
     const topic = await this.topicRepository.findById(topicId);
     if (!topic) {
       throw new Error(`Topic with ID ${topicId} not found`);
     }
 
-    // Step 2: Get existing history for context
-    const existingHistory = await this.topicHistoryRepository.findByTopicId(topicId);
+    // Step 2: Generate topic history using the dedicated feature
+    const savedHistory = await this.generateTopicHistoryFeature.execute({ topicId });
 
-    // Step 3: Generate new content using the port
-    const generatedContent = await this.generateTopicHistoryPort.generate({
-      topicSubject: topic.subject,
-      history: existingHistory
-    });
-
-    // Step 4: Create and save the new history entry
-    const newHistory = new TopicHistory(topicId, generatedContent);
-    const savedHistory = await this.topicHistoryRepository.save(newHistory);
-
-    // Step 5: Send the topic history by email
+    // Step 3: Send the topic history by email
     await this.sendTopicHistoryByEmailPort.send({
       email: recipientEmail,
       topicHistory: savedHistory,
