@@ -1,25 +1,21 @@
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
 
 // Infrastructure adapters
 import { JsonCustomerRepository } from './infrastructure/adapters/JsonCustomerRepository';
-import { JsonTopicRepository } from './infrastructure/adapters/JsonTopicRepository';
 import { JsonTopicHistoryRepository } from './infrastructure/adapters/JsonTopicHistoryRepository';
+import { JsonTopicRepository } from './infrastructure/adapters/JsonTopicRepository';
 
 // Domain features
 import { CreateCustomerFeature } from './domain/customer/features/CreateCustomerFeature';
-import { AddTopicFeature } from './domain/topic/features/AddTopicFeature';
 import { AddTopicHistoryFeature } from './domain/topic-history/features/AddTopicHistoryFeature';
+import { AddTopicFeature } from './domain/topic/features/AddTopicFeature';
 
 // DTOs
 import { CustomerDTO, CustomerDTOMapper } from './application/dto/CustomerDTO';
-import { TopicDTO, TopicDTOMapper } from './application/dto/TopicDTO';
-import { TopicHistoryDTO, TopicHistoryDTOMapper } from './application/dto/TopicDTO';
+import { TopicDTO, TopicDTOMapper, TopicHistoryDTO, TopicHistoryDTOMapper } from './application/dto/TopicDTO';
 
 // Domain entities
-import { Customer } from './domain/customer/entities/Customer';
-import { Topic } from './domain/topic/entities/Topic';
-import { TopicHistory } from './domain/topic-history/entities/TopicHistory';
 
 class LearnEverydayExample {
   private dataDir: string;
