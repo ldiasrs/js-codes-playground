@@ -1,5 +1,5 @@
-import { Customer } from '../../domain/entities/Customer';
-import { Topic } from '../../domain/entities/Topic';
+import { Customer } from '../../domain/customer/entities/Customer';
+import { Topic } from '../../domain/topic/entities/Topic';
 import { GovIdentificationDTO } from './GovIdentificationDTO';
 import { TopicDTO, TopicDTOMapper } from './TopicDTO';
 

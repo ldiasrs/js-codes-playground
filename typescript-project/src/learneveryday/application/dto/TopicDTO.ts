@@ -1,5 +1,5 @@
-import { Topic } from '../../domain/entities/Topic';
-import { TopicHistory } from '../../domain/entities/TopicHistory';
+import { Topic } from '../../domain/topic/entities/Topic';
+import { TopicHistory } from '../../domain/topic-history/entities/TopicHistory';
 
 export interface TopicHistoryDTO {
   id: string;
@@ -16,12 +16,12 @@ export interface TopicDTO {
 }
 
 export class TopicDTOMapper {
-  static toDTO(entity: Topic): TopicDTO {
+  static toDTO(entity: Topic, history: TopicHistory[] = []): TopicDTO {
     return {
       id: entity.id,
       subject: entity.subject,
       dateCreated: entity.dateCreated.toISOString(),
-      history: entity.history.map(h => ({
+      history: history.map(h => ({
         id: h.id,
         topicId: h.topicId,
         content: h.content,
@@ -32,15 +32,10 @@ export class TopicDTOMapper {
 
   static fromDTO(dto: TopicDTO): Topic {
     return new Topic(
+      '', // customerId is not in DTO, would need to be provided separately
       dto.subject,
       dto.id,
-      new Date(dto.dateCreated),
-      dto.history.map(h => ({
-        id: h.id,
-        topicId: h.topicId,
-        content: h.content,
-        createdAt: new Date(h.createdAt),
-      }))
+      new Date(dto.dateCreated)
     );
   }
 }

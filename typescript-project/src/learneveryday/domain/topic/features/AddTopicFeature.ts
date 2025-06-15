@@ -36,7 +36,7 @@ export class AddTopicFeature {
     }
 
     // Step 3: Create and save the new topic
-    const newTopic = new Topic(subject, customerId);
+    const newTopic = new Topic(customerId, subject);
     const savedTopic = await this.topicRepository.save(newTopic);
 
     return savedTopic;

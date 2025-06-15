@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Topic } from '../../domain/entities/Topic';
-import { TopicRepositoryPort, TopicSearchCriteria } from '../../domain/ports/TopicRepositoryPort';
+import { Topic } from '../../domain/topic/entities/Topic';
+import { TopicRepositoryPort, TopicSearchCriteria } from '../../domain/topic/ports/TopicRepositoryPort';
 const moment = require('moment');
 
 interface TopicData {

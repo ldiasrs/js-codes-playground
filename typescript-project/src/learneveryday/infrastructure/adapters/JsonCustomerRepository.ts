@@ -1,8 +1,9 @@
-import { Customer } from '../../domain/entities/Customer';
-import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../domain/ports/CustomerRepositoryPort';
+import { Customer } from '../../domain/customer/entities/Customer';
+import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../domain/customer/ports/CustomerRepositoryPort';
 import * as fs from 'fs';
 import * as path from 'path';
 import moment from 'moment';
+import { GovIdentificationType } from '../../domain/shared/GovIdentification';
 
 interface CustomerData {
   id: string;
@@ -57,7 +58,10 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     const customerData: CustomerData = {
       id: customer.id || '',
       customerName: customer.customerName,
-      govIdentification: customer.govIdentification,
+      govIdentification: {
+        type: customer.govIdentification.type as GovIdentificationType,
+        content: customer.govIdentification.content
+      },
       dateCreated: customer.dateCreated.toISOString()
     };
 
@@ -82,7 +86,7 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
 
     return new Customer(
       customerData.customerName,
-      customerData.govIdentification,
+      { type: customerData.govIdentification.type as GovIdentificationType, content: customerData.govIdentification.content },
       customerData.id,
       new Date(customerData.dateCreated)
     );
@@ -92,7 +96,7 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     const customers = this.readCustomers();
     return customers.map(data => new Customer(
       data.customerName,
-      data.govIdentification,
+      { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
       data.id,
       new Date(data.dateCreated)
     ));
@@ -104,16 +108,16 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       .filter(data => data.customerName.toLowerCase().includes(customerName.toLowerCase()))
       .map(data => new Customer(
         data.customerName,
-        data.govIdentification,
+        { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
         data.id,
         new Date(data.dateCreated)
       ));
   }
 
-  async findByGovIdentification(type: string, content: string): Promise<Customer | undefined> {
+  async findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined> {
     const customers = this.readCustomers();
     const customerData = customers.find(c => 
-      c.govIdentification.type === type && c.govIdentification.content === content
+      c.govIdentification.type === govIdentification.type && c.govIdentification.content === govIdentification.content
     );
     
     if (!customerData) {
@@ -122,7 +126,7 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
 
     return new Customer(
       customerData.customerName,
-      customerData.govIdentification,
+      { type: customerData.govIdentification.type as GovIdentificationType, content: customerData.govIdentification.content },
       customerData.id,
       new Date(customerData.dateCreated)
     );
@@ -137,7 +141,7 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       })
       .map(data => new Customer(
         data.customerName,
-        data.govIdentification,
+        { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
         data.id,
         new Date(data.dateCreated)
       ));
@@ -157,7 +161,7 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       return topicCount >= minTopics;
     }).map(data => new Customer(
       data.customerName,
-      data.govIdentification,
+      { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
       data.id,
       new Date(data.dateCreated)
     ));
@@ -172,15 +176,10 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       );
     }
 
-    if (criteria.govIdentificationType) {
+    if (criteria.govIdentification) {
       customers = customers.filter(customer => 
-        customer.govIdentification.type === criteria.govIdentificationType
-      );
-    }
-
-    if (criteria.govIdentificationContent) {
-      customers = customers.filter(customer => 
-        customer.govIdentification.content.includes(criteria.govIdentificationContent!)
+        customer.govIdentification.type === criteria.govIdentification!.type &&
+        customer.govIdentification.content.includes(criteria.govIdentification!.content)
       );
     }
 
@@ -193,44 +192,11 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       });
     }
 
-    if (criteria.hasTopics !== undefined) {
-      const topics = this.readTopics();
-      if (criteria.hasTopics) {
-        customers = customers.filter(customer => {
-          const customerTopics = topics.filter(topic => topic.customerId === customer.id);
-          return customerTopics.length > 0;
-        });
-      } else {
-        customers = customers.filter(customer => {
-          const customerTopics = topics.filter(topic => topic.customerId === customer.id);
-          return customerTopics.length === 0;
-        });
-      }
-    }
-
-    if (criteria.topicCount !== undefined) {
-      const topics = this.readTopics();
-      customers = customers.filter(customer => {
-        const customerTopics = topics.filter(topic => topic.customerId === customer.id);
-        return customerTopics.length === criteria.topicCount;
-      });
-    }
-
     if (criteria.hasRecentActivity) {
       const hours = criteria.recentActivityHours || 24;
+      const cutoffDate = moment().subtract(hours, 'hours');
       customers = customers.filter(customer => {
-        const topics = this.readTopics();
-        const customerTopics = topics.filter(topic => topic.customerId === customer.id);
-        
-        if (customerTopics.length === 0) return false;
-        
-        const cutoffDate = moment().subtract(hours, 'hours');
-        const hasRecentActivity = customerTopics.some(topic => {
-          const topicDate = moment(topic.dateCreated);
-          return topicDate.isAfter(cutoffDate);
-        });
-        
-        return hasRecentActivity;
+        return moment(customer.dateCreated).isAfter(cutoffDate);
       });
     }
 
@@ -288,5 +254,10 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       
       return hasRecentActivity;
     });
+  }
+
+  async count(): Promise<number> {
+    const customers = this.readCustomers();
+    return customers.length;
   }
 } 

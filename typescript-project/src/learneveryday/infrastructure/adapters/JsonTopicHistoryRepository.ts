@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { TopicHistory } from '../../domain/entities/TopicHistory';
-import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria, TopicActivitySummary } from '../../domain/ports/TopicHistoryRepositoryPort';
+import { TopicHistory } from '../../domain/topic-history/entities/TopicHistory';
+import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
 import moment from 'moment';
 
 interface TopicHistoryData {
@@ -11,7 +11,14 @@ interface TopicHistoryData {
   createdAt: string;
 }
 
-export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
+interface TopicActivitySummary {
+  totalEntries: number;
+  latestEntry?: TopicHistory;
+  firstEntry?: TopicHistory;
+  averageEntriesPerDay: number;
+}
+
+export class JsonTopicHistoryRepository {
   private readonly dataDir: string;
   private readonly topicHistoriesFile: string;
 
@@ -74,11 +81,6 @@ export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
     return topicHistory;
   }
 
-  async saveFromInterface(topicHistory: ITopicHistory): Promise<TopicHistory> {
-    const history = TopicHistory.createFromInterface(topicHistory);
-    return this.save(history);
-  }
-
   async findById(id: string): Promise<TopicHistory | undefined> {
     const histories = await this.readTopicHistoriesFile();
     const historyData = histories.find(h => h.id === id);
@@ -110,9 +112,13 @@ export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
     });
   }
 
-  async findRecent(hours: number): Promise<TopicHistory[]> {
+  async findWithRecentActivity(hours: number): Promise<TopicHistory[]> {
     const histories = await this.findAll();
-    return histories.filter(history => history.isRecent(hours));
+    const cutoffDate = moment().subtract(hours, 'hours');
+    return histories.filter(history => {
+      const historyDate = moment(history.createdAt);
+      return historyDate.isAfter(cutoffDate);
+    });
   }
 
   async search(criteria: TopicHistorySearchCriteria): Promise<TopicHistory[]> {
@@ -137,11 +143,6 @@ export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
       });
     }
 
-    if (criteria.isRecent) {
-      const hours = criteria.recentHours || 24;
-      results = results.filter(history => history.isRecent(hours));
-    }
-
     return results;
   }
 
@@ -158,26 +159,14 @@ export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
     return false;
   }
 
-  async deleteByTopicId(topicId: string): Promise<number> {
+  async deleteByTopicId(topicId: string): Promise<void> {
     const histories = await this.readTopicHistoriesFile();
-    const initialLength = histories.length;
     const filteredHistories = histories.filter(h => h.topicId !== topicId);
-    
-    if (filteredHistories.length < initialLength) {
-      await this.writeTopicHistoriesFile(filteredHistories);
-      return initialLength - filteredHistories.length;
-    }
-    
-    return 0;
+    await this.writeTopicHistoriesFile(filteredHistories);
   }
 
   async count(): Promise<number> {
     const histories = await this.readTopicHistoriesFile();
-    return histories.length;
-  }
-
-  async countByTopicId(topicId: string): Promise<number> {
-    const histories = await this.findByTopicId(topicId);
     return histories.length;
   }
 
@@ -251,5 +240,22 @@ export class JsonTopicHistoryRepository implements TopicHistoryRepositoryPort {
       firstEntry,
       averageEntriesPerDay
     };
+  }
+
+  async getTopicHistoryCreatedToday(): Promise<TopicHistory[]> {
+    return this.getHistoriesCreatedToday();
+  }
+
+  async getTopicHistoryCreatedThisWeek(): Promise<TopicHistory[]> {
+    return this.getHistoriesCreatedThisWeek();
+  }
+
+  async getTopicHistoryCreatedThisMonth(): Promise<TopicHistory[]> {
+    return this.getHistoriesCreatedThisMonth();
+  }
+
+  async countByTopicId(topicId: string): Promise<number> {
+    const histories = await this.findByTopicId(topicId);
+    return histories.length;
   }
 } 

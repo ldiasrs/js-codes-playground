@@ -7,7 +7,12 @@ export class Customer {
     public readonly govIdentification: GovIdentification,
     public readonly id?: string,
     public readonly dateCreated: Date = new Date()
-  ) {}
+  ) {
+    // Generate ID if not provided
+    if (!id) {
+      (this as any).id = uuidv4();
+    }
+  }
 
   public getGovIdentificationFormatted(): string {
     return `${this.govIdentification.type}: ${this.govIdentification.content}`;
