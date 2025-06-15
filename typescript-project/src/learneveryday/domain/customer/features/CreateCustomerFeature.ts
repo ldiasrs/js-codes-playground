@@ -8,6 +8,8 @@ export interface CreateCustomerFeatureData {
     type: string;
     content: string;
   };
+  email: string;
+  phoneNumber: string;
 }
 
 export class CreateCustomerFeature {
@@ -18,19 +20,19 @@ export class CreateCustomerFeature {
 
   /**
    * Executes the CreateCustomer feature
-   * @param data The data containing customerName and govIdentification
+   * @param data The data containing customerName, govIdentification, email, and phoneNumber
    * @returns Promise<{customer: Customer, topics: Topic[]}> The created customer and their topics
    * @throws Error if customer creation fails
    */
   async execute(data: CreateCustomerFeatureData): Promise<{customer: Customer, topics: any[]}> {
-    const { customerName, govIdentification } = data;
+    const { customerName, govIdentification, email, phoneNumber } = data;
 
     // Step 1: Create customer based on identification type
     let customer: Customer;
     if (govIdentification.type === 'CPF') {
-      customer = Customer.createWithCPF(customerName, govIdentification.content);
+      customer = Customer.createWithCPF(customerName, govIdentification.content, email, phoneNumber);
     } else {
-      customer = Customer.createWithOtherId(customerName, govIdentification.content);
+      customer = Customer.createWithOtherId(customerName, govIdentification.content, email, phoneNumber);
     }
 
     // Step 2: Save the customer

@@ -8,6 +8,8 @@ export interface CreateCustomerCommandData {
     type: string;
     content: string;
   };
+  email: string;
+  phoneNumber: string;
 }
 
 export class CreateCustomerCommand extends BaseCommand<CustomerDTO> {
@@ -22,7 +24,9 @@ export class CreateCustomerCommand extends BaseCommand<CustomerDTO> {
     // Convert command data to feature data
     const featureData: CreateCustomerFeatureData = {
       customerName: this.data.customerName,
-      govIdentification: this.data.govIdentification
+      govIdentification: this.data.govIdentification,
+      email: this.data.email,
+      phoneNumber: this.data.phoneNumber
     };
 
     // Execute the feature

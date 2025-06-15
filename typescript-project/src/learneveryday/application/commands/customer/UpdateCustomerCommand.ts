@@ -9,6 +9,8 @@ export interface UpdateCustomerCommandData {
     type: string;
     content: string;
   };
+  email?: string;
+  phoneNumber?: string;
 }
 
 export class UpdateCustomerCommand extends BaseCommand<CustomerDTO> {
@@ -24,7 +26,9 @@ export class UpdateCustomerCommand extends BaseCommand<CustomerDTO> {
     const featureData: UpdateCustomerFeatureData = {
       id: this.data.id,
       customerName: this.data.customerName,
-      govIdentification: this.data.govIdentification
+      govIdentification: this.data.govIdentification,
+      email: this.data.email,
+      phoneNumber: this.data.phoneNumber
     };
 
     // Execute the feature

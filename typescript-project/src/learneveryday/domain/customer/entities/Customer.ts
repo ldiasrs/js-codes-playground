@@ -5,6 +5,8 @@ export class Customer {
   constructor(
     public readonly customerName: string,
     public readonly govIdentification: GovIdentification,
+    public readonly email: string,
+    public readonly phoneNumber: string,
     public readonly id?: string,
     public readonly dateCreated: Date = new Date()
   ) {
@@ -18,19 +20,19 @@ export class Customer {
     return `${this.govIdentification.type}: ${this.govIdentification.content}`;
   }
 
-  public static createWithCPF(customerName: string, cpf: string, id?: string): Customer {
+  public static createWithCPF(customerName: string, cpf: string, email: string, phoneNumber: string, id?: string): Customer {
     const govIdentification: GovIdentification = {
       type: GovIdentificationType.CPF,
       content: cpf
     };
-    return new Customer(customerName, govIdentification, id);
+    return new Customer(customerName, govIdentification, email, phoneNumber, id);
   }
 
-  public static createWithOtherId(customerName: string, idContent: string, id?: string): Customer {
+  public static createWithOtherId(customerName: string, idContent: string, email: string, phoneNumber: string, id?: string): Customer {
     const govIdentification: GovIdentification = {
       type: GovIdentificationType.OTHER,
       content: idContent
     };
-    return new Customer(customerName, govIdentification, id);
+    return new Customer(customerName, govIdentification, email, phoneNumber, id);
   }
 } 

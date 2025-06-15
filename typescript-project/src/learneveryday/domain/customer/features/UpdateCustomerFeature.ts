@@ -10,6 +10,8 @@ export interface UpdateCustomerFeatureData {
     type: string;
     content: string;
   };
+  email?: string;
+  phoneNumber?: string;
 }
 
 export class UpdateCustomerFeature {
@@ -25,7 +27,7 @@ export class UpdateCustomerFeature {
    * @throws Error if customer doesn't exist or update fails
    */
   async execute(data: UpdateCustomerFeatureData): Promise<{customer: Customer, topics: any[]}> {
-    const { id, customerName, govIdentification } = data;
+    const { id, customerName, govIdentification, email, phoneNumber } = data;
 
     // Step 1: Find existing customer
     const existingCustomer = await this.customerRepository.findById(id);
@@ -46,6 +48,8 @@ export class UpdateCustomerFeature {
     const updatedCustomer = new Customer(
       customerName || existingCustomer.customerName,
       updatedGovIdentification || existingCustomer.govIdentification,
+      email || existingCustomer.email,
+      phoneNumber || existingCustomer.phoneNumber,
       id,
       existingCustomer.dateCreated
     );

@@ -12,6 +12,8 @@ interface CustomerData {
     type: string;
     content: string;
   };
+  email: string;
+  phoneNumber: string;
   dateCreated: string;
 }
 
@@ -62,6 +64,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
         type: customer.govIdentification.type as GovIdentificationType,
         content: customer.govIdentification.content
       },
+      email: customer.email,
+      phoneNumber: customer.phoneNumber,
       dateCreated: customer.dateCreated.toISOString()
     };
 
@@ -87,6 +91,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     return new Customer(
       customerData.customerName,
       { type: customerData.govIdentification.type as GovIdentificationType, content: customerData.govIdentification.content },
+      customerData.email,
+      customerData.phoneNumber,
       customerData.id,
       new Date(customerData.dateCreated)
     );
@@ -97,6 +103,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     return customers.map(data => new Customer(
       data.customerName,
       { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
+      data.email,
+      data.phoneNumber,
       data.id,
       new Date(data.dateCreated)
     ));
@@ -109,6 +117,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       .map(data => new Customer(
         data.customerName,
         { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
+        data.email,
+        data.phoneNumber,
         data.id,
         new Date(data.dateCreated)
       ));
@@ -127,6 +137,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     return new Customer(
       customerData.customerName,
       { type: customerData.govIdentification.type as GovIdentificationType, content: customerData.govIdentification.content },
+      customerData.email,
+      customerData.phoneNumber,
       customerData.id,
       new Date(customerData.dateCreated)
     );
@@ -142,6 +154,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
       .map(data => new Customer(
         data.customerName,
         { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
+        data.email,
+        data.phoneNumber,
         data.id,
         new Date(data.dateCreated)
       ));
@@ -162,6 +176,8 @@ export class JsonCustomerRepository implements CustomerRepositoryPort {
     }).map(data => new Customer(
       data.customerName,
       { type: data.govIdentification.type as GovIdentificationType, content: data.govIdentification.content },
+      data.email,
+      data.phoneNumber,
       data.id,
       new Date(data.dateCreated)
     ));

@@ -7,6 +7,8 @@ export interface CustomerDTO {
   id: string;
   customerName: string;
   govIdentification: GovIdentificationDTO;
+  email: string;
+  phoneNumber: string;
   topics: TopicDTO[];
   dateCreated: Date;
 }
@@ -20,6 +22,8 @@ export class CustomerDTOMapper {
         type: customer.govIdentification.type,
         content: customer.govIdentification.content
       },
+      email: customer.email,
+      phoneNumber: customer.phoneNumber,
       topics: topics.map(topic => TopicDTOMapper.toDTO(topic)),
       dateCreated: customer.dateCreated
     };
