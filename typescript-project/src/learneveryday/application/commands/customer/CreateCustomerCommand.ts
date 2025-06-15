@@ -1,6 +1,6 @@
 import { BaseCommand } from '../Command';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
-import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../domain/feature/CreateCustomerFeature';
+import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../domain/customer/features/CreateCustomerFeature';
 
 export interface CreateCustomerCommandData {
   customerName: string;

@@ -1,6 +1,6 @@
 import { BaseCommand } from '../Command';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
-import { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from '../../../domain/feature/AddTopicHistoryFeature';
+import { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from '../../../domain/topic-history/features/AddTopicHistoryFeature';
 
 export interface AddTopicHistoryCommandData {
   topicId: string;

@@ -1,6 +1,6 @@
 import { BaseCommand } from '../Command';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
-import { UpdateCustomerFeature, UpdateCustomerFeatureData } from '../../../domain/feature/UpdateCustomerFeature';
+import { UpdateCustomerFeature, UpdateCustomerFeatureData } from '../../../domain/customer/features/UpdateCustomerFeature';
 
 export interface UpdateCustomerCommandData {
   id: string;

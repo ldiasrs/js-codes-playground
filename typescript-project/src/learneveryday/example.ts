@@ -6,7 +6,12 @@ import { JsonCustomerRepository } from './infrastructure/adapters/JsonCustomerRe
 import { JsonTopicHistoryRepository } from './infrastructure/adapters/JsonTopicHistoryRepository';
 import { JsonTopicRepository } from './infrastructure/adapters/JsonTopicRepository';
 
-// Domain features
+// Application Commands
+import { CreateCustomerCommand } from './application/commands/customer/CreateCustomerCommand';
+import { AddTopicCommand } from './application/commands/topic/AddTopicCommand';
+import { AddTopicHistoryCommand } from './application/commands/topic-history/AddTopicHistoryCommand';
+
+// Domain features (needed for command constructors)
 import { CreateCustomerFeature } from './domain/customer/features/CreateCustomerFeature';
 import { AddTopicHistoryFeature } from './domain/topic-history/features/AddTopicHistoryFeature';
 import { AddTopicFeature } from './domain/topic/features/AddTopicFeature';
@@ -23,10 +28,15 @@ class LearnEverydayExample {
   private topicRepository: JsonTopicRepository;
   private topicHistoryRepository: JsonTopicHistoryRepository;
 
-  // Domain features
+  // Domain features (needed for command constructors)
   private createCustomerFeature: CreateCustomerFeature;
   private addTopicFeature: AddTopicFeature;
   private addTopicHistoryFeature: AddTopicHistoryFeature;
+
+  // Application Commands
+  private createCustomerCommand: CreateCustomerCommand;
+  private addTopicCommand: AddTopicCommand;
+  private addTopicHistoryCommand: AddTopicHistoryCommand;
 
   constructor() {
     // Setup data directory
@@ -38,7 +48,7 @@ class LearnEverydayExample {
     this.topicRepository = new JsonTopicRepository(this.dataDir);
     this.topicHistoryRepository = new JsonTopicHistoryRepository(this.dataDir);
 
-    // Initialize domain features
+    // Initialize domain features (needed for command constructors)
     this.createCustomerFeature = new CreateCustomerFeature(
       this.customerRepository,
       this.topicRepository
@@ -53,27 +63,51 @@ class LearnEverydayExample {
       this.topicRepository,
       this.topicHistoryRepository
     );
+
+    // Initialize application commands
+    this.createCustomerCommand = new CreateCustomerCommand(
+      { customerName: '', govIdentification: { type: '', content: '' } },
+      this.createCustomerFeature
+    );
+
+    this.addTopicCommand = new AddTopicCommand(
+      { customerId: '', subject: '' },
+      this.addTopicFeature
+    );
+
+    this.addTopicHistoryCommand = new AddTopicHistoryCommand(
+      { topicId: '', content: '' },
+      this.addTopicHistoryFeature
+    );
   }
 
   private ensureDataDir(): void {
+    //if older exist delete it
+    if (fs.existsSync(this.dataDir)) {
+      fs.rmdirSync(this.dataDir, { recursive: true });
+    }
     if (!fs.existsSync(this.dataDir)) {
       fs.mkdirSync(this.dataDir, { recursive: true });
-    }
+    } 
   }
 
   // Create a customer with the given name and CPF
   async createCustomer(name: string, cpf: string): Promise<CustomerDTO> {
     console.log(`\n=== Creating Customer: ${name} ===`);
     
-    const result = await this.createCustomerFeature.execute({
-      customerName: name,
-      govIdentification: {
-        type: 'CPF',
-        content: cpf
-      }
-    });
-
-    const customerDTO = CustomerDTOMapper.toDTO(result.customer, result.topics);
+    // Update command data and execute
+    this.createCustomerCommand = new CreateCustomerCommand(
+      {
+        customerName: name,
+        govIdentification: {
+          type: 'CPF',
+          content: cpf
+        }
+      },
+      this.createCustomerFeature
+    );
+    
+    const customerDTO = await this.createCustomerCommand.execute();
     console.log(`✅ Customer created successfully:`, {
       id: customerDTO.id,
       name: customerDTO.customerName,
@@ -87,12 +121,16 @@ class LearnEverydayExample {
   async addTopic(customerId: string, subject: string): Promise<TopicDTO> {
     console.log(`\n=== Adding Topic: ${subject} ===`);
     
-    const topic = await this.addTopicFeature.execute({
-      customerId: customerId,
-      subject: subject
-    });
-
-    const topicDTO = TopicDTOMapper.toDTO(topic);
+    // Update command data and execute
+    this.addTopicCommand = new AddTopicCommand(
+      {
+        customerId: customerId,
+        subject: subject
+      },
+      this.addTopicFeature
+    );
+    
+    const topicDTO = await this.addTopicCommand.execute();
     console.log(`✅ Topic added successfully:`, {
       id: topicDTO.id,
       subject: topicDTO.subject,
@@ -109,12 +147,16 @@ class LearnEverydayExample {
     const historyDTOs: TopicHistoryDTO[] = [];
 
     for (const content of histories) {
-      const history = await this.addTopicHistoryFeature.execute({
-        topicId: topicId,
-        content: content
-      });
-
-      const historyDTO = TopicHistoryDTOMapper.toDTO(history);
+      // Update command data and execute
+      this.addTopicHistoryCommand = new AddTopicHistoryCommand(
+        {
+          topicId: topicId,
+          content: content
+        },
+        this.addTopicHistoryFeature
+      );
+      
+      const historyDTO = await this.addTopicHistoryCommand.execute();
       historyDTOs.push(historyDTO);
       console.log(`✅ History added: ${content.substring(0, 50)}...`);
     }

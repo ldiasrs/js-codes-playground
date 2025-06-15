@@ -1,5 +1,5 @@
 import { BaseCommand } from '../Command';
-import { DeleteTopicFeature, DeleteTopicFeatureData } from '../../../domain/feature/DeleteTopicFeature';
+import { DeleteTopicFeature, DeleteTopicFeatureData } from '../../../domain/topic/features/DeleteTopicFeature';
 
 export interface DeleteTopicCommandData {
   id: string;

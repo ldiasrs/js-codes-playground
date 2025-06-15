@@ -1,7 +1,7 @@
 import { BaseCommand } from '../Command';
 import { TopicDTO, TopicDTOMapper } from '../../dto/TopicDTO';
-import { AddTopicSimpleFeature, AddTopicSimpleFeatureData } from '../../../domain/feature/AddTopicSimpleFeature';
-import { AddTopicFeature } from '../../../domain';
+import { AddTopicSimpleFeature, AddTopicSimpleFeatureData } from '../../../domain/topic/features/AddTopicSimpleFeature';
+import { AddTopicFeature } from '../../../domain/topic/features/AddTopicFeature';
 
 export interface AddTopicCommandData {
   customerId: string;

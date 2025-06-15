@@ -1,5 +1,5 @@
 import { BaseCommand } from '../Command';
-import { DeleteCustomerFeature, DeleteCustomerFeatureData } from '../../../domain/feature/DeleteCustomerFeature';
+import { DeleteCustomerFeature, DeleteCustomerFeatureData } from '../../../domain/customer/features/DeleteCustomerFeature';
 
 export interface DeleteCustomerCommandData {
   id: string;
