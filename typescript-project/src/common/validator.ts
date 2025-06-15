@@ -35,10 +35,10 @@ export interface ValidatorProcessor<Context, ValidationResultType> {
 /**
  * Generic processor interface for validation processing
  */
-export interface ValidationsProcessor<BaseItem, BankItem, Config, MatchedItem, ConflictItem> {
+export interface ValidationsProcessor<BaseItem, CompareItem, Config, MatchedItem, ConflictItem> {
   processInvestments(
     baseItems: BaseItem[], 
-    bankItems: BankItem[], 
+    compareItens: CompareItem[], 
     config: Config
   ): ValidatorResult<MatchedItem, ConflictItem>;
 } 
