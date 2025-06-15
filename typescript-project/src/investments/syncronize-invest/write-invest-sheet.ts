@@ -4,7 +4,6 @@ import { readFileSync } from "fs";
 import { debug } from "../common/commons";
 import { writeFile } from "../common/commons";
 import { parseBankList, parseBaseData } from "./parser-invest";
-import { mergeInvests } from "./conciliation-invest";
 import path from "path";
 import moment from "moment";
 import Dinero from "dinero.js";

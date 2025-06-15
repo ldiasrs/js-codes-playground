@@ -16,20 +16,17 @@ interface InvestItem {
 }
 
 interface ConflictItem extends InvestItem {
-  cause: string;
-  validationLvl: "ERROR" | "WARN";
+  causes: Cause[];
+}
+
+interface Cause {
+  validatorKey: string;
+  validatorResultCode: ValidationResultCode;
 }
 
 interface MergeResult {
   matchedAtivos: InvestItem[];
   conflicts: ConflictItem[];
-}
-
-interface MatchResult {
-  isMatch: boolean;
-  cause: string;
-  mergedItem?: InvestItem;
-  validationLvl?: "ERROR" | "WARN";
 }
 
 interface ConfigOptions {
@@ -41,7 +38,7 @@ interface ConfigOptions {
 
 type ProcessBaseInvestmentsResult = {
   matchedAtivos: InvestItem[];
-  baseConflicts: (InvestItem & { cause: string; validationLvl: "ERROR" | "WARN" })[];
+  baseConflicts: (InvestItem & { causes: Cause[] })[];
   remainingBankMap: Map<string, InvestItem>;
 };
 
@@ -53,231 +50,358 @@ const DEFAULT_CONFIG: ConfigOptions = {
 };
 
 /**
- * Compares two InvestItems to determine if they match
+ * Validation result codes
  */
-function compareInvestItems(baseItem: InvestItem, bankItem: InvestItem, config: ConfigOptions): MatchResult {
-  // Compare ativo name (allow prefix match if enabled)
-  const baseAtivo = baseItem.ativo.trim().toUpperCase();
-  const bankAtivo = bankItem.ativo.trim().toUpperCase();
-  let ativoMatch = false;
-  let ativoWarn = false;
-  if (baseAtivo === bankAtivo) {
-    ativoMatch = true;
-  } else if (config.enableFuzzyAtivoMatch && (baseAtivo.startsWith(bankAtivo) || bankAtivo.startsWith(baseAtivo))) {
-    ativoMatch = true;
-    ativoWarn = true;
-  }
-  if (!ativoMatch) {
-    return { isMatch: false, cause: "ASSET_NAME_MISSMATCH", validationLvl: "ERROR" };
-  }
-
-  // Compare purchase dates (allow configurable days difference)
-  const baseCompra = baseItem.dataCompra;
-  const bankCompra = bankItem.dataCompra;
-  const compraDiff = Math.abs(baseCompra.diff(bankCompra, 'days'));
-  let compraDate = baseCompra;
-  let compraWarn = false;
-  if (compraDiff <= config.dateThresholdDays) {
-    compraDate = bankCompra;
-    if (compraDiff > 0) {
-      compraWarn = true;
-    }
-  } else if (!baseCompra.isSame(bankCompra)) {
-    return { isMatch: false, cause: "DATE_MISSMATCH_PURCHASE", validationLvl: "ERROR" };
-  }
-
-  // Compare due dates (allow configurable days difference)
-  const baseVenc = baseItem.dataVencimento;
-  const bankVenc = bankItem.dataVencimento;
-  const vencDiff = Math.abs(baseVenc.diff(bankVenc, 'days'));
-  let vencDate = baseVenc;
-  let vencWarn = false;
-  if (vencDiff <= config.dateThresholdDays) {
-    vencDate = bankVenc;
-    if (vencDiff > 0) {
-      vencWarn = true;
-    }
-  } else if (!baseVenc.isSame(bankVenc)) {
-    return { isMatch: false, cause: "DATE_MISSMATCH_DUE", validationLvl: "ERROR" };
-  }
-
-  // Compare applied amounts (allow configurable difference)
-  const baseAplicado = baseItem.aplicado;
-  const bankAplicado = bankItem.aplicado;
-  const amountDiff = Math.abs(baseAplicado.getAmount() - bankAplicado.getAmount());
-  let aplicado = baseAplicado;
-  let amountWarn = false;
-  if (amountDiff <= config.amountThreshold) {
-    aplicado = bankAplicado;
-    if (amountDiff > 0) {
-      amountWarn = true;
-    }
-  } else if (!baseAplicado.equalsTo(bankAplicado)) {
-    return { isMatch: false, cause: "AMOUNT_MISSMATCH", validationLvl: "ERROR" };
-  }
-
-  // Determine validation level
-  const validationLvl = (ativoWarn || compraWarn || vencWarn || amountWarn) ? "WARN" : "ERROR";
-
-  // If we reach here, we found a match (with possible corrections)
-  const mergedItem: InvestItem = {
-    ...baseItem,
-    ativo: bankItem.ativo, // always prefer bank's ativo if matched
-    dataCompra: compraDate,
-    dataVencimento: vencDate,
-    aplicado: aplicado,
-    valorBruto: bankItem.valorBruto,
-    numeroNota: bankItem.numeroNota,
-    valorLiquido: bankItem.valorLiquido,
-    source: "base", // merged items keep base source
-  };
-  return { isMatch: true, cause: "", mergedItem, validationLvl };
+enum ValidationResultCode {
+  MATCHED = "MATCHED",
+  PARTIAL_MATCH = "PARTIAL_MATCH",
+  UNMATCHED = "UNMATCHED",
+  EMPTY = "--"
 }
 
 /**
- * Creates a merged InvestItem from base and bank items
+ * Validator keys
  */
-function createMergedItem(baseItem: InvestItem, bankItem: InvestItem, mergedItem?: InvestItem): InvestItem {
-  if (mergedItem) return mergedItem;
-  return {
-    ...baseItem,
-    valorBruto: bankItem.valorBruto,
-    numeroNota: bankItem.numeroNota,
-  };
+enum ValidatorKey {
+  ATIVO_NAME = "ATIVO_NAME",
+  PURCHASE_DATE = "PURCHASE_DATE",
+  DUE_DATE = "DUE_DATE",
+  AMOUNT = "AMOUNT",
+  OVERDUE_DATE = "OVERDUE_DATE",
+  FOUND_REFERENCE = "FOUND_REFERENCE"
 }
 
 /**
- * Determines the conflict cause when no match is found
+ * Context for investment comparison
  */
-function determineConflictCause(baseItem: InvestItem, bankInvests: InvestItem[], existingCause: string, config: ConfigOptions): string {
-  if (existingCause) {
-    return existingCause;
-  }
-
-  const potentialMatch = bankInvests.find(bankItem => bankItem.ativo === baseItem.ativo);
-  
-  if (!potentialMatch) {
-    return "ASSET_NOT_FOUND_IN_BANK";
-  }
-  
-  return "MULTIPLE_CRITERIA_MISSMATCH";
+interface InvestmentComparisonContext {
+  baseItem: InvestItem;
+  bankItem: InvestItem;
+  config: ConfigOptions;
 }
 
 /**
- * Checks if an investment is overdue based on compareDate
+ * Individual validation result
  */
-function checkOverdueStatus(item: InvestItem, config: ConfigOptions): string {
-  if (!config.compareDate) {
-    return "";
-  }
-  
-  if (item.dataVencimento.isBefore(config.compareDate)) {
-    return "OVERDUE_INVEST";
-  }
-  
-  return "";
+interface ValidationResult {
+  validatorKey: ValidatorKey;
+  resultCode: ValidationResultCode;
 }
 
 /**
- * Processes base investments to find matches and conflicts
+ * Comprehensive validation result for a comparison
  */
-function processBaseInvestments(
-  baseInvests: InvestItem[], 
-  bankInvests: InvestItem[],
-  config: ConfigOptions
-): ProcessBaseInvestmentsResult {
-  const baseConflicts: (InvestItem & { cause: string; validationLvl: "ERROR" | "WARN" })[] = [];
-  const matchedAtivos: InvestItem[] = [];
-  const bankInvestMap = new Map<string, InvestItem>();
-
-  bankInvests.forEach((ativo) => {
-    bankInvestMap.set(ativo.id, ativo);
-  });
-
-  baseInvests.forEach((ativoBase) => {
-    let matchFound = false;
-    let conflictCause = "";
-    let validationLvl: "ERROR" | "WARN" = "ERROR";
-    let matchedBankItem: InvestItem | null = null;
-
-    for (const ativoBank of bankInvests) {
-      const matchResult = compareInvestItems(ativoBase, ativoBank, config);
-      if (matchResult.isMatch) {
-        matchFound = true;
-        matchedBankItem = ativoBank;
-        matchedAtivos.push(createMergedItem(ativoBase, ativoBank, matchResult.mergedItem));
-        
-        // Add to conflicts with WARN level if there were threshold issues
-        if (matchResult.validationLvl === "WARN") {
-          baseConflicts.push({
-            ...ativoBase,
-            cause: "THRESHOLD_MATCH",
-            validationLvl: "WARN",
-          });
-          
-          // Also add the corresponding bank item with WARN level
-          baseConflicts.push({
-            ...ativoBank,
-            cause: "THRESHOLD_MATCH",
-            validationLvl: "WARN",
-          });
-        }
-        
-        bankInvestMap.delete(ativoBank.id);
-        break;
-      } else {
-        conflictCause = matchResult.cause;
-        validationLvl = matchResult.validationLvl || "ERROR";
-      }
-    }
-
-    if (!matchFound) {
-      const finalCause = determineConflictCause(ativoBase, bankInvests, conflictCause, config);
-      baseConflicts.push({
-        ...ativoBase,
-        cause: finalCause,
-        validationLvl: validationLvl,
-      });
-    }
-  });
-
-  return { matchedAtivos, baseConflicts, remainingBankMap: bankInvestMap };
+interface ValidatorResult {
+  matchedItems: InvestItem[];
+  conflictItems: ConflictItem[];
 }
 
 /**
- * Converts remaining bank investments to conflicts
+ * Abstract base class for validators
  */
-function createBankConflicts(bankInvestMap: Map<string, InvestItem>, config: ConfigOptions): ConflictItem[] {
-  const conflicts: ConflictItem[] = [];
-  
-  bankInvestMap.forEach((value) => {
-    const overdueCause = checkOverdueStatus(value, config);
-    const cause = overdueCause || "ASSET_NOT_FOUND_IN_BASE";
+abstract class Validator {
+  abstract readonly key: ValidatorKey;
+  abstract validate(context: InvestmentComparisonContext): ValidationResult;
+}
+
+/**
+ * Validator for ativo name
+ */
+class AtivoNameValidator extends Validator {
+  readonly key = ValidatorKey.ATIVO_NAME;
+
+  validate(context: InvestmentComparisonContext): ValidationResult {
+    const { baseItem, bankItem, config } = context;
+    const baseAtivo = baseItem.ativo.trim().toUpperCase();
+    const bankAtivo = bankItem.ativo.trim().toUpperCase();
     
-    conflicts.push({
-      ...value,
-      cause: cause,
-      validationLvl: "ERROR",
-    });
-  });
-
-  return conflicts;
-}
-
-/**
- * Converts base conflicts to the final conflict format
- */
-function createBaseConflicts(baseConflicts: (InvestItem & { cause: string; validationLvl: "ERROR" | "WARN" })[], config: ConfigOptions): ConflictItem[] {
-  return baseConflicts.map((value) => {
-    const overdueCause = checkOverdueStatus(value, config);
-    const cause = overdueCause || value.cause;
+    if (baseAtivo === bankAtivo) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.MATCHED
+      };
+    }
+    
+    if (config.enableFuzzyAtivoMatch && (baseAtivo.startsWith(bankAtivo) || bankAtivo.startsWith(baseAtivo))) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.PARTIAL_MATCH
+      };
+    }
     
     return {
-      ...value,
-      cause: cause,
-      validationLvl: value.validationLvl,
+      validatorKey: this.key,
+      resultCode: ValidationResultCode.UNMATCHED
     };
-  });
+  }
+}
+
+/**
+ * Validator for purchase date
+ */
+class PurchaseDateValidator extends Validator {
+  readonly key = ValidatorKey.PURCHASE_DATE;
+
+  validate(context: InvestmentComparisonContext): ValidationResult {
+    const { baseItem, bankItem, config } = context;
+    const baseCompra = baseItem.dataCompra;
+    const bankCompra = bankItem.dataCompra;
+    const compraDiff = Math.abs(baseCompra.diff(bankCompra, 'days'));
+    
+    if (compraDiff === 0) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.MATCHED
+      };
+    }
+    
+    if (compraDiff <= config.dateThresholdDays) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.PARTIAL_MATCH
+      };
+    }
+    
+    return {
+      validatorKey: this.key,
+      resultCode: ValidationResultCode.UNMATCHED
+    };
+  }
+}
+
+/**
+ * Validator for due date
+ */
+class DueDateValidator extends Validator {
+  readonly key = ValidatorKey.DUE_DATE;
+
+  validate(context: InvestmentComparisonContext): ValidationResult {
+    const { baseItem, bankItem, config } = context;
+    const baseVenc = baseItem.dataVencimento;
+    const bankVenc = bankItem.dataVencimento;
+    const vencDiff = Math.abs(baseVenc.diff(bankVenc, 'days'));
+    
+    if (vencDiff === 0) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.MATCHED
+      };
+    }
+    
+    if (vencDiff <= config.dateThresholdDays) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.PARTIAL_MATCH
+      };
+    }
+    
+    return {
+      validatorKey: this.key,
+      resultCode: ValidationResultCode.UNMATCHED
+    };
+  }
+}
+
+/**
+ * Validator for amount
+ */
+class AmountValidator extends Validator {
+  readonly key = ValidatorKey.AMOUNT;
+
+  validate(context: InvestmentComparisonContext): ValidationResult {
+    const { baseItem, bankItem, config } = context;
+    const baseAplicado = baseItem.aplicado;
+    const bankAplicado = bankItem.aplicado;
+    const amountDiff = Math.abs(baseAplicado.getAmount() - bankAplicado.getAmount());
+    
+    if (amountDiff === 0) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.MATCHED
+      };
+    }
+    
+    if (amountDiff <= config.amountThreshold) {
+      return {
+        validatorKey: this.key,
+        resultCode: ValidationResultCode.PARTIAL_MATCH
+      };
+    }
+    
+    return {
+      validatorKey: this.key,
+      resultCode: ValidationResultCode.UNMATCHED
+    };
+  }
+}
+
+/**
+ * Service for creating merged items
+ */
+class MergedItemService {
+  static createMergedItem(baseItem: InvestItem, bankItem: InvestItem): InvestItem {
+    return {
+      ...baseItem,
+      ativo: bankItem.ativo,
+      dataCompra: bankItem.dataCompra,
+      dataVencimento: bankItem.dataVencimento,
+      aplicado: bankItem.aplicado,
+      valorBruto: bankItem.valorBruto,
+      numeroNota: bankItem.numeroNota,
+      valorLiquido: bankItem.valorLiquido,
+      source: "base",
+    };
+  }
+}
+
+/**
+ * Main validation orchestrator
+ */
+class InvestmentValidator {
+  private validators: Validator[] = [
+    new AtivoNameValidator(),
+    new PurchaseDateValidator(),
+    new DueDateValidator(),
+    new AmountValidator(),
+  ];
+
+  /**
+   * Validates a single comparison between base and bank items
+   */
+  validateComparison(context: InvestmentComparisonContext): {
+    isValid: boolean;
+    results: ValidationResult[];
+  } {
+    const results = this.validators.map(validator => validator.validate(context));
+    // Check if all validators passed (either MATCHED or PARTIAL_MATCH)
+    const isValid = results.every(result => 
+      result.resultCode === ValidationResultCode.MATCHED || 
+      result.resultCode === ValidationResultCode.PARTIAL_MATCH
+    );
+    return { isValid, results };
+  }
+}
+
+/**
+ * Investment processing orchestrator
+ */
+class InvestmentProcessor {
+  private validator: InvestmentValidator;
+
+  constructor() {
+    this.validator = new InvestmentValidator();
+  }
+
+  /**
+   * Processes all base investments against bank investments
+   */
+  processInvestments(
+    baseInvests: InvestItem[], 
+    bankInvests: InvestItem[], 
+    config: ConfigOptions
+  ): ValidatorResult {
+    const matchedItems: InvestItem[] = [];
+    const conflictItems: ConflictItem[] = [];
+    const bankInvestMap = new Map<string, InvestItem>();
+   
+
+    // Create map of bank investments
+    bankInvests.forEach(item => {
+      bankInvestMap.set(item.id, item);
+    });
+
+    // Process each base investment
+    baseInvests.forEach(baseItem => {
+      let matchFound = false;
+      let bestMatch: { bankItem: InvestItem; results: ValidationResult[] } | null = null;
+      // Try to find a match with each bank investment
+      for (const bankItem of bankInvests) {
+        const context: InvestmentComparisonContext = { baseItem, bankItem, config };
+        const { isValid, results } = this.validator.validateComparison(context);  
+        if (isValid) {
+          matchFound = true;
+          bestMatch = { bankItem, results };
+          // Now create the merged item here
+          const mergedItem = MergedItemService.createMergedItem(baseItem, bankItem);
+          matchedItems.push(mergedItem);
+          bankInvestMap.delete(bankItem.id);
+          break;
+        }
+      }
+
+      // If no match found, create conflict for base item
+      if (!matchFound) {
+        const causes: Cause[] = [];
+        
+        // Use results from the last attempted comparison or create default causes
+        if (bestMatch) {
+          causes.push(...bestMatch.results
+            .filter(result => result.resultCode === ValidationResultCode.UNMATCHED)
+            .map(result => ({
+              validatorKey: result.validatorKey,
+              validatorResultCode: result.resultCode
+            }))
+          );
+        } else {
+          if (config.compareDate && baseItem.dataVencimento.isBefore(config.compareDate)) {
+            causes.push({
+              validatorKey: ValidatorKey.OVERDUE_DATE,
+              validatorResultCode: ValidationResultCode.EMPTY
+            });
+          }
+          causes.push({
+            validatorKey: ValidatorKey.FOUND_REFERENCE,
+            validatorResultCode: ValidationResultCode.EMPTY
+          });
+        }
+
+        conflictItems.push({
+          ...baseItem,
+          causes
+        });
+      } else if (bestMatch) {
+        // If match found but has partial matches, add to conflicts with PARTIAL_MATCH causes
+        const partialResults = bestMatch.results.filter(result => result.resultCode === ValidationResultCode.PARTIAL_MATCH);
+        if (partialResults.length > 0) {
+          const causes: Cause[] = partialResults.map(result => ({
+            validatorKey: result.validatorKey,
+            validatorResultCode: result.resultCode
+          }));
+
+          // Add both base and bank items to conflicts
+          conflictItems.push({
+            ...baseItem,
+            causes
+          });
+          
+          conflictItems.push({
+            ...bestMatch.bankItem,
+            causes
+          });
+        }
+      }
+
+    });
+
+    // Add remaining bank investments as conflicts
+    bankInvestMap.forEach(bankItem => {
+      const causes: Cause[] = [
+        { validatorKey: ValidatorKey.ATIVO_NAME, validatorResultCode: ValidationResultCode.UNMATCHED }
+      ];
+
+      // Check if the bank item is overdue
+      if (config.compareDate && bankItem.dataVencimento.isBefore(config.compareDate)) {
+        causes.push({ validatorKey: ValidatorKey.OVERDUE_DATE, validatorResultCode: ValidationResultCode.UNMATCHED });
+      }
+
+      conflictItems.push({
+        ...bankItem,
+        causes
+      });
+    });
+
+    return { matchedItems, conflictItems };
+  }
 }
 
 /**
@@ -294,16 +418,11 @@ export function mergeInvests(
     ...configOptions,
   };
 
-  // Process base investments to find matches and conflicts
-  const { matchedAtivos, baseConflicts, remainingBankMap } = processBaseInvestments(baseInvests, bankInvests, config);
-
-  // Create final conflicts list
-  const bankConflicts = createBankConflicts(remainingBankMap, config);
-  const finalBaseConflicts = createBaseConflicts(baseConflicts, config);
-  const finalConflicts = [...bankConflicts, ...finalBaseConflicts];
+  const processor = new InvestmentProcessor();
+  const result = processor.processInvestments(baseInvests, bankInvests, config);
 
   return {
-    matchedAtivos,
-    conflicts: finalConflicts,
+    matchedAtivos: result.matchedItems,
+    conflicts: result.conflictItems,
   };
 } 

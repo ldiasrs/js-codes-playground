@@ -71,7 +71,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
     debug(`Writing conflicts tab`);
     const convertedConflicts = mergeResponse.conflicts.map((item) => ({
       ...item,
-      level: item.validationLvl,
+      causes: item.causes.map((cause) => `${cause.validatorKey}: ${cause.validatorResultCode}`).join(", "),
       aplicado: item.aplicado ? item.aplicado.toUnit() : 0,
       valorBruto: item.valorBruto ? item.valorBruto.toUnit() : 0,
       dataCompra: item.dataCompra ? item.dataCompra.format("DD/MM/YYYY") : "",
@@ -83,8 +83,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
 
     await writeSheet(doc, "conflicts", convertedConflicts, [
       "source",
-      "cause",
-      "level",
+      "causes",
       "ativo",
       "taxa",
       "numeroNota",
