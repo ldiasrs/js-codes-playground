@@ -1,4 +1,12 @@
 import { debug } from "../common/commons";
+import { 
+  Validator, 
+  ValidationResult, 
+  ValidatorResult, 
+  ValidatorProcessor, 
+  ValidationsProcessor 
+} from "../../common/validator";
+import { AtivoNameValidator, PurchaseDateValidator, DueDateValidator, AmountValidator, InvestmentValidator } from "./validation-invest";
 import moment from "moment";
 import Dinero from "dinero.js";
 
@@ -52,7 +60,7 @@ const DEFAULT_CONFIG: ConfigOptions = {
 /**
  * Validation result codes
  */
-enum ValidationResultCode {
+export enum ValidationResultCode {
   MATCHED = "MATCHED",
   PARTIAL_MATCH = "PARTIAL_MATCH",
   UNMATCHED = "UNMATCHED",
@@ -62,7 +70,7 @@ enum ValidationResultCode {
 /**
  * Validator keys
  */
-enum ValidatorKey {
+export enum ValidatorKey {
   ATIVO_NAME = "ATIVO_NAME",
   PURCHASE_DATE = "PURCHASE_DATE",
   DUE_DATE = "DUE_DATE",
@@ -74,165 +82,10 @@ enum ValidatorKey {
 /**
  * Context for investment comparison
  */
-interface InvestmentComparisonContext {
+export interface InvestmentComparisonContext {
   baseItem: InvestItem;
   bankItem: InvestItem;
   config: ConfigOptions;
-}
-
-/**
- * Individual validation result
- */
-interface ValidationResult {
-  validatorKey: ValidatorKey;
-  resultCode: ValidationResultCode;
-}
-
-/**
- * Comprehensive validation result for a comparison
- */
-interface ValidatorResult {
-  matchedItems: InvestItem[];
-  conflictItems: ConflictItem[];
-}
-
-/**
- * Abstract base class for validators
- */
-abstract class Validator {
-  abstract readonly key: ValidatorKey;
-  abstract validate(context: InvestmentComparisonContext): ValidationResult;
-}
-
-/**
- * Validator for ativo name
- */
-class AtivoNameValidator extends Validator {
-  readonly key = ValidatorKey.ATIVO_NAME;
-
-  validate(context: InvestmentComparisonContext): ValidationResult {
-    const { baseItem, bankItem, config } = context;
-    const baseAtivo = baseItem.ativo.trim().toUpperCase();
-    const bankAtivo = bankItem.ativo.trim().toUpperCase();
-    
-    if (baseAtivo === bankAtivo) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.MATCHED
-      };
-    }
-    
-    if (config.enableFuzzyAtivoMatch && (baseAtivo.startsWith(bankAtivo) || bankAtivo.startsWith(baseAtivo))) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.PARTIAL_MATCH
-      };
-    }
-    
-    return {
-      validatorKey: this.key,
-      resultCode: ValidationResultCode.UNMATCHED
-    };
-  }
-}
-
-/**
- * Validator for purchase date
- */
-class PurchaseDateValidator extends Validator {
-  readonly key = ValidatorKey.PURCHASE_DATE;
-
-  validate(context: InvestmentComparisonContext): ValidationResult {
-    const { baseItem, bankItem, config } = context;
-    const baseCompra = baseItem.dataCompra;
-    const bankCompra = bankItem.dataCompra;
-    const compraDiff = Math.abs(baseCompra.diff(bankCompra, 'days'));
-    
-    if (compraDiff === 0) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.MATCHED
-      };
-    }
-    
-    if (compraDiff <= config.dateThresholdDays) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.PARTIAL_MATCH
-      };
-    }
-    
-    return {
-      validatorKey: this.key,
-      resultCode: ValidationResultCode.UNMATCHED
-    };
-  }
-}
-
-/**
- * Validator for due date
- */
-class DueDateValidator extends Validator {
-  readonly key = ValidatorKey.DUE_DATE;
-
-  validate(context: InvestmentComparisonContext): ValidationResult {
-    const { baseItem, bankItem, config } = context;
-    const baseVenc = baseItem.dataVencimento;
-    const bankVenc = bankItem.dataVencimento;
-    const vencDiff = Math.abs(baseVenc.diff(bankVenc, 'days'));
-    
-    if (vencDiff === 0) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.MATCHED
-      };
-    }
-    
-    if (vencDiff <= config.dateThresholdDays) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.PARTIAL_MATCH
-      };
-    }
-    
-    return {
-      validatorKey: this.key,
-      resultCode: ValidationResultCode.UNMATCHED
-    };
-  }
-}
-
-/**
- * Validator for amount
- */
-class AmountValidator extends Validator {
-  readonly key = ValidatorKey.AMOUNT;
-
-  validate(context: InvestmentComparisonContext): ValidationResult {
-    const { baseItem, bankItem, config } = context;
-    const baseAplicado = baseItem.aplicado;
-    const bankAplicado = bankItem.aplicado;
-    const amountDiff = Math.abs(baseAplicado.getAmount() - bankAplicado.getAmount());
-    
-    if (amountDiff === 0) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.MATCHED
-      };
-    }
-    
-    if (amountDiff <= config.amountThreshold) {
-      return {
-        validatorKey: this.key,
-        resultCode: ValidationResultCode.PARTIAL_MATCH
-      };
-    }
-    
-    return {
-      validatorKey: this.key,
-      resultCode: ValidationResultCode.UNMATCHED
-    };
-  }
 }
 
 /**
@@ -255,34 +108,6 @@ class MergedItemService {
 }
 
 /**
- * Main validation orchestrator
- */
-class InvestmentValidator {
-  private validators: Validator[] = [
-    new AtivoNameValidator(),
-    new PurchaseDateValidator(),
-    new DueDateValidator(),
-    new AmountValidator(),
-  ];
-
-  /**
-   * Validates a single comparison between base and bank items
-   */
-  validateComparison(context: InvestmentComparisonContext): {
-    isValid: boolean;
-    results: ValidationResult[];
-  } {
-    const results = this.validators.map(validator => validator.validate(context));
-    // Check if all validators passed (either MATCHED or PARTIAL_MATCH)
-    const isValid = results.every(result => 
-      result.resultCode === ValidationResultCode.MATCHED || 
-      result.resultCode === ValidationResultCode.PARTIAL_MATCH
-    );
-    return { isValid, results };
-  }
-}
-
-/**
  * Investment processing orchestrator
  */
 class InvestmentProcessor {
@@ -299,7 +124,7 @@ class InvestmentProcessor {
     baseInvests: InvestItem[], 
     bankInvests: InvestItem[], 
     config: ConfigOptions
-  ): ValidatorResult {
+  ): ValidatorResult<InvestItem, ConflictItem> {
     const matchedItems: InvestItem[] = [];
     const conflictItems: ConflictItem[] = [];
     const bankInvestMap = new Map<string, InvestItem>();
@@ -313,7 +138,7 @@ class InvestmentProcessor {
     // Process each base investment
     baseInvests.forEach(baseItem => {
       let matchFound = false;
-      let bestMatch: { bankItem: InvestItem; results: ValidationResult[] } | null = null;
+      let bestMatch: { bankItem: InvestItem; results: ValidationResult<ValidatorKey, ValidationResultCode>[] } | null = null;
       // Try to find a match with each bank investment
       for (const bankItem of bankInvests) {
         const context: InvestmentComparisonContext = { baseItem, bankItem, config };
