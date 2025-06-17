@@ -140,8 +140,12 @@ export class LearnEverydayCLI {
       // Get scheduling service from container
       const schedulingService = this.container.get(TYPES.SchedulingService);
       
+      await schedulingService.start();
+
       console.log('✅ Scheduling service inicializado');
       console.log('⏰ Scheduled tasks ativos');
+
+
       
       // Keep the process running
       console.log('🔄 Sistema rodando... (Pressione Ctrl+C para parar)');
@@ -151,6 +155,10 @@ export class LearnEverydayCLI {
         console.log('\n🛑 Parando o sistema...');
         process.exit(0);
       });
+
+      while (true) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       
     } catch (error) {
       console.error('❌ Erro ao iniciar o projeto:', error);
