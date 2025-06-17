@@ -1,6 +1,6 @@
-import { JsonCustomerRepository } from '../infrastructure/adapters/JsonCustomerRepository';
-import { JsonTopicHistoryRepository } from '../infrastructure/adapters/JsonTopicHistoryRepository';
-import { JsonTopicRepository } from '../infrastructure/adapters/JsonTopicRepository';
+import { NedbCustomerRepository } from '../infrastructure/adapters/NedbCustomerRepository';
+import { NedbTopicHistoryRepository } from '../infrastructure/adapters/NedbTopicHistoryRepository';
+import { NedbTopicRepository } from '../infrastructure/adapters/NedbTopicRepository';
 import { TopicHistoryGeneratorFactory } from '../infrastructure/factories/TopicHistoryGeneratorFactory';
 import { EmailSenderFactory } from '../infrastructure/factories/EmailSenderFactory';
 
@@ -15,9 +15,9 @@ async function generateAndEmailExample() {
     console.log('🚀 Starting Generate and Email Topic History Example...\n');
 
     // Initialize repositories
-    const customerRepository = new JsonCustomerRepository('./data');
-    const topicRepository = new JsonTopicRepository('./data');
-    const topicHistoryRepository = new JsonTopicHistoryRepository('./data');
+    const customerRepository = new NedbCustomerRepository('./data');
+    const topicRepository = new NedbTopicRepository('./data');
+    const topicHistoryRepository = new NedbTopicHistoryRepository('./data');
 
     // Initialize ports
     const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv();
@@ -116,9 +116,9 @@ async function generateAndEmailWithCustomConfig() {
   try {
     console.log('\n🔧 Generate and Email with Custom Configuration...');
 
-    const customerRepository = new JsonCustomerRepository('./data');
-    const topicRepository = new JsonTopicRepository('./data');
-    const topicHistoryRepository = new JsonTopicHistoryRepository('./data');
+    const customerRepository = new NedbCustomerRepository('./data');
+    const topicRepository = new NedbTopicRepository('./data');
+    const topicHistoryRepository = new NedbTopicHistoryRepository('./data');
 
     // Use custom API key for ChatGPT
     const customApiKey = 'your-openai-api-key-here';
@@ -163,9 +163,9 @@ async function generateAndEmailMultipleTopics() {
   try {
     console.log('\n🌟 Generate and Email for Multiple Topics...');
 
-    const customerRepository = new JsonCustomerRepository('./data');
-    const topicRepository = new JsonTopicRepository('./data');
-    const topicHistoryRepository = new JsonTopicHistoryRepository('./data');
+    const customerRepository = new NedbCustomerRepository('./data');
+    const topicRepository = new NedbTopicRepository('./data');
+    const topicHistoryRepository = new NedbTopicHistoryRepository('./data');
 
     const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv();
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();

@@ -1,7 +1,7 @@
 import { BaseQuery } from '../Query';
-import { Customer } from '../../../domain/entities/Customer';
-import { CustomerRepositoryPort } from '../../../domain/ports/CustomerRepositoryPort';
-import { TopicRepositoryPort } from '../../../domain/ports/TopicRepositoryPort';
+import { Customer } from '../../../domain/customer/entities/Customer';
+import { CustomerRepositoryPort } from '../../../domain/customer/ports/CustomerRepositoryPort';
+import { TopicRepositoryPort } from '../../../domain/topic/ports/TopicRepositoryPort';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
 
 export class GetAllCustomersQuery extends BaseQuery<CustomerDTO[]> {

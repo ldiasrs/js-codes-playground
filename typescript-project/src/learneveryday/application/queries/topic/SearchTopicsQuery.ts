@@ -1,6 +1,6 @@
 import { BaseQuery } from '../Query';
-import { Topic } from '../../../domain/entities/Topic';
-import { TopicRepositoryPort, TopicSearchCriteria } from '../../../domain/ports/TopicRepositoryPort';
+import { Topic } from '../../../domain/topic/entities/Topic';
+import { TopicRepositoryPort, TopicSearchCriteria } from '../../../domain/topic/ports/TopicRepositoryPort';
 import { TopicDTO, TopicDTOMapper } from '../../dto/TopicDTO';
 
 export interface SearchTopicsQueryData {

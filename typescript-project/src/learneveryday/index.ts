@@ -1,4 +1,3 @@
-
 // Application DTOs (Anti-Corruption Layer)
 export * from './application/dto/CustomerDTO';
 export * from './application/dto/TopicDTO';
@@ -21,3 +20,6 @@ export * from './application/queries/topic/GetTopicByIdQuery';
 export * from './application/queries/topic/SearchTopicsQuery';
 export * from './application/queries/topic-history/GetTopicHistoryQuery';
 export * from './application/queries/statistics/GetStatisticsQuery';
+
+// Scheduler
+export * from './scheduler';

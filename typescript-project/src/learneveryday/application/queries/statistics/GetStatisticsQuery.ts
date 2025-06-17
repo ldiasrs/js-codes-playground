@@ -1,45 +1,51 @@
 import { BaseQuery } from '../Query';
-import { TopicRepositoryPort } from '../../../domain/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../../domain/ports/TopicHistoryRepositoryPort';
+import { TopicRepositoryPort } from '../../../domain/topic/ports/TopicRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
 
-export interface StatisticsResult {
+export interface Statistics {
   totalTopics: number;
-  totalHistoryEntries: number;
+  totalTopicHistory: number;
   topicsCreatedToday: number;
-  topicsWithRecentActivity: number;
+  topicsCreatedThisWeek: number;
+  topicsCreatedThisMonth: number;
+  topicHistoryCreatedToday: number;
+  topicHistoryCreatedThisWeek: number;
+  topicHistoryCreatedThisMonth: number;
+  averageHistoryPerTopic: number;
 }
 
-export interface GetStatisticsQueryData {
-  // No specific data needed for statistics
-}
-
-export class GetStatisticsQuery extends BaseQuery<StatisticsResult> {
+export class GetStatisticsQuery extends BaseQuery<Statistics> {
   constructor(
-    private readonly data: GetStatisticsQueryData,
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort
   ) {
     super();
   }
 
-  async execute(): Promise<StatisticsResult> {
-    const [
-      totalTopics,
-      totalHistoryEntries,
-      topicsCreatedToday,
-      topicsWithRecentActivity
-    ] = await Promise.all([
-      this.topicRepository.count(),
-      this.topicHistoryRepository.count(),
-      this.topicRepository.getTopicsCreatedToday().then(topics => topics.length),
-      this.topicRepository.findWithRecentActivity(24).then(topics => topics.length)
-    ]);
-
+  async execute(): Promise<Statistics> {
+    const allTopics = await this.topicRepository.findAll();
+    const allTopicHistory = await this.topicHistoryRepository.findAll();
+    
+    const topicsCreatedToday = await this.topicRepository.getTopicsCreatedToday();
+    const topicsCreatedThisWeek = await this.topicRepository.getTopicsCreatedThisWeek();
+    const topicsCreatedThisMonth = await this.topicRepository.getTopicsCreatedThisMonth();
+    
+    const topicHistoryCreatedToday = await this.topicHistoryRepository.getTopicHistoryCreatedToday();
+    const topicHistoryCreatedThisWeek = await this.topicHistoryRepository.getTopicHistoryCreatedThisWeek();
+    const topicHistoryCreatedThisMonth = await this.topicHistoryRepository.getTopicHistoryCreatedThisMonth();
+    
+    const averageHistoryPerTopic = allTopics.length > 0 ? allTopicHistory.length / allTopics.length : 0;
+    
     return {
-      totalTopics,
-      totalHistoryEntries,
-      topicsCreatedToday,
-      topicsWithRecentActivity
+      totalTopics: allTopics.length,
+      totalTopicHistory: allTopicHistory.length,
+      topicsCreatedToday: topicsCreatedToday.length,
+      topicsCreatedThisWeek: topicsCreatedThisWeek.length,
+      topicsCreatedThisMonth: topicsCreatedThisMonth.length,
+      topicHistoryCreatedToday: topicHistoryCreatedToday.length,
+      topicHistoryCreatedThisWeek: topicHistoryCreatedThisWeek.length,
+      topicHistoryCreatedThisMonth: topicHistoryCreatedThisMonth.length,
+      averageHistoryPerTopic
     };
   }
 } 

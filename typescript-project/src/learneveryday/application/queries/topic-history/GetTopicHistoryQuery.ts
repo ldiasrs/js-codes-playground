@@ -1,6 +1,6 @@
 import { BaseQuery } from '../Query';
-import { TopicHistory } from '../../../domain/entities/TopicHistory';
-import { TopicHistoryRepositoryPort } from '../../../domain/ports/TopicHistoryRepositoryPort';
+import { TopicHistory } from '../../../domain/topic-history/entities/TopicHistory';
+import { TopicHistoryRepositoryPort } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
 
 export interface GetTopicHistoryQueryData {
@@ -17,7 +17,7 @@ export class GetTopicHistoryQuery extends BaseQuery<TopicHistoryDTO[]> {
 
   async execute(): Promise<TopicHistoryDTO[]> {
     const { topicId } = this.data;
-    const history = await this.topicHistoryRepository.findByTopicId(topicId);
-    return history.map(h => TopicHistoryDTOMapper.toDTO(h));
+    const topicHistories = await this.topicHistoryRepository.findByTopicId(topicId);
+    return topicHistories.map(history => TopicHistoryDTOMapper.toDTO(history));
   }
 } 

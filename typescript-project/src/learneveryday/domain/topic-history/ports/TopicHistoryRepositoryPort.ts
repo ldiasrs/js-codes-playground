@@ -18,6 +18,7 @@ export interface TopicHistoryRepositoryPort {
   findByDateRange(dateFrom: Date, dateTo: Date): Promise<TopicHistory[]>;
   findWithRecentActivity(hours: number): Promise<TopicHistory[]>;
   search(criteria: TopicHistorySearchCriteria): Promise<TopicHistory[]>;
+  findLastTopicHistoryByCustomerId(customerId: string): Promise<TopicHistory | undefined>;
   delete(id: string): Promise<boolean>;
   deleteByTopicId(topicId: string): Promise<void>;
   count(): Promise<number>;
