@@ -22,6 +22,17 @@ import { EmailSenderFactory } from '../factories/EmailSenderFactory';
 import { SchedulingService } from '../../domain/scheduling/services/SchedulingService';
 import { SchedulingServiceFactory } from '../factories/SchedulingServiceFactory';
 
+// Features
+import { CreateCustomerFeature } from '../../domain/customer/features/CreateCustomerFeature';
+import { UpdateCustomerFeature } from '../../domain/customer/features/UpdateCustomerFeature';
+import { DeleteCustomerFeature } from '../../domain/customer/features/DeleteCustomerFeature';
+import { AddTopicFeature } from '../../domain/topic/features/AddTopicFeature';
+import { DeleteTopicFeature } from '../../domain/topic/features/DeleteTopicFeature';
+import { AddTopicHistoryFeature } from '../../domain/topic-history/features/AddTopicHistoryFeature';
+import { GenerateTopicHistoryFeature } from '../../domain/topic-history/features/GenerateTopicHistoryFeature';
+import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
+import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
+
 // Database
 import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
 
@@ -62,6 +73,43 @@ export class ContainerBuilder {
 
     this.container.bind<SendTopicHistoryByEmailPort>(TYPES.SendTopicHistoryByEmailPort)
       .toDynamicValue(() => EmailSenderFactory.createNodemailerSender())
+      .inSingletonScope();
+
+    // Bind features
+    this.container.bind<CreateCustomerFeature>(TYPES.CreateCustomerFeature)
+      .to(CreateCustomerFeature)
+      .inSingletonScope();
+
+    this.container.bind<UpdateCustomerFeature>(TYPES.UpdateCustomerFeature)
+      .to(UpdateCustomerFeature)
+      .inSingletonScope();
+
+    this.container.bind<DeleteCustomerFeature>(TYPES.DeleteCustomerFeature)
+      .to(DeleteCustomerFeature)
+      .inSingletonScope();
+
+    this.container.bind<AddTopicFeature>(TYPES.AddTopicFeature)
+      .to(AddTopicFeature)
+      .inSingletonScope();
+
+    this.container.bind<DeleteTopicFeature>(TYPES.DeleteTopicFeature)
+      .to(DeleteTopicFeature)
+      .inSingletonScope();
+
+    this.container.bind<AddTopicHistoryFeature>(TYPES.AddTopicHistoryFeature)
+      .to(AddTopicHistoryFeature)
+      .inSingletonScope();
+
+    this.container.bind<GenerateTopicHistoryFeature>(TYPES.GenerateTopicHistoryFeature)
+      .to(GenerateTopicHistoryFeature)
+      .inSingletonScope();
+
+    this.container.bind<GenerateAndEmailTopicHistoryFeature>(TYPES.GenerateAndEmailTopicHistoryFeature)
+      .to(GenerateAndEmailTopicHistoryFeature)
+      .inSingletonScope();
+
+    this.container.bind<SendTopicHistoryFeature>(TYPES.SendTopicHistoryFeature)
+      .to(SendTopicHistoryFeature)
       .inSingletonScope();
 
     // Bind services

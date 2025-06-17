@@ -133,15 +133,11 @@ export class LearnEverydayCLI {
       
       await this.initializeContainer();
       
-      // Get repositories from container
-      const customerRepository = this.container.get(TYPES.CustomerRepository);
-      const topicRepository = this.container.get(TYPES.TopicRepository);
+      // Get feature from container
+      const createCustomerFeature = this.container.get(TYPES.CreateCustomerFeature);
       
-      // Create feature manually
-      const createCustomerFeature = new CreateCustomerFeature(customerRepository, topicRepository);
-      
-      // Create command manually
-      const command = new CreateCustomerCommand({
+      // Create command with data
+      const createCustomerCommand = new CreateCustomerCommand({
         customerName: options.name,
         govIdentification: {
           type: 'CPF',
@@ -151,7 +147,7 @@ export class LearnEverydayCLI {
         phoneNumber: options.phone
       }, createCustomerFeature);
       
-      const customer = await command.execute();
+      const customer = await createCustomerCommand.execute();
       
       console.log('✅ Cliente criado com sucesso!');
       console.log(`   ID: ${customer.id}`);
@@ -170,7 +166,7 @@ export class LearnEverydayCLI {
       
       await this.initializeContainer();
       
-      // Get repositories from container
+      // Get repositories from container for customer verification
       const customerRepository = this.container.get(TYPES.CustomerRepository);
       const topicRepository = this.container.get(TYPES.TopicRepository);
       
@@ -186,16 +182,16 @@ export class LearnEverydayCLI {
         throw new Error(`Cliente com ID ${options.customerId} não encontrado`);
       }
       
-      // Create feature manually
-      const addTopicFeature = new AddTopicFeature(topicRepository, customerRepository);
+      // Get feature from container
+      const addTopicFeature = this.container.get(TYPES.AddTopicFeature);
       
-      // Create command manually
-      const command = new AddTopicCommand({
+      // Create command with data
+      const addTopicCommand = new AddTopicCommand({
         customerId: options.customerId,
         subject: options.subject
       }, addTopicFeature);
       
-      const topic = await command.execute();
+      const topic = await addTopicCommand.execute();
       
       console.log('✅ Tópico criado com sucesso!');
       console.log(`   ID: ${topic.id}`);
@@ -214,9 +210,8 @@ export class LearnEverydayCLI {
       
       await this.initializeContainer();
       
-      // Get repositories from container
+      // Get repositories from container for topic verification
       const topicRepository = this.container.get(TYPES.TopicRepository);
-      const topicHistoryRepository = this.container.get(TYPES.TopicHistoryRepository);
       
       // Verify topic exists using query
       const getTopicQuery = new GetTopicByIdQuery(
@@ -229,30 +224,16 @@ export class LearnEverydayCLI {
         throw new Error(`Tópico com ID ${options.topicId} não encontrado`);
       }
       
-      // Get ports from container
-      const generateTopicHistoryPort = this.container.get(TYPES.GenerateTopicHistoryPort);
-      const sendTopicHistoryByEmailPort = this.container.get(TYPES.SendTopicHistoryByEmailPort);
+      // Get feature from container
+      const generateAndEmailTopicHistoryFeature = this.container.get(TYPES.GenerateAndEmailTopicHistoryFeature);
       
-      // Create features manually
-      const generateTopicHistoryFeature = new GenerateTopicHistoryFeature(
-        topicRepository,
-        topicHistoryRepository,
-        generateTopicHistoryPort
-      );
-      
-      const generateAndEmailTopicHistoryFeature = new GenerateAndEmailTopicHistoryFeature(
-        generateTopicHistoryFeature,
-        topicRepository,
-        sendTopicHistoryByEmailPort
-      );
-      
-      // Create command manually
-      const command = new GenerateAndEmailTopicHistoryCommand({
+      // Create command with data
+      const generateAndEmailTopicHistoryCommand = new GenerateAndEmailTopicHistoryCommand({
         topicId: options.topicId,
         recipientEmail: options.email
       }, generateAndEmailTopicHistoryFeature);
       
-      const result = await command.execute();
+      const result = await generateAndEmailTopicHistoryCommand.execute();
       
       console.log('✅ Topic history gerado e enviado com sucesso!');
       console.log(`   ID: ${result.id}`);

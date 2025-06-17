@@ -36,7 +36,7 @@ npm run cli start
 Cria um novo cliente no sistema:
 
 ```bash
-npm run cli newCustomer -n "Nome do Cliente" -c "123.456.789-00" -e "cliente@email.com" -p "(11) 99999-9999"
+npm run cli newCustomer -n "Gandolf" -c "123.456.789-00" -e "ldias.rs@gmail.com" -p "(11) 99999-9999"
 ```
 
 **Exemplo:**
