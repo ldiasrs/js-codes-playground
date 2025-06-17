@@ -16,9 +16,12 @@ interface TopicData {
 @injectable()
 export class NedbTopicRepository implements TopicRepositoryPort {
   private db: Datastore;
+  private readonly topicHistoryDb: Datastore;
 
   constructor() {
-    this.db = NedbDatabaseManager.getInstance().getTopicDatabase();
+    const dbManager = NedbDatabaseManager.getInstance();
+    this.db = dbManager.getTopicDatabase();
+    this.topicHistoryDb = dbManager.getTopicHistoryDatabase();
   }
 
   private topicToData(topic: Topic): TopicData {
@@ -221,6 +224,86 @@ export class NedbTopicRepository implements TopicRepositoryPort {
             reject(err);
           } else {
             resolve(!!doc);
+          }
+        }
+      );
+    });
+  }
+
+  async findTopicsWithOldestHistories(limit: number = 10, hoursSinceLastUpdate: number = 24): Promise<Topic[]> {
+    return new Promise((resolve, reject) => {
+      // First, get all topics
+      this.db.find({}, async (err, topicDocs) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        try {
+          const topics = topicDocs.map(doc => this.dataToTopic(doc));
+          const topicsWithHistoryInfo: Array<{ topic: Topic; lastHistoryDate: Date | null }> = [];
+
+          // For each topic, find the latest topic history
+          for (const topic of topics) {
+            const latestHistory = await this.getLatestTopicHistoryForTopic(topic.id);
+            topicsWithHistoryInfo.push({
+              topic,
+              lastHistoryDate: latestHistory ? latestHistory.createdAt : null
+            });
+          }
+
+          // Filter topics that haven't been updated in the specified hours
+          const cutoffTime = moment().subtract(hoursSinceLastUpdate, 'hours').toDate();
+          const eligibleTopics = topicsWithHistoryInfo.filter(item => {
+            // Include topics with no history or with old history
+            return !item.lastHistoryDate || item.lastHistoryDate < cutoffTime;
+          });
+
+          // Sort by last history date (null dates first, then oldest first)
+          eligibleTopics.sort((a, b) => {
+            if (!a.lastHistoryDate && !b.lastHistoryDate) return 0;
+            if (!a.lastHistoryDate) return -1;
+            if (!b.lastHistoryDate) return 1;
+            return a.lastHistoryDate.getTime() - b.lastHistoryDate.getTime();
+          });
+
+          // Group by customer and take up to 'limit' topics per customer
+          const customerTopicMap = new Map<string, Topic[]>();
+          for (const item of eligibleTopics) {
+            const customerId = item.topic.customerId;
+            if (!customerTopicMap.has(customerId)) {
+              customerTopicMap.set(customerId, []);
+            }
+            const customerTopics = customerTopicMap.get(customerId)!;
+            if (customerTopics.length < limit) {
+              customerTopics.push(item.topic);
+            }
+          }
+
+          // Flatten the results
+          const result: Topic[] = [];
+          for (const customerTopics of customerTopicMap.values()) {
+            result.push(...customerTopics);
+          }
+
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  private async getLatestTopicHistoryForTopic(topicId: string): Promise<{ createdAt: Date } | null> {
+    return new Promise((resolve, reject) => {
+      this.topicHistoryDb.findOne(
+        { topicId },
+        { sort: { createdAt: -1 } },
+        (err, doc) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(doc ? { createdAt: new Date(doc.createdAt) } : null);
           }
         }
       );

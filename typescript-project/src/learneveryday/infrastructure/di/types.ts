@@ -20,6 +20,7 @@ export const TYPES = {
   DeleteTopicCommand: Symbol.for('DeleteTopicCommand'),
   AddTopicHistoryCommand: Symbol.for('AddTopicHistoryCommand'),
   GenerateTopicHistoryCommand: Symbol.for('GenerateTopicHistoryCommand'),
+  GenerateTopicHistoriesForOldTopicsCommand: Symbol.for('GenerateTopicHistoriesForOldTopicsCommand'),
   GenerateAndEmailTopicHistoryCommand: Symbol.for('GenerateAndEmailTopicHistoryCommand'),
 
   // Features
@@ -31,6 +32,7 @@ export const TYPES = {
   DeleteTopicFeature: Symbol.for('DeleteTopicFeature'),
   AddTopicHistoryFeature: Symbol.for('AddTopicHistoryFeature'),
   GenerateTopicHistoryFeature: Symbol.for('GenerateTopicHistoryFeature'),
+  GenerateTopicHistoriesForOldTopicsFeature: Symbol.for('GenerateTopicHistoriesForOldTopicsFeature'),
   GenerateAndEmailTopicHistoryFeature: Symbol.for('GenerateAndEmailTopicHistoryFeature'),
   SendTopicHistoryFeature: Symbol.for('SendTopicHistoryFeature'),
 } as const; 

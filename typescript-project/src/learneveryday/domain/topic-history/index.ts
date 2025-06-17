@@ -7,4 +7,6 @@ export { TopicHistory } from './entities/TopicHistory';
 export { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from './ports/TopicHistoryRepositoryPort';
 
 // Features
-export { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from './features/AddTopicHistoryFeature'; 
+export { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from './features/AddTopicHistoryFeature';
+export { GenerateTopicHistoryFeature, GenerateTopicHistoryFeatureData } from './features/GenerateTopicHistoryFeature';
+export { GenerateTopicHistoriesForOldTopicsFeature, GenerateTopicHistoriesForOldTopicsFeatureData, GenerateTopicHistoriesForOldTopicsFeatureResult } from './features/GenerateTopicHistoriesForOldTopicsFeature'; 

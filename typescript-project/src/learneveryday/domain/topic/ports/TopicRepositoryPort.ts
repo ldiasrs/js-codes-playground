@@ -31,4 +31,12 @@ export interface TopicRepositoryPort {
    * @returns Promise<boolean> True if topic exists, false otherwise
    */
   existsByCustomerIdAndSubject(customerId: string, subject: string): Promise<boolean>;
+
+  /**
+   * Finds topics with oldest histories that haven't been updated in the last 24 hours
+   * @param limit Maximum number of topics to return per customer (default: 10)
+   * @param hoursSinceLastUpdate Hours since last topic history update (default: 24)
+   * @returns Promise<Topic[]> Array of topics that need new histories
+   */
+  findTopicsWithOldestHistories(limit?: number, hoursSinceLastUpdate?: number): Promise<Topic[]>;
 } 

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type TaskType = 'SendLastTopicHistory' | 'GenerateTopicHistory' | 'SendEmail';
+export type TaskType = 'SendLastTopicHistory' | 'GenerateTopicHistory' | 'GenerateTopicHistoriesForOldTopics' | 'SendEmail';
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 

@@ -1,10 +1,15 @@
 import { SchedulingService } from '../../domain/scheduling/services/SchedulingService';
 import { SendLastTopicHistoryTask } from '../../domain/scheduling/tasks/SendLastTopicHistoryTask';
+import { GenerateTopicHistoriesForOldTopicsTask } from '../../domain/scheduling/tasks/GenerateTopicHistoriesForOldTopicsTask';
 import { NedbScheduledTaskRepository } from '../adapters/NedbScheduledTaskRepository';
 import { NedbCustomerRepository } from '../adapters/NedbCustomerRepository';
+import { NedbTopicRepository } from '../adapters/NedbTopicRepository';
 import { NedbTopicHistoryRepository } from '../adapters/NedbTopicHistoryRepository';
 import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
+import { GenerateTopicHistoriesForOldTopicsFeature } from '../../domain/topic-history/features/GenerateTopicHistoriesForOldTopicsFeature';
 import { EmailSenderFactory } from './EmailSenderFactory';
+import { ContainerBuilder } from '../di/container';
+import { TYPES } from '../di/types';
 
 export class SchedulingServiceFactory {
   /**
@@ -13,14 +18,23 @@ export class SchedulingServiceFactory {
    * @returns SchedulingService instance
    */
   static create(dataDir: string): SchedulingService {
+    // Get the DI container
+    const container = ContainerBuilder.build(dataDir);
+
     // Initialize repositories (they now use centralized database manager)
     const scheduledTaskRepository = new NedbScheduledTaskRepository();
     const customerRepository = new NedbCustomerRepository();
+    const topicRepository = new NedbTopicRepository();
     const topicHistoryRepository = new NedbTopicHistoryRepository();
 
     // Initialize features
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();
     const sendTopicHistoryFeature = new SendTopicHistoryFeature(sendTopicHistoryByEmailPort);
+    
+    // Get the feature from DI container
+    const generateTopicHistoriesForOldTopicsFeature = container.get<GenerateTopicHistoriesForOldTopicsFeature>(
+      TYPES.GenerateTopicHistoriesForOldTopicsFeature
+    );
 
     // Create scheduling service
     const schedulingService = new SchedulingService(scheduledTaskRepository);
@@ -32,7 +46,12 @@ export class SchedulingServiceFactory {
       sendTopicHistoryFeature
     );
 
+    const generateTopicHistoriesForOldTopicsTask = new GenerateTopicHistoriesForOldTopicsTask(
+      generateTopicHistoriesForOldTopicsFeature
+    );
+
     schedulingService.registerTaskExecutor('SendLastTopicHistory', sendLastTopicHistoryTask);
+    schedulingService.registerTaskExecutor('GenerateTopicHistoriesForOldTopics', generateTopicHistoriesForOldTopicsTask);
 
     return schedulingService;
   }
@@ -41,15 +60,19 @@ export class SchedulingServiceFactory {
    * Creates a scheduling service with custom repositories
    * @param scheduledTaskRepository Custom scheduled task repository
    * @param customerRepository Custom customer repository
+   * @param topicRepository Custom topic repository
    * @param topicHistoryRepository Custom topic history repository
    * @param sendTopicHistoryFeature Custom send topic history feature
+   * @param generateTopicHistoriesForOldTopicsFeature Custom generate topic histories feature
    * @returns SchedulingService instance
    */
   static createWithCustomDependencies(
     scheduledTaskRepository: any,
     customerRepository: any,
+    topicRepository: any,
     topicHistoryRepository: any,
-    sendTopicHistoryFeature: SendTopicHistoryFeature
+    sendTopicHistoryFeature: SendTopicHistoryFeature,
+    generateTopicHistoriesForOldTopicsFeature: GenerateTopicHistoriesForOldTopicsFeature
   ): SchedulingService {
     // Create scheduling service
     const schedulingService = new SchedulingService(scheduledTaskRepository);
@@ -61,7 +84,12 @@ export class SchedulingServiceFactory {
       sendTopicHistoryFeature
     );
 
+    const generateTopicHistoriesForOldTopicsTask = new GenerateTopicHistoriesForOldTopicsTask(
+      generateTopicHistoriesForOldTopicsFeature
+    );
+
     schedulingService.registerTaskExecutor('SendLastTopicHistory', sendLastTopicHistoryTask);
+    schedulingService.registerTaskExecutor('GenerateTopicHistoriesForOldTopics', generateTopicHistoriesForOldTopicsTask);
 
     return schedulingService;
   }

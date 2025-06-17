@@ -17,6 +17,19 @@ async function main() {
 
     console.log('✅ Scheduled SendLastTopicHistory task to run daily at 9:00 AM');
 
+    // Schedule a GenerateTopicHistoriesForOldTopics task to run every hour
+    await scheduler.scheduleTask(
+      'GenerateTopicHistoriesForOldTopics',
+      '0 * * * *', // Every hour
+      { 
+        description: 'Generate topic histories for topics with old histories',
+        limit: 10,
+        hoursSinceLastUpdate: 24
+      }
+    );
+
+    console.log('✅ Scheduled GenerateTopicHistoriesForOldTopics task to run every hour');
+
     // You can add more scheduled tasks here as needed
     // Example: Schedule a task to run every hour
     // await scheduler.scheduleTask(

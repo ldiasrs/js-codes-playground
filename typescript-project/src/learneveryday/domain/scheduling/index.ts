@@ -11,4 +11,5 @@ export { TaskExecutorPort } from './ports/TaskExecutorPort';
 export { SchedulingService } from './services/SchedulingService';
 
 // Tasks
-export { SendLastTopicHistoryTask } from './tasks/SendLastTopicHistoryTask'; 
+export { SendLastTopicHistoryTask } from './tasks/SendLastTopicHistoryTask';
+export { GenerateTopicHistoriesForOldTopicsTask } from './tasks/GenerateTopicHistoriesForOldTopicsTask'; 

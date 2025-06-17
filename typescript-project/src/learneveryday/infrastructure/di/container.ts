@@ -30,11 +30,23 @@ import { AddTopicFeature } from '../../domain/topic/features/AddTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/features/DeleteTopicFeature';
 import { AddTopicHistoryFeature } from '../../domain/topic-history/features/AddTopicHistoryFeature';
 import { GenerateTopicHistoryFeature } from '../../domain/topic-history/features/GenerateTopicHistoryFeature';
+import { GenerateTopicHistoriesForOldTopicsFeature } from '../../domain/topic-history/features/GenerateTopicHistoriesForOldTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
 import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
 
 // Database
 import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
+
+// Commands
+import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
+import { UpdateCustomerCommand } from '../../application/commands/customer/UpdateCustomerCommand';
+import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
+import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
+import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
+import { AddTopicHistoryCommand } from '../../application/commands/topic-history/AddTopicHistoryCommand';
+import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
+import { GenerateTopicHistoriesForOldTopicsCommand } from '../../application/commands/topic-history/GenerateTopicHistoriesForOldTopicsCommand';
+import { GenerateAndEmailTopicHistoryCommand } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 
 export class ContainerBuilder {
   private static container: Container;
@@ -104,12 +116,53 @@ export class ContainerBuilder {
       .to(GenerateTopicHistoryFeature)
       .inSingletonScope();
 
+    this.container.bind<GenerateTopicHistoriesForOldTopicsFeature>(TYPES.GenerateTopicHistoriesForOldTopicsFeature)
+      .to(GenerateTopicHistoriesForOldTopicsFeature)
+      .inSingletonScope();
+
     this.container.bind<GenerateAndEmailTopicHistoryFeature>(TYPES.GenerateAndEmailTopicHistoryFeature)
       .to(GenerateAndEmailTopicHistoryFeature)
       .inSingletonScope();
 
     this.container.bind<SendTopicHistoryFeature>(TYPES.SendTopicHistoryFeature)
       .to(SendTopicHistoryFeature)
+      .inSingletonScope();
+
+    // Bind commands
+    this.container.bind<CreateCustomerCommand>(TYPES.CreateCustomerCommand)
+      .to(CreateCustomerCommand)
+      .inSingletonScope();
+
+    this.container.bind<UpdateCustomerCommand>(TYPES.UpdateCustomerCommand)
+      .to(UpdateCustomerCommand)
+      .inSingletonScope();
+
+    this.container.bind<DeleteCustomerCommand>(TYPES.DeleteCustomerCommand)
+      .to(DeleteCustomerCommand)
+      .inSingletonScope();
+
+    this.container.bind<AddTopicCommand>(TYPES.AddTopicCommand)
+      .to(AddTopicCommand)
+      .inSingletonScope();
+
+    this.container.bind<DeleteTopicCommand>(TYPES.DeleteTopicCommand)
+      .to(DeleteTopicCommand)
+      .inSingletonScope();
+
+    this.container.bind<AddTopicHistoryCommand>(TYPES.AddTopicHistoryCommand)
+      .to(AddTopicHistoryCommand)
+      .inSingletonScope();
+
+    this.container.bind<GenerateTopicHistoryCommand>(TYPES.GenerateTopicHistoryCommand)
+      .to(GenerateTopicHistoryCommand)
+      .inSingletonScope();
+
+    this.container.bind<GenerateTopicHistoriesForOldTopicsCommand>(TYPES.GenerateTopicHistoriesForOldTopicsCommand)
+      .to(GenerateTopicHistoriesForOldTopicsCommand)
+      .inSingletonScope();
+
+    this.container.bind<GenerateAndEmailTopicHistoryCommand>(TYPES.GenerateAndEmailTopicHistoryCommand)
+      .to(GenerateAndEmailTopicHistoryCommand)
       .inSingletonScope();
 
     // Bind services
