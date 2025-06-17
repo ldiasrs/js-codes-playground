@@ -2,6 +2,8 @@ import nodemailer from 'nodemailer';
 import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { EmailConfiguration } from '../config/email.config';
 import moment from 'moment';
+import fs from 'fs';
+import path from 'path';
 
 export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmailPort {
   private readonly emailConfig: EmailConfiguration;
@@ -26,7 +28,9 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
       greetingTimeout: 30000,   // 30 seconds
       socketTimeout: 60000      // 60 seconds
     });
+    
   }
+
 
   async send(data: SendTopicHistoryByEmailPortData): Promise<void> {
     try {
@@ -134,6 +138,11 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e9ecef;
+          }
+          .logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 15px;
           }
           .header h1 {
             color: #2c3e50;

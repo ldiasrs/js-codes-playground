@@ -36,7 +36,6 @@ export class GenerateTopicHistoryFeature {
     // Step 2: Get existing history for context
     const existingHistory = await this.topicHistoryRepository.findByTopicId(topicId);
 
-    // Step 3: Generate new content using the port
     const generatedContent = await this.generateTopicHistoryPort.generate({
       topicSubject: topic.subject,
       history: existingHistory

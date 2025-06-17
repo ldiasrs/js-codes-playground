@@ -55,12 +55,17 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
 ${historyContext}
 
 Please create a new learning entry that:
-1. Is engaging and informative
-2. Builds upon the previous learning experiences
-3. Provides new insights or perspectives
-4. Is written in a conversational, learning-focused tone
-5. Includes practical takeaways or applications
-6. Is approximately 150-300 words
+- Is engaging and informative
+- Builds upon the previous learning experiences
+- Provides new insights or perspectives
+- Is written in numbered list
+- Includes practical takeaways or applications
+- Is approximately 150-300 words
+- Must be in Brazilian Portuguese
+- The text must pass a joy and a message of learning
+- Add some practical examples
+- In the end add references links to the content
+- Format the content to be sent by email
 
 Generate the content now:`;
   }

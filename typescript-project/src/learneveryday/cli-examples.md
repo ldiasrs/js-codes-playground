@@ -35,13 +35,10 @@ npm run cli start
 
 Cria um novo cliente no sistema:
 
-```bash
-npm run cli newCustomer -n "Gandolf" -c "123.456.789-00" -e "ldias.rs@gmail.com" -p "(11) 99999-9999"
-```
 
 **Exemplo:**
 ```bash
-npm run cli newCustomer -n "João Silva" -c "123.456.789-00" -e "joao.silva@email.com" -p "(11) 99999-9999"
+npm run cli -- newCustomer -n "Gandolf" -c "123.456.789-00" -e "ldias.rs@gmail.com" -p "(11) 99999-9999"
 ```
 
 **Saída esperada:**
@@ -58,12 +55,13 @@ npm run cli newCustomer -n "João Silva" -c "123.456.789-00" -e "joao.silva@emai
 Cria um novo tópico para um cliente existente:
 
 ```bash
-npm run cli newTopic -c "ID_DO_CLIENTE" -s "Assunto do Tópico"
+--GANDOF
+npm run cli -- newTopic -c "19c49cd9-61f4-42c1-ae49-258bf301f8d7" -s "Bitcoin"
 ```
 
 **Exemplo:**
 ```bash
-npm run cli newTopic -c "550e8400-e29b-41d4-a716-446655440000" -s "Introdução ao TypeScript"
+npm run cli -- newTopic -c "550e8400-e29b-41d4-a716-446655440000" -s "Introdução ao TypeScript"
 ```
 
 **Saída esperada:**
