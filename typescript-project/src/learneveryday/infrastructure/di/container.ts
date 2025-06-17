@@ -6,21 +6,17 @@ import { TYPES } from './types';
 import { CustomerRepositoryPort } from '../../domain/customer/ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../domain/topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
-import { ScheduledTaskRepositoryPort } from '../../domain/scheduling/ports/ScheduledTaskRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../domain/shared/ports/TaskProcessRepositoryPort';
 import { NedbCustomerRepository } from '../adapters/NedbCustomerRepository';
 import { NedbTopicRepository } from '../adapters/NedbTopicRepository';
 import { NedbTopicHistoryRepository } from '../adapters/NedbTopicHistoryRepository';
-import { NedbScheduledTaskRepository } from '../adapters/NedbScheduledTaskRepository';
+import { NedbTaskProcessRepository } from '../adapters/NedbTaskProcessRepository';
 
 // Ports
 import { GenerateTopicHistoryPort } from '../../domain/topic-history/ports/GenerateTopicHistoryPort';
 import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { TopicHistoryGeneratorFactory } from '../factories/TopicHistoryGeneratorFactory';
 import { EmailSenderFactory } from '../factories/EmailSenderFactory';
-
-// Services
-import { SchedulingService } from '../../domain/scheduling/services/SchedulingService';
-import { SchedulingServiceFactory } from '../factories/SchedulingServiceFactory';
 
 // Features
 import { CreateCustomerFeature } from '../../domain/customer/features/CreateCustomerFeature';
@@ -30,9 +26,9 @@ import { AddTopicFeature } from '../../domain/topic/features/AddTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/features/DeleteTopicFeature';
 import { AddTopicHistoryFeature } from '../../domain/topic-history/features/AddTopicHistoryFeature';
 import { GenerateTopicHistoryFeature } from '../../domain/topic-history/features/GenerateTopicHistoryFeature';
-import { GenerateTopicHistoriesForOldTopicsFeature } from '../../domain/topic-history/features/GenerateTopicHistoriesForOldTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
 import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
+import { TasksProcessExecutor } from '../../domain/shared/features/TasksProcessExecutor';
 
 // Database
 import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
@@ -73,8 +69,8 @@ export class ContainerBuilder {
       .to(NedbTopicHistoryRepository)
       .inSingletonScope();
 
-    this.container.bind<ScheduledTaskRepositoryPort>(TYPES.ScheduledTaskRepository)
-      .to(NedbScheduledTaskRepository)
+    this.container.bind<TaskProcessRepositoryPort>(TYPES.TaskProcessRepository)
+      .to(NedbTaskProcessRepository)
       .inSingletonScope();
 
     // Bind ports
@@ -115,16 +111,16 @@ export class ContainerBuilder {
       .to(GenerateTopicHistoryFeature)
       .inSingletonScope();
 
-    this.container.bind<GenerateTopicHistoriesForOldTopicsFeature>(TYPES.GenerateTopicHistoriesForOldTopicsFeature)
-      .to(GenerateTopicHistoriesForOldTopicsFeature)
-      .inSingletonScope();
-
     this.container.bind<GenerateAndEmailTopicHistoryFeature>(TYPES.GenerateAndEmailTopicHistoryFeature)
       .to(GenerateAndEmailTopicHistoryFeature)
       .inSingletonScope();
 
     this.container.bind<SendTopicHistoryFeature>(TYPES.SendTopicHistoryFeature)
       .to(SendTopicHistoryFeature)
+      .inSingletonScope();
+
+    this.container.bind<TasksProcessExecutor>(TYPES.TasksProcessExecutor)
+      .to(TasksProcessExecutor)
       .inSingletonScope();
 
     // Bind commands
@@ -156,14 +152,8 @@ export class ContainerBuilder {
       .to(GenerateTopicHistoryCommand)
       .inSingletonScope();
 
-
     this.container.bind<GenerateAndEmailTopicHistoryCommand>(TYPES.GenerateAndEmailTopicHistoryCommand)
       .to(GenerateAndEmailTopicHistoryCommand)
-      .inSingletonScope();
-
-    // Bind services
-    this.container.bind<SchedulingService>(TYPES.SchedulingService)
-      .toDynamicValue(() => SchedulingServiceFactory.create(dataDir))
       .inSingletonScope();
 
     return this.container;

@@ -62,8 +62,8 @@ export class NedbDatabaseManager {
     return this.getDatabase('topic-histories');
   }
 
-  public getScheduledTaskDatabase(): Datastore {
-    return this.getDatabase('scheduled-tasks');
+  public getTaskProcessDatabase(): Datastore {
+    return this.getDatabase('task-processes');
   }
 
   public async closeAll(): Promise<void> {

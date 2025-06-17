@@ -368,6 +368,7 @@ npm run cli newCustomer -n "João Silva" -c "123.456.789-00" -e "joao@email.com"
 # 2. Criar tópicos
 npm run cli newTopic -c "ID_DO_CLIENTE" -s "TypeScript Avançado"
 npm run cli newTopic -c "ID_DO_CLIENTE" -s "React Hooks"
+npm run cli -- newTopic -c "19c49cd9-61f4-42c1-ae49-258bf301f8d7" -s "Receitas fitness para janta"
 
 # 3. Configurar task de geração automática (a cada 2 horas)
 npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 */2 * * *" -l 5 -h 6

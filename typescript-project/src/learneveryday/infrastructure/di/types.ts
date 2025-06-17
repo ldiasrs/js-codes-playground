@@ -3,14 +3,11 @@ export const TYPES = {
   CustomerRepository: Symbol.for('CustomerRepository'),
   TopicRepository: Symbol.for('TopicRepository'),
   TopicHistoryRepository: Symbol.for('TopicHistoryRepository'),
-  ScheduledTaskRepository: Symbol.for('ScheduledTaskRepository'),
+  TaskProcessRepository: Symbol.for('TaskProcessRepository'),
 
   // Ports
   GenerateTopicHistoryPort: Symbol.for('GenerateTopicHistoryPort'),
   SendTopicHistoryByEmailPort: Symbol.for('SendTopicHistoryByEmailPort'),
-
-  // Services
-  SchedulingService: Symbol.for('SchedulingService'),
 
   // Commands
   CreateCustomerCommand: Symbol.for('CreateCustomerCommand'),
@@ -31,7 +28,7 @@ export const TYPES = {
   DeleteTopicFeature: Symbol.for('DeleteTopicFeature'),
   AddTopicHistoryFeature: Symbol.for('AddTopicHistoryFeature'),
   GenerateTopicHistoryFeature: Symbol.for('GenerateTopicHistoryFeature'),
-  GenerateTopicHistoriesForOldTopicsFeature: Symbol.for('GenerateTopicHistoriesForOldTopicsFeature'),
   GenerateAndEmailTopicHistoryFeature: Symbol.for('GenerateAndEmailTopicHistoryFeature'),
   SendTopicHistoryFeature: Symbol.for('SendTopicHistoryFeature'),
+  TasksProcessExecutor: Symbol.for('TasksProcessExecutor'),
 } as const; 

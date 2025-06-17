@@ -230,7 +230,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
     });
   }
 
-  async findTopicsWithOldestHistories(limit: number = 10, hoursSinceLastUpdate: number = 24): Promise<Topic[]> {
+  async findTopicsWithOldestHistories(hoursSinceLastUpdate: number = 24): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
       // First, get all topics
       this.db.find({}, async (err, topicDocs) => {
@@ -259,31 +259,45 @@ export class NedbTopicRepository implements TopicRepositoryPort {
             return !item.lastHistoryDate || item.lastHistoryDate < cutoffTime;
           });
 
-          // Sort by last history date (null dates first, then oldest first)
-          eligibleTopics.sort((a, b) => {
-            if (!a.lastHistoryDate && !b.lastHistoryDate) return 0;
-            if (!a.lastHistoryDate) return -1;
-            if (!b.lastHistoryDate) return 1;
-            return a.lastHistoryDate.getTime() - b.lastHistoryDate.getTime();
-          });
-
-          // Group by customer and take up to 'limit' topics per customer
-          const customerTopicMap = new Map<string, Topic[]>();
+          // Group by customer and find the topic with oldest history for each customer
+          const customerTopicMap = new Map<string, { topic: Topic; lastHistoryDate: Date | null }>();
+          
           for (const item of eligibleTopics) {
             const customerId = item.topic.customerId;
+            
             if (!customerTopicMap.has(customerId)) {
-              customerTopicMap.set(customerId, []);
-            }
-            const customerTopics = customerTopicMap.get(customerId)!;
-            if (customerTopics.length < limit) {
-              customerTopics.push(item.topic);
+              // First topic for this customer
+              customerTopicMap.set(customerId, item);
+            } else {
+              // Compare with existing topic for this customer
+              const existing = customerTopicMap.get(customerId)!;
+              
+              // If current topic has no history and existing has history, keep existing
+              if (!item.lastHistoryDate && existing.lastHistoryDate) {
+                continue;
+              }
+              
+              // If existing topic has no history and current has history, replace with current
+              if (existing.lastHistoryDate && !item.lastHistoryDate) {
+                customerTopicMap.set(customerId, item);
+                continue;
+              }
+              
+              // If both have history, keep the one with older history
+              if (item.lastHistoryDate && existing.lastHistoryDate) {
+                if (item.lastHistoryDate < existing.lastHistoryDate) {
+                  customerTopicMap.set(customerId, item);
+                }
+              }
+              
+              // If neither has history, keep the first one (arbitrary choice)
             }
           }
 
-          // Flatten the results
+          // Extract just the topics from the map
           const result: Topic[] = [];
-          for (const customerTopics of customerTopicMap.values()) {
-            result.push(...customerTopics);
+          for (const item of customerTopicMap.values()) {
+            result.push(item.topic);
           }
 
           resolve(result);

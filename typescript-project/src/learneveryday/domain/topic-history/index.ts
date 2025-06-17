@@ -8,5 +8,4 @@ export { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from './ports/
 
 // Features
 export { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from './features/AddTopicHistoryFeature';
-export { GenerateTopicHistoryFeature, GenerateTopicHistoryFeatureData } from './features/GenerateTopicHistoryFeature';
-export { GenerateTopicHistoriesForOldTopicsFeature, GenerateTopicHistoriesForOldTopicsFeatureData, GenerateTopicHistoriesForOldTopicsFeatureResult } from './features/GenerateTopicHistoriesForOldTopicsFeature'; 
+export { GenerateTopicHistoryFeature, GenerateTopicHistoryFeatureData } from './features/GenerateTopicHistoryFeature'; 

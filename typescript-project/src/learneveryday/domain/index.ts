@@ -10,7 +10,4 @@ export * from './customer';
 export * from './topic';
 
 // Topic History Domain
-export * from './topic-history';
-
-// Scheduling Domain
-export * from './scheduling'; 
+export * from './topic-history'; 
