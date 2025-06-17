@@ -7,9 +7,9 @@ import { NedbTopicRepository } from '../adapters/NedbTopicRepository';
 import { NedbTopicHistoryRepository } from '../adapters/NedbTopicHistoryRepository';
 import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
 import { GenerateTopicHistoriesForOldTopicsFeature } from '../../domain/topic-history/features/GenerateTopicHistoriesForOldTopicsFeature';
+import { GenerateTopicHistoryFeature } from '../../domain/topic-history/features/GenerateTopicHistoryFeature';
 import { EmailSenderFactory } from './EmailSenderFactory';
-import { ContainerBuilder } from '../di/container';
-import { TYPES } from '../di/types';
+import { TopicHistoryGeneratorFactory } from './TopicHistoryGeneratorFactory';
 
 export class SchedulingServiceFactory {
   /**
@@ -18,9 +18,6 @@ export class SchedulingServiceFactory {
    * @returns SchedulingService instance
    */
   static create(dataDir: string): SchedulingService {
-    // Get the DI container
-    const container = ContainerBuilder.build(dataDir);
-
     // Initialize repositories (they now use centralized database manager)
     const scheduledTaskRepository = new NedbScheduledTaskRepository();
     const customerRepository = new NedbCustomerRepository();
@@ -31,9 +28,18 @@ export class SchedulingServiceFactory {
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();
     const sendTopicHistoryFeature = new SendTopicHistoryFeature(sendTopicHistoryByEmailPort);
     
-    // Get the feature from DI container
-    const generateTopicHistoriesForOldTopicsFeature = container.get<GenerateTopicHistoriesForOldTopicsFeature>(
-      TYPES.GenerateTopicHistoriesForOldTopicsFeature
+    // Create the generate topic history feature manually
+    const generateTopicHistoryPort = TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv();
+    const generateTopicHistoryFeature = new GenerateTopicHistoryFeature(
+      topicRepository,
+      topicHistoryRepository,
+      generateTopicHistoryPort
+    );
+    
+    // Create the generate topic histories for old topics feature manually
+    const generateTopicHistoriesForOldTopicsFeature = new GenerateTopicHistoriesForOldTopicsFeature(
+      topicRepository,
+      generateTopicHistoryFeature
     );
 
     // Create scheduling service

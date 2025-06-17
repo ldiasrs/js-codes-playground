@@ -45,7 +45,6 @@ import { AddTopicCommand } from '../../application/commands/topic/AddTopicComman
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
 import { AddTopicHistoryCommand } from '../../application/commands/topic-history/AddTopicHistoryCommand';
 import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
-import { GenerateTopicHistoriesForOldTopicsCommand } from '../../application/commands/topic-history/GenerateTopicHistoriesForOldTopicsCommand';
 import { GenerateAndEmailTopicHistoryCommand } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 
 export class ContainerBuilder {
@@ -157,9 +156,6 @@ export class ContainerBuilder {
       .to(GenerateTopicHistoryCommand)
       .inSingletonScope();
 
-    this.container.bind<GenerateTopicHistoriesForOldTopicsCommand>(TYPES.GenerateTopicHistoriesForOldTopicsCommand)
-      .to(GenerateTopicHistoriesForOldTopicsCommand)
-      .inSingletonScope();
 
     this.container.bind<GenerateAndEmailTopicHistoryCommand>(TYPES.GenerateAndEmailTopicHistoryCommand)
       .to(GenerateAndEmailTopicHistoryCommand)

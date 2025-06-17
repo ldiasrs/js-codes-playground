@@ -20,7 +20,6 @@ export const TYPES = {
   DeleteTopicCommand: Symbol.for('DeleteTopicCommand'),
   AddTopicHistoryCommand: Symbol.for('AddTopicHistoryCommand'),
   GenerateTopicHistoryCommand: Symbol.for('GenerateTopicHistoryCommand'),
-  GenerateTopicHistoriesForOldTopicsCommand: Symbol.for('GenerateTopicHistoriesForOldTopicsCommand'),
   GenerateAndEmailTopicHistoryCommand: Symbol.for('GenerateAndEmailTopicHistoryCommand'),
 
   // Features

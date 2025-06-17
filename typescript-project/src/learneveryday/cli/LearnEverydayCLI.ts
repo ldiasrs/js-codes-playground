@@ -92,6 +92,37 @@ export class LearnEverydayCLI {
       .action(async () => {
         await this.listScheduledTasks();
       });
+
+    // Register Task command (generic)
+    this.program
+      .command('registerTask')
+      .description('Registra uma nova scheduled task')
+      .requiredOption('-t, --type <type>', 'Tipo da task (GenerateTopicHistoriesForOldTopics | SendLastTopicHistory)')
+      .requiredOption('-c, --cron <cron>', 'Expressão cron (ex: "0 * * * *" para a cada hora)')
+      .option('-l, --limit <limit>', 'Limite de tópicos por cliente (apenas para GenerateTopicHistoriesForOldTopics, padrão: 10)', '10')
+      .option('-h, --hours <hours>', 'Horas desde a última atualização (apenas para GenerateTopicHistoriesForOldTopics, padrão: 24)', '24')
+      .option('-d, --description <description>', 'Descrição da task')
+      .action(async (options) => {
+        await this.registerTask(options);
+      });
+
+    // Remove Task command
+    this.program
+      .command('removeTask')
+      .description('Remove uma scheduled task pelo ID')
+      .requiredOption('-i, --id <id>', 'ID da task para remover')
+      .action(async (options) => {
+        await this.removeScheduledTask(options);
+      });
+
+    // Execute Task command
+    this.program
+      .command('executeTask')
+      .description('Executa uma task manualmente pelo ID')
+      .requiredOption('-i, --id <id>', 'ID da task para executar')
+      .action(async (options) => {
+        await this.executeScheduledTask(options);
+      });
   }
 
   private async initializeContainer(): Promise<void> {
@@ -315,11 +346,16 @@ export class LearnEverydayCLI {
 
   private async listScheduledTasks(): Promise<void> {
     try {
-      console.log('⏰ Listando todas as scheduled tasks...');
+      console.log('📋 Listando scheduled tasks...');
       
       await this.initializeContainer();
       
+      // Get scheduling service from container
+      const schedulingService = this.container.get(TYPES.SchedulingService);
+      
+      // Get scheduled task repository from container
       const scheduledTaskRepository = this.container.get(TYPES.ScheduledTaskRepository);
+      
       const tasks = await scheduledTaskRepository.findAll();
       
       if (tasks.length === 0) {
@@ -327,20 +363,144 @@ export class LearnEverydayCLI {
         return;
       }
       
-      console.log(`📋 Total de tasks: ${tasks.length}\n`);
+      console.log(`📋 Encontradas ${tasks.length} scheduled tasks:`);
+      console.log('');
       
-      tasks.forEach((task: any, index: number) => {
-        console.log(`${index + 1}. ${task.taskType}`);
-        console.log(`   ID: ${task.id}`);
-        console.log(`   Status: ${task.status}`);
-        console.log(`   Ativo: ${task.isActive ? 'Sim' : 'Não'}`);
-        console.log(`   Cron: ${task.cronExpression}`);
-        console.log(`   Próxima execução: ${task.nextRunAt?.toLocaleString() || 'Não agendado'}`);
-        console.log('');
+      tasks.forEach((task: any) => {
+        console.log(`🆔 ID: ${task.id}`);
+        console.log(`📝 Tipo: ${task.taskType}`);
+        console.log(`⏰ Cron: ${task.cronExpression}`);
+        console.log(`📊 Status: ${task.status}`);
+        console.log(`✅ Ativo: ${task.isActive ? 'Sim' : 'Não'}`);
+        if (task.lastRunAt) {
+          console.log(`🕐 Última execução: ${new Date(task.lastRunAt).toLocaleString()}`);
+        }
+        if (task.nextRunAt) {
+          console.log(`⏭️ Próxima execução: ${new Date(task.nextRunAt).toLocaleString()}`);
+        }
+        if (task.taskData && Object.keys(task.taskData).length > 0) {
+          console.log(`📄 Dados: ${JSON.stringify(task.taskData)}`);
+        }
+        console.log('---');
       });
       
     } catch (error) {
       console.error('❌ Erro ao listar scheduled tasks:', error);
+      process.exit(1);
+    }
+  }
+
+  private async registerTask(options: any): Promise<void> {
+    try {
+      console.log('📝 Registrando task...');
+      
+      await this.initializeContainer();
+      
+      // Validate task type
+      const validTaskTypes = ['GenerateTopicHistoriesForOldTopics', 'SendLastTopicHistory'];
+      if (!validTaskTypes.includes(options.type)) {
+        throw new Error(`Tipo de task inválido: ${options.type}. Tipos válidos: ${validTaskTypes.join(', ')}`);
+      }
+      
+      // Get scheduling service from container
+      const schedulingService = this.container.get(TYPES.SchedulingService);
+      
+      // Create task data based on type
+      let taskData: any = {};
+      let defaultDescription = '';
+      
+      if (options.type === 'GenerateTopicHistoriesForOldTopics') {
+        taskData = {
+          limit: parseInt(options.limit),
+          hoursSinceLastUpdate: parseInt(options.hours),
+          description: options.description || 'Generate topic histories for topics with old histories'
+        };
+        defaultDescription = 'Generate topic histories for topics with old histories';
+      } else if (options.type === 'SendLastTopicHistory') {
+        taskData = {
+          description: options.description || 'Send last topic history to all customers'
+        };
+        defaultDescription = 'Send last topic history to all customers';
+      }
+      
+      // Create scheduled task
+      const { ScheduledTask } = await import('../domain/scheduling/entities/ScheduledTask');
+      const task = new ScheduledTask(
+        options.type,
+        taskData,
+        options.cron
+      );
+      
+      // Schedule the task
+      await schedulingService.scheduleTask(task);
+      
+      console.log('✅ Task registrada com sucesso!');
+      console.log(`   ID: ${task.id}`);
+      console.log(`   Tipo: ${task.taskType}`);
+      console.log(`   Cron: ${task.cronExpression}`);
+      
+      // Show additional info based on task type
+      if (options.type === 'GenerateTopicHistoriesForOldTopics') {
+        console.log(`   Limite: ${taskData.limit} tópicos por cliente`);
+        console.log(`   Horas: ${taskData.hoursSinceLastUpdate} horas desde última atualização`);
+      }
+      
+      if (options.description) {
+        console.log(`   Descrição: ${options.description}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao registrar task:', error);
+      process.exit(1);
+    }
+  }
+
+  private async removeScheduledTask(options: any): Promise<void> {
+    try {
+      console.log(`🗑️ Removendo task ${options.id}...`);
+      
+      await this.initializeContainer();
+      
+      // Get scheduling service from container
+      const schedulingService = this.container.get(TYPES.SchedulingService);
+      
+      // Remove the task
+      await schedulingService.removeTask(options.id);
+      
+      console.log('✅ Task removida com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro ao remover task:', error);
+      process.exit(1);
+    }
+  }
+
+  private async executeScheduledTask(options: any): Promise<void> {
+    try {
+      console.log(`▶️ Executando task ${options.id}...`);
+      
+      await this.initializeContainer();
+      
+      // Get scheduled task repository from container
+      const scheduledTaskRepository = this.container.get(TYPES.ScheduledTaskRepository);
+      
+      // Find the task
+      const task = await scheduledTaskRepository.findById(options.id);
+      
+      if (!task) {
+        throw new Error(`Task com ID ${options.id} não encontrada`);
+      }
+      
+      // Get scheduling service from container
+      const schedulingService = this.container.get(TYPES.SchedulingService);
+      
+      // Execute the task manually
+      await schedulingService.executeTask(task);
+      
+      console.log('✅ Task executada com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro ao executar task:', error);
       process.exit(1);
     }
   }

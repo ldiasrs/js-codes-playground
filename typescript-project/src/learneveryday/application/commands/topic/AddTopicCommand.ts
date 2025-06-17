@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicDTO, TopicDTOMapper } from '../../dto/TopicDTO';
 import { AddTopicSimpleFeature, AddTopicSimpleFeatureData } from '../../../domain/topic/features/AddTopicSimpleFeature';
@@ -14,7 +14,7 @@ export interface AddTopicCommandData {
 @injectable()
 export class AddTopicCommand extends BaseCommand<TopicDTO> {
   constructor(
-    private readonly data: AddTopicCommandData,
+    @unmanaged() private readonly data: AddTopicCommandData,
     @inject(TYPES.AddTopicFeature) private readonly addTopicFeature: AddTopicFeature
   ) {
     super();

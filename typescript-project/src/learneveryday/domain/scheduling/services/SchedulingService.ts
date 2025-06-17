@@ -158,7 +158,7 @@ export class SchedulingService {
    * Executes a scheduled task
    * @param task The task to execute
    */
-  private async executeTask(task: ScheduledTask): Promise<void> {
+  async executeTask(task: ScheduledTask): Promise<void> {
     try {
       console.log(`🎯 Executing task: ${task.id} (${task.taskType})`);
 

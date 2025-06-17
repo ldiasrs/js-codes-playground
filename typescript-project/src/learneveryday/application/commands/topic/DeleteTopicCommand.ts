@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { DeleteTopicFeature, DeleteTopicFeatureData } from '../../../domain/topic/features/DeleteTopicFeature';
 import { TYPES } from '../../../infrastructure/di/types';
@@ -11,7 +11,7 @@ export interface DeleteTopicCommandData {
 @injectable()
 export class DeleteTopicCommand extends BaseCommand<boolean> {
   constructor(
-    private readonly data: DeleteTopicCommandData,
+    @unmanaged() private readonly data: DeleteTopicCommandData,
     @inject(TYPES.DeleteTopicFeature) private readonly deleteTopicFeature: DeleteTopicFeature
   ) {
     super();
