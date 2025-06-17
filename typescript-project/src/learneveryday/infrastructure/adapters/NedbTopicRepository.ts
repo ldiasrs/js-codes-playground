@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { Topic } from '../../domain/topic/entities/Topic';
 import { TopicRepositoryPort, TopicSearchCriteria } from '../../domain/topic/ports/TopicRepositoryPort';
@@ -11,12 +13,12 @@ interface TopicData {
   dateCreated: string;
 }
 
+@injectable()
 export class NedbTopicRepository implements TopicRepositoryPort {
-  private readonly topicDb: Datastore;
+  private db: Datastore;
 
-  constructor(dataDir: string = './data') {
-    const dbManager = NedbDatabaseManager.getInstance({ dataDir });
-    this.topicDb = dbManager.getTopicDatabase();
+  constructor() {
+    this.db = NedbDatabaseManager.getInstance().getTopicDatabase();
   }
 
   private topicToData(topic: Topic): TopicData {
@@ -41,7 +43,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
     return new Promise((resolve, reject) => {
       const topicData = this.topicToData(topic);
       
-      this.topicDb.update(
+      this.db.update(
         { _id: topic.id },
         topicData,
         { upsert: true },
@@ -58,7 +60,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findById(id: string): Promise<Topic | undefined> {
     return new Promise((resolve, reject) => {
-      this.topicDb.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err, doc) => {
         if (err) {
           reject(err);
         } else {
@@ -70,7 +72,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findAll(): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.topicDb.find({}, (err, docs) => {
+      this.db.find({}, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -82,7 +84,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findByCustomerId(customerId: string): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.topicDb.find({ customerId }, (err, docs) => {
+      this.db.find({ customerId }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -94,7 +96,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findBySubject(subject: string): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.topicDb.find(
+      this.db.find(
         { subject: { $regex: new RegExp(subject, 'i') } },
         (err, docs) => {
           if (err) {
@@ -109,7 +111,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.topicDb.find(
+      this.db.find(
         {
           dateCreated: {
             $gte: dateFrom.toISOString(),
@@ -155,7 +157,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
         }
       }
 
-      this.topicDb.find(query, (err, docs) => {
+      this.db.find(query, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -167,7 +169,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.topicDb.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
@@ -179,7 +181,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.topicDb.count({}, (err, count) => {
+      this.db.count({}, (err, count) => {
         if (err) {
           reject(err);
         } else {
@@ -209,7 +211,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async existsByCustomerIdAndSubject(customerId: string, subject: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.topicDb.findOne(
+      this.db.findOne(
         { 
           customerId,
           subject: { $regex: new RegExp(`^${subject}$`, 'i') }

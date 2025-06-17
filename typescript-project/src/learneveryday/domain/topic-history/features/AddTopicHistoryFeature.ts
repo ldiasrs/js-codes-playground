@@ -1,16 +1,20 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicHistoryFeatureData {
   topicId: string;
   content: string;
 }
 
+@injectable()
 export class AddTopicHistoryFeature {
   constructor(
-    private readonly topicRepository: TopicRepositoryPort,
-    private readonly topicHistoryRepository: TopicHistoryRepositoryPort
+    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
+    @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort
   ) {}
 
   /**

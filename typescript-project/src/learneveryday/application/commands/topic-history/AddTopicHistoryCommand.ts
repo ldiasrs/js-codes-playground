@@ -1,16 +1,20 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
 import { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from '../../../domain/topic-history/features/AddTopicHistoryFeature';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicHistoryCommandData {
   topicId: string;
   content: string;
 }
 
+@injectable()
 export class AddTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
   constructor(
     private readonly data: AddTopicHistoryCommandData,
-    private readonly addTopicHistoryFeature: AddTopicHistoryFeature
+    @inject(TYPES.AddTopicHistoryFeature) private readonly addTopicHistoryFeature: AddTopicHistoryFeature
   ) {
     super();
   }

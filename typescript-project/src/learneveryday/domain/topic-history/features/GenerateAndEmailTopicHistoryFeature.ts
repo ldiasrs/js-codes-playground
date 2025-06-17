@@ -1,18 +1,22 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { GenerateTopicHistoryFeature } from './GenerateTopicHistoryFeature';
 import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface GenerateAndEmailTopicHistoryFeatureData {
   topicId: string;
   recipientEmail: string;
 }
 
+@injectable()
 export class GenerateAndEmailTopicHistoryFeature {
   constructor(
-    private readonly generateTopicHistoryFeature: GenerateTopicHistoryFeature,
-    private readonly topicRepository: TopicRepositoryPort,
-    private readonly sendTopicHistoryPort: SendTopicHistoryByEmailPort
+    @inject(TYPES.GenerateTopicHistoryFeature) private readonly generateTopicHistoryFeature: GenerateTopicHistoryFeature,
+    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
+    @inject(TYPES.SendTopicHistoryByEmailPort) private readonly sendTopicHistoryPort: SendTopicHistoryByEmailPort
   ) {}
 
   async execute(data: GenerateAndEmailTopicHistoryFeatureData): Promise<TopicHistory> {

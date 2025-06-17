@@ -13,10 +13,10 @@ export class SchedulingServiceFactory {
    * @returns SchedulingService instance
    */
   static create(dataDir: string): SchedulingService {
-    // Initialize repositories
-    const scheduledTaskRepository = new NedbScheduledTaskRepository(dataDir);
-    const customerRepository = new NedbCustomerRepository(dataDir);
-    const topicHistoryRepository = new NedbTopicHistoryRepository(dataDir);
+    // Initialize repositories (they now use centralized database manager)
+    const scheduledTaskRepository = new NedbScheduledTaskRepository();
+    const customerRepository = new NedbCustomerRepository();
+    const topicHistoryRepository = new NedbTopicHistoryRepository();
 
     // Initialize features
     const sendTopicHistoryByEmailPort = EmailSenderFactory.createNodemailerSender();

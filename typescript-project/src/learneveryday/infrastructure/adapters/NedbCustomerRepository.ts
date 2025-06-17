@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { Customer } from '../../domain/customer/entities/Customer';
 import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../domain/customer/ports/CustomerRepositoryPort';
@@ -17,16 +19,16 @@ interface CustomerData {
   dateCreated: string;
 }
 
+@injectable()
 export class NedbCustomerRepository implements CustomerRepositoryPort {
-  private readonly customerDb: Datastore;
+  private db: Datastore;
   private readonly topicDb: Datastore;
   private readonly topicHistoryDb: Datastore;
 
-  constructor(dataDir: string) {
-    const dbManager = NedbDatabaseManager.getInstance({ dataDir });
-    this.customerDb = dbManager.getCustomerDatabase();
-    this.topicDb = dbManager.getTopicDatabase();
-    this.topicHistoryDb = dbManager.getTopicHistoryDatabase();
+  constructor() {
+    this.db = NedbDatabaseManager.getInstance().getCustomerDatabase();
+    this.topicDb = NedbDatabaseManager.getInstance().getTopicDatabase();
+    this.topicHistoryDb = NedbDatabaseManager.getInstance().getTopicHistoryDatabase();
   }
 
   private customerToData(customer: Customer): CustomerData {
@@ -61,7 +63,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
     return new Promise((resolve, reject) => {
       const customerData = this.customerToData(customer);
       
-      this.customerDb.update(
+      this.db.update(
         { _id: customer.id },
         customerData,
         { upsert: true },
@@ -78,7 +80,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async findById(id: string): Promise<Customer | undefined> {
     return new Promise((resolve, reject) => {
-      this.customerDb.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err, doc) => {
         if (err) {
           reject(err);
         } else {
@@ -90,7 +92,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async findAll(): Promise<Customer[]> {
     return new Promise((resolve, reject) => {
-      this.customerDb.find({}, (err, docs) => {
+      this.db.find({}, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -102,7 +104,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async findByCustomerName(customerName: string): Promise<Customer[]> {
     return new Promise((resolve, reject) => {
-      this.customerDb.find(
+      this.db.find(
         { customerName: { $regex: new RegExp(customerName, 'i') } },
         (err, docs) => {
           if (err) {
@@ -117,7 +119,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined> {
     return new Promise((resolve, reject) => {
-      this.customerDb.findOne(
+      this.db.findOne(
         {
           'govIdentification.type': govIdentification.type,
           'govIdentification.content': govIdentification.content
@@ -135,7 +137,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<Customer[]> {
     return new Promise((resolve, reject) => {
-      this.customerDb.find(
+      this.db.find(
         {
           dateCreated: {
             $gte: dateFrom.toISOString(),
@@ -180,7 +182,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
         }
       }
 
-      this.customerDb.find(query, (err, docs) => {
+      this.db.find(query, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -192,7 +194,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.customerDb.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
@@ -204,7 +206,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.customerDb.count({}, (err, count) => {
+      this.db.count({}, (err, count) => {
         if (err) {
           reject(err);
         } else {
@@ -250,7 +252,7 @@ export class NedbCustomerRepository implements CustomerRepositoryPort {
               return;
             }
 
-            this.customerDb.find(
+            this.db.find(
               { _id: { $in: customerIds } },
               (err, customerDocs) => {
                 if (err) {

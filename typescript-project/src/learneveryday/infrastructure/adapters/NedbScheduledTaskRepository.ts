@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { ScheduledTask, TaskType, TaskStatus } from '../../domain/scheduling/entities/ScheduledTask';
 import { ScheduledTaskRepositoryPort, ScheduledTaskSearchCriteria } from '../../domain/scheduling/ports/ScheduledTaskRepositoryPort';
@@ -18,12 +20,12 @@ interface ScheduledTaskData {
   isActive: boolean;
 }
 
+@injectable()
 export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort {
-  private readonly scheduledTaskDb: Datastore;
+  private db: Datastore;
 
-  constructor(dataDir: string) {
-    const dbManager = NedbDatabaseManager.getInstance({ dataDir });
-    this.scheduledTaskDb = dbManager.getScheduledTaskDatabase();
+  constructor() {
+    this.db = NedbDatabaseManager.getInstance().getScheduledTaskDatabase();
   }
 
   private scheduledTaskToData(scheduledTask: ScheduledTask): ScheduledTaskData {
@@ -62,7 +64,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
     return new Promise((resolve, reject) => {
       const taskData = this.scheduledTaskToData(scheduledTask);
       
-      this.scheduledTaskDb.update(
+      this.db.update(
         { _id: scheduledTask.id },
         taskData,
         { upsert: true },
@@ -79,7 +81,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findById(id: string): Promise<ScheduledTask | undefined> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err, doc) => {
         if (err) {
           reject(err);
         } else {
@@ -91,7 +93,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findAll(): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({}, (err, docs) => {
+      this.db.find({}, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -103,7 +105,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findByTaskType(taskType: TaskType): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({ taskType }, (err, docs) => {
+      this.db.find({ taskType }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -115,7 +117,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findByStatus(status: TaskStatus): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({ status }, (err, docs) => {
+      this.db.find({ status }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -127,7 +129,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findActive(): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({ isActive: true }, (err, docs) => {
+      this.db.find({ isActive: true }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -139,7 +141,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findPendingTasks(): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find(
+      this.db.find(
         { status: 'pending', isActive: true },
         (err, docs) => {
           if (err) {
@@ -154,7 +156,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async findTasksToRun(beforeDate: Date): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find(
+      this.db.find(
         {
           status: 'pending',
           isActive: true,
@@ -200,7 +202,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
         }
       }
 
-      this.scheduledTaskDb.find(query, (err, docs) => {
+      this.db.find(query, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -212,7 +214,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
@@ -224,7 +226,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.count({}, (err, count) => {
+      this.db.count({}, (err, count) => {
         if (err) {
           reject(err);
         } else {
@@ -239,7 +241,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
     const tomorrow = moment().endOf('day');
     
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find(
+      this.db.find(
         {
           createdAt: {
             $gte: today.toISOString(),
@@ -262,7 +264,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
     const weekEnd = moment().endOf('week');
     
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find(
+      this.db.find(
         {
           createdAt: {
             $gte: weekStart.toISOString(),
@@ -285,7 +287,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
     const monthEnd = moment().endOf('month');
     
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find(
+      this.db.find(
         {
           createdAt: {
             $gte: monthStart.toISOString(),
@@ -305,7 +307,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async getFailedTasks(): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({ status: 'failed' }, (err, docs) => {
+      this.db.find({ status: 'failed' }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -317,7 +319,7 @@ export class NedbScheduledTaskRepository implements ScheduledTaskRepositoryPort 
 
   async getCompletedTasks(): Promise<ScheduledTask[]> {
     return new Promise((resolve, reject) => {
-      this.scheduledTaskDb.find({ status: 'completed' }, (err, docs) => {
+      this.db.find({ status: 'completed' }, (err, docs) => {
         if (err) {
           reject(err);
         } else {

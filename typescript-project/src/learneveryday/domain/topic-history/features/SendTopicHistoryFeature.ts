@@ -1,6 +1,9 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { Customer } from '../../customer/entities/Customer';
 import { TopicHistory } from '../entities/TopicHistory';
 import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export type SendChannel = 'email' | 'whatsapp';
 
@@ -10,9 +13,10 @@ export interface SendTopicHistoryFeatureData {
   channel: SendChannel;
 }
 
+@injectable()
 export class SendTopicHistoryFeature {
   constructor(
-    private readonly sendTopicHistoryByEmailPort: SendTopicHistoryByEmailPort
+    @inject(TYPES.SendTopicHistoryByEmailPort) private readonly sendTopicHistoryByEmailPort: SendTopicHistoryByEmailPort
   ) {}
 
   /**

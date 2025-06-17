@@ -21,7 +21,9 @@
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": [
     "src/**/*"

@@ -1,14 +1,18 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface DeleteCustomerFeatureData {
   id: string;
 }
 
+@injectable()
 export class DeleteCustomerFeature {
   constructor(
-    private readonly customerRepository: CustomerRepositoryPort,
-    private readonly topicRepository: TopicRepositoryPort
+    @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
+    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort
   ) {}
 
   /**

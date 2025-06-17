@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { TopicHistory } from '../../domain/topic-history/entities/TopicHistory';
 import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
@@ -25,13 +27,14 @@ interface TopicActivitySummary {
   averageEntriesPerDay: number;
 }
 
+@injectable()
 export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
-  private readonly topicHistoryDb: Datastore;
+  private db: Datastore;
   private readonly topicDb: Datastore;
 
-  constructor(dataDir: string = './data') {
-    const dbManager = NedbDatabaseManager.getInstance({ dataDir });
-    this.topicHistoryDb = dbManager.getTopicHistoryDatabase();
+  constructor() {
+    const dbManager = NedbDatabaseManager.getInstance();
+    this.db = dbManager.getTopicHistoryDatabase();
     this.topicDb = dbManager.getTopicDatabase();
   }
 
@@ -57,7 +60,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
     return new Promise((resolve, reject) => {
       const historyData = this.topicHistoryToData(topicHistory);
       
-      this.topicHistoryDb.update(
+      this.db.update(
         { _id: topicHistory.id },
         historyData,
         { upsert: true },
@@ -74,7 +77,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findById(id: string): Promise<TopicHistory | undefined> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err, doc) => {
         if (err) {
           reject(err);
         } else {
@@ -86,7 +89,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findAll(): Promise<TopicHistory[]> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.find({}, (err, docs) => {
+      this.db.find({}, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -98,7 +101,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findByTopicId(topicId: string): Promise<TopicHistory[]> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.find({ topicId }, (err, docs) => {
+      this.db.find({ topicId }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -110,7 +113,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findByContent(content: string): Promise<TopicHistory[]> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.find(
+      this.db.find(
         { content: { $regex: new RegExp(content, 'i') } },
         (err, docs) => {
           if (err) {
@@ -125,7 +128,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<TopicHistory[]> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.find(
+      this.db.find(
         {
           createdAt: {
             $gte: dateFrom.toISOString(),
@@ -147,7 +150,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
     return new Promise((resolve, reject) => {
       const cutoffDate = moment().subtract(hours, 'hours').toISOString();
       
-      this.topicHistoryDb.find(
+      this.db.find(
         { createdAt: { $gte: cutoffDate } },
         (err, docs) => {
           if (err) {
@@ -182,7 +185,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
         }
       }
 
-      this.topicHistoryDb.find(query, (err, docs) => {
+      this.db.find(query, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -207,7 +210,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
           const topicIds = topicDocs.map(doc => doc._id);
           
           // Find the latest topic history for any of these topics
-          this.topicHistoryDb.findOne(
+          this.db.findOne(
             { topicId: { $in: topicIds } },
             { sort: { createdAt: -1 } },
             (err, historyDoc) => {
@@ -225,7 +228,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
@@ -237,7 +240,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async deleteByTopicId(topicId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.remove({ topicId }, { multi: true }, (err, numRemoved) => {
+      this.db.remove({ topicId }, { multi: true }, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
@@ -249,7 +252,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.count({}, (err, count) => {
+      this.db.count({}, (err, count) => {
         if (err) {
           reject(err);
         } else {
@@ -279,7 +282,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async getLatestByTopicId(topicId: string): Promise<TopicHistory | undefined> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.findOne(
+      this.db.findOne(
         { topicId },
         { sort: { createdAt: -1 } },
         (err, doc) => {
@@ -307,7 +310,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async getTopicActivitySummary(topicId: string): Promise<TopicActivitySummary> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.find({ topicId }, (err, docs) => {
+      this.db.find({ topicId }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -344,7 +347,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async countByTopicId(topicId: string): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.count({ topicId }, (err, count) => {
+      this.db.count({ topicId }, (err, count) => {
         if (err) {
           reject(err);
         } else {

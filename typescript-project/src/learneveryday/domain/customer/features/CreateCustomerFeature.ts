@@ -1,6 +1,9 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface CreateCustomerFeatureData {
   customerName: string;
@@ -12,10 +15,11 @@ export interface CreateCustomerFeatureData {
   phoneNumber: string;
 }
 
+@injectable()
 export class CreateCustomerFeature {
   constructor(
-    private readonly customerRepository: CustomerRepositoryPort,
-    private readonly topicRepository: TopicRepositoryPort
+    @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
+    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort
   ) {}
 
   /**

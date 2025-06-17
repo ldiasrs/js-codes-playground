@@ -1,6 +1,9 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { BaseCommand } from '../Command';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
 import { UpdateCustomerFeature, UpdateCustomerFeatureData } from '../../../domain/customer/features/UpdateCustomerFeature';
+import { TYPES } from '../../../infrastructure/di/types';
 
 export interface UpdateCustomerCommandData {
   id: string;
@@ -13,10 +16,11 @@ export interface UpdateCustomerCommandData {
   phoneNumber?: string;
 }
 
+@injectable()
 export class UpdateCustomerCommand extends BaseCommand<CustomerDTO> {
   constructor(
     private readonly data: UpdateCustomerCommandData,
-    private readonly updateCustomerFeature: UpdateCustomerFeature
+    @inject(TYPES.UpdateCustomerFeature) private readonly updateCustomerFeature: UpdateCustomerFeature
   ) {
     super();
   }
