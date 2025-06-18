@@ -73,7 +73,7 @@ export class TriggerTaskProcessExecutorCron {
       // Step 1: Schedule topic history generation
       console.log('📅 Step 1: Scheduling topic history generation...');
       await this.tasksProcessExecutor.execute(
-        { processType: 'schedule-generation-topic-history', limit: 10 },
+        { processType: 'regenerate-topic-history', limit: 10 },
         this.scheduleGenerateTopicHistoryTaskRunner
       );
       console.log('✅ Topic history scheduling completed');
