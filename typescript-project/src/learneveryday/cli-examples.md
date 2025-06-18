@@ -41,16 +41,15 @@ npm run cli newCustomer -n "Nome do Cliente" -c "123.456.789-00" -e "email@clien
 
 **Exemplo:**
 ```bash
-npm run cli newCustomer -n "João Silva" -c "123.456.789-00" -e "joao.silva@email.com" -p "(11) 99999-9999"
+npm run cli newCustomer -n "Frodo Baggins" -c "123.456.789-00" -e "frodo@shire.com" -p "(11) 99999-9999"
 ```
-
 **Saída esperada:**
 ```
 👤 Criando novo cliente...
 ✅ Cliente criado com sucesso!
    ID: 550e8400-e29b-41d4-a716-446655440000
-   Nome: João Silva
-   Email: joao.silva@email.com
+   Nome: Frodo Baggins
+   Email: frodo@shire.com
 ```
 
 ### 3. Criar Novo Tópico (newTopic)
@@ -63,7 +62,10 @@ npm run cli newTopic -c "ID_DO_CLIENTE" -s "Assunto do Tópico"
 
 **Exemplo:**
 ```bash
-npm run cli newTopic -c "550e8400-e29b-41d4-a716-446655440000" -s "Introdução ao TypeScript"
+npm run cli -- newTopic -c "31b5be6f-6cf4-485e-9ab9-6e58a27cfb71" -s "Bitcoin"
+npm run cli -- newTopic -c "31b5be6f-6cf4-485e-9ab9-6e58a27cfb71" -s "Estoicismo"
+npm run cli -- newTopic -c "31b5be6f-6cf4-485e-9ab9-6e58a27cfb71" -s "Arquitetura de software"
+npm run cli -- newTopic -c "31b5be6f-6cf4-485e-9ab9-6e58a27cfb71" -s "Comunicação efetiva"
 ```
 
 **Saída esperada:**
@@ -71,8 +73,8 @@ npm run cli newTopic -c "550e8400-e29b-41d4-a716-446655440000" -s "Introdução 
 📚 Criando novo tópico...
 ✅ Tópico criado com sucesso!
    ID: 660e8400-e29b-41d4-a716-446655440001
-   Assunto: Introdução ao TypeScript
-   Cliente: João Silva
+   Assunto: História dos Anéis de Poder
+   Cliente: Frodo Baggins
 ```
 
 ### 4. Gerar e Enviar Topic History (generateAndSendTopicHistory)
@@ -85,7 +87,7 @@ npm run cli generateAndSendTopicHistory -t "ID_DO_TOPICO" -e "email@destino.com"
 
 **Exemplo:**
 ```bash
-npm run cli generateAndSendTopicHistory -t "660e8400-e29b-41d4-a716-446655440001" -e "joao.silva@email.com"
+npm run cli generateAndSendTopicHistory -t "660e8400-e29b-41d4-a716-446655440001" -e "frodo@shire.com"
 ```
 
 **Saída esperada:**
@@ -93,9 +95,9 @@ npm run cli generateAndSendTopicHistory -t "660e8400-e29b-41d4-a716-446655440001
 📖 Gerando e enviando topic history...
 ✅ Topic history gerado e enviado com sucesso!
    ID: 770e8400-e29b-41d4-a716-446655440002
-   Tópico: Introdução ao TypeScript
-   Email enviado para: joao.silva@email.com
-   Conteúdo: TypeScript é um superset do JavaScript que adiciona tipagem estática...
+   Tópico: História dos Anéis de Poder
+   Email enviado para: frodo@shire.com
+   Conteúdo: Os Anéis de Poder foram forjados pelos Elfos sob a orientação de Sauron...
 ```
 
 ### 5. Listar Clientes (listCustomers)
@@ -109,20 +111,27 @@ npm run cli listCustomers
 **Saída esperada:**
 ```
 👥 Listando todos os clientes...
-📋 Encontrados 2 clientes:
+📋 Encontrados 3 clientes:
 🆔 ID: 550e8400-e29b-41d4-a716-446655440000
-   Nome: João Silva
-   Email: joao.silva@email.com
+   Nome: Frodo Baggins
+   Email: frodo@shire.com
    CPF: 123.456.789-00
    Telefone: (11) 99999-9999
    Data de criação: 15/01/2024, 10:30:00
 ---
 🆔 ID: 550e8400-e29b-41d4-a716-446655440001
-   Nome: Maria Santos
-   Email: maria.santos@email.com
+   Nome: Gandalf, o Cinzento
+   Email: gandalf@istari.com
    CPF: 987.654.321-00
    Telefone: (11) 88888-8888
    Data de criação: 15/01/2024, 11:45:00
+---
+🆔 ID: 550e8400-e29b-41d4-a716-446655440002
+   Nome: Aragorn, filho de Arathorn
+   Email: aragorn@rangers.com
+   CPF: 456.789.123-00
+   Telefone: (11) 77777-7777
+   Data de criação: 15/01/2024, 12:15:00
 ---
 ```
 
@@ -137,21 +146,31 @@ npm run cli listTopics
 **Saída esperada:**
 ```
 📚 Listando todos os tópicos...
-📋 Encontrados 3 tópicos:
+📋 Encontrados 5 tópicos:
 🆔 ID: 660e8400-e29b-41d4-a716-446655440001
-   Assunto: Introdução ao TypeScript
-   Cliente: João Silva (550e8400-e29b-41d4-a716-446655440000)
+   Assunto: História dos Anéis de Poder
+   Cliente: Frodo Baggins (550e8400-e29b-41d4-a716-446655440000)
    Data de criação: 15/01/2024, 10:35:00
 ---
 🆔 ID: 660e8400-e29b-41d4-a716-446655440002
-   Assunto: React Hooks
-   Cliente: João Silva (550e8400-e29b-41d4-a716-446655440000)
+   Assunto: Línguas Élficas: Quenya e Sindarin
+   Cliente: Gandalf, o Cinzento (550e8400-e29b-41d4-a716-446655440001)
    Data de criação: 15/01/2024, 14:20:00
 ---
 🆔 ID: 660e8400-e29b-41d4-a716-446655440003
-   Assunto: Node.js Express
-   Cliente: Maria Santos (550e8400-e29b-41d4-a716-446655440001)
+   Assunto: Estratégias de Batalha na Terra-média
+   Cliente: Aragorn, filho de Arathorn (550e8400-e29b-41d4-a716-446655440002)
    Data de criação: 15/01/2024, 16:10:00
+---
+🆔 ID: 660e8400-e29b-41d4-a716-446655440004
+   Assunto: Herbalismo e Poções da Terra-média
+   Cliente: Frodo Baggins (550e8400-e29b-41d4-a716-446655440000)
+   Data de criação: 15/01/2024, 17:30:00
+---
+🆔 ID: 660e8400-e29b-41d4-a716-446655440005
+   Assunto: Geografia de Gondor e Rohan
+   Cliente: Aragorn, filho de Arathorn (550e8400-e29b-41d4-a716-446655440002)
+   Data de criação: 15/01/2024, 18:45:00
 ---
 ```
 
@@ -330,6 +349,32 @@ npm run cli executeTask -i "880e8400-e29b-41d4-a716-446655440001"
 ✅ Task executada com sucesso!
 ```
 
+### 11. Iniciar Scheduler (startScheduler)
+
+Inicia o scheduler de task processes:
+
+```bash
+npm run cli startScheduler [opções]
+```
+
+**Opções opcionais:**
+- `-c, --cron <cron>` - Expressão cron para execução (padrão: "*/5 * * * *" - a cada 5 minutos)
+- `-d, --dataDir <path>` - Diretório para dados (padrão: "./data")
+
+**Exemplo:**
+```bash
+npm run cli startScheduler -c "*/10 * * * *" -d "./lotr-data"
+```
+
+**Saída esperada:**
+```
+⏰ Iniciando scheduler de task processes...
+📁 Diretório de dados: ./lotr-data
+🔄 Cron expression: */10 * * * * (a cada 10 minutos)
+✅ Scheduler iniciado com sucesso!
+🔄 Executando... (Pressione Ctrl+C para parar)
+```
+
 ## Expressões Cron Comuns
 
 ### Padrões de Agendamento
@@ -359,50 +404,75 @@ npm run cli executeTask -i "880e8400-e29b-41d4-a716-446655440001"
 
 ## Exemplos de Configuração Completa
 
-### Cenário 1: Sistema de Aprendizado Diário
+### Cenário 1: Academia de Magos da Terra-média
 
 ```bash
-# 1. Criar cliente
-npm run cli newCustomer -n "João Silva" -c "123.456.789-00" -e "joao@email.com" -p "(11) 99999-9999"
+# 1. Criar clientes (mestres)
+npm run cli newCustomer -n "Gandalf, o Cinzento" -c "123.456.789-00" -e "gandalf@istari.com" -p "(11) 99999-9999"
+npm run cli newCustomer -n "Saruman, o Branco" -c "987.654.321-00" -e "saruman@istari.com" -p "(11) 88888-8888"
+npm run cli newCustomer -n "Radagast, o Castanho" -c "456.789.123-00" -e "radagast@istari.com" -p "(11) 77777-7777"
 
-# 2. Criar tópicos
-npm run cli newTopic -c "ID_DO_CLIENTE" -s "TypeScript Avançado"
-npm run cli newTopic -c "ID_DO_CLIENTE" -s "React Hooks"
-npm run cli -- newTopic -c "19c49cd9-61f4-42c1-ae49-258bf301f8d7" -s "Receitas fitness para janta"
+# 2. Criar tópicos de estudo
+npm run cli newTopic -c "ID_GANDALF" -s "História dos Istari e suas Missões"
+npm run cli newTopic -c "ID_GANDALF" -s "Magia de Proteção e Encantamentos"
+npm run cli newTopic -c "ID_SARUMAN" -s "Estudo dos Palantíri e Comunicação"
+npm run cli newTopic -c "ID_RADAGAST" -s "Herbalismo e Poções da Terra-média"
 
-# 3. Configurar task de geração automática (a cada 2 horas)
-npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 */2 * * *" -l 5 -h 6
+# 3. Configurar task de geração automática (a cada 4 horas)
+npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 */4 * * *" -l 3 -h 8 -d "Gera conhecimentos mágicos a cada 4 horas"
 
 # 4. Configurar task de envio diário (às 18h)
-npm run cli registerTask -t SendLastTopicHistory -c "0 18 * * *" -d "Resumo diário de aprendizado"
+npm run cli registerTask -t SendLastTopicHistory -c "0 18 * * *" -d "Resumo diário de estudos mágicos"
 
 # 5. Iniciar o sistema
 npm run cli start
 ```
 
-### Cenário 2: Sistema de Revisão Semanal
+### Cenário 2: Escola de Estratégia Militar de Gondor
 
 ```bash
-# 1. Configurar task de geração (a cada 6 horas)
-npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 */6 * * *" -l 10 -h 48
+# 1. Criar clientes (comandantes)
+npm run cli newCustomer -n "Aragorn, filho de Arathorn" -c "111.222.333-00" -e "aragorn@rangers.com" -p "(11) 66666-6666"
+npm run cli newCustomer -n "Boromir, filho de Denethor" -c "222.333.444-00" -e "boromir@gondor.com" -p "(11) 55555-5555"
+npm run cli newCustomer -n "Faramir, filho de Denethor" -c "333.444.555-00" -e "faramir@gondor.com" -p "(11) 44444-4444"
 
-# 2. Configurar task de envio semanal (domingo às 10h)
-npm run cli registerTask -t SendLastTopicHistory -c "0 10 * * 0" -d "Resumo semanal de aprendizado"
+# 2. Criar tópicos de estratégia
+npm run cli newTopic -c "ID_ARAGORN" -s "Táticas de Guerrilha dos Rangers"
+npm run cli newTopic -c "ID_BOROMIR" -s "Defesa de Minas Tirith"
+npm run cli newTopic -c "ID_FARAMIR" -s "Estratégias de Reconhecimento"
 
-# 3. Iniciar o sistema
+# 3. Configurar task de geração (a cada 6 horas)
+npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 */6 * * *" -l 5 -h 12 -d "Gera estratégias militares a cada 6 horas"
+
+# 4. Configurar task de envio semanal (domingo às 10h)
+npm run cli registerTask -t SendLastTopicHistory -c "0 10 * * 0" -d "Resumo semanal de estratégias militares"
+
+# 5. Iniciar o sistema
 npm run cli start
 ```
 
-### Cenário 3: Sistema de Aprendizado Intensivo
+### Cenário 3: Biblioteca de Conhecimento do Condado
 
 ```bash
-# 1. Configurar task de geração (a cada hora)
-npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 * * * *" -l 3 -h 12
+# 1. Criar clientes (hobbits estudiosos)
+npm run cli newCustomer -n "Frodo Baggins" -c "444.555.666-00" -e "frodo@shire.com" -p "(11) 33333-3333"
+npm run cli newCustomer -n "Samwise Gamgee" -c "555.666.777-00" -e "sam@shire.com" -p "(11) 22222-2222"
+npm run cli newCustomer -n "Merry Brandybuck" -c "666.777.888-00" -e "merry@shire.com" -p "(11) 11111-1111"
+npm run cli newCustomer -n "Pippin Took" -c "777.888.999-00" -e "pippin@shire.com" -p "(11) 00000-0000"
 
-# 2. Configurar task de envio (3x por dia)
-npm run cli registerTask -t SendLastTopicHistory -c "0 8,14,20 * * *" -d "Resumo de aprendizado"
+# 2. Criar tópicos de conhecimento
+npm run cli newTopic -c "ID_FRODO" -s "História dos Anéis de Poder"
+npm run cli newTopic -c "ID_SAM" -s "Agricultura e Jardinagem do Condado"
+npm run cli newTopic -c "ID_MERRY" -s "Geografia da Terra-média"
+npm run cli newTopic -c "ID_PIPPIN" -s "História dos Reis de Gondor"
 
-# 3. Iniciar o sistema
+# 3. Configurar task de geração intensiva (a cada hora)
+npm run cli registerTask -t GenerateTopicHistoriesForOldTopics -c "0 * * * *" -l 2 -h 6 -d "Gera conhecimentos a cada hora"
+
+# 4. Configurar task de envio (3x por dia)
+npm run cli registerTask -t SendLastTopicHistory -c "0 8,14,20 * * *" -d "Resumo de aprendizado do Condado"
+
+# 5. Iniciar o sistema
 npm run cli start
 ```
 

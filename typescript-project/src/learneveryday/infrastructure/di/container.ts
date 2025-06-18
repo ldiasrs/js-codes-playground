@@ -24,7 +24,6 @@ import { UpdateCustomerFeature } from '../../domain/customer/usecase/UpdateCusto
 import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
-import { AddTopicHistoryFeature } from '../../domain/topic-history/usecase/AddTopicHistoryFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
@@ -44,7 +43,6 @@ import { UpdateCustomerCommand } from '../../application/commands/customer/Updat
 import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
 import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
-import { AddTopicHistoryCommand } from '../../application/commands/topic-history/AddTopicHistoryCommand';
 import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
 import { GenerateAndEmailTopicHistoryCommand } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 
@@ -108,10 +106,6 @@ export class ContainerBuilder {
       .to(DeleteTopicFeature)
       .inSingletonScope();
 
-    this.container.bind<AddTopicHistoryFeature>(TYPES.AddTopicHistoryFeature)
-      .to(AddTopicHistoryFeature)
-      .inSingletonScope();
-
     this.container.bind<GenerateAndEmailTopicHistoryFeature>(TYPES.GenerateAndEmailTopicHistoryFeature)
       .to(GenerateAndEmailTopicHistoryFeature)
       .inSingletonScope();
@@ -153,10 +147,6 @@ export class ContainerBuilder {
 
     this.container.bind<DeleteTopicCommand>(TYPES.DeleteTopicCommand)
       .to(DeleteTopicCommand)
-      .inSingletonScope();
-
-    this.container.bind<AddTopicHistoryCommand>(TYPES.AddTopicHistoryCommand)
-      .to(AddTopicHistoryCommand)
       .inSingletonScope();
 
     this.container.bind<GenerateTopicHistoryCommand>(TYPES.GenerateTopicHistoryCommand)

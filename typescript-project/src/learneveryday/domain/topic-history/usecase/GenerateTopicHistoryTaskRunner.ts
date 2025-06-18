@@ -46,16 +46,22 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newHistory = new TopicHistory(topicId, generatedContent);
     const savedHistory = await this.topicHistoryRepository.save(newHistory);
 
-    // Step 5: Create a new TaskProcess for sending the topic history
+    // Step 5: Create a new TaskProcess for sending the topic history, scheduled for 5 minutes from now
+    const nextScheduledTime = new Date();
+    nextScheduledTime.setMinutes(nextScheduledTime.getMinutes() + 5);
+    
     const sendTaskProcess = new TaskProcess(
       savedHistory.id, // Use the topic history ID as entityId
       'topic-history-send',
-      'pending'
+      'pending',
+      undefined, // id will be auto-generated
+      undefined, // errorMsg
+      nextScheduledTime // scheduledTo - 5 minutes from now
     );
 
     // Step 6: Save the new task process
     await this.taskProcessRepository.save(sendTaskProcess);
 
-    console.log(`Generated topic history for topic: ${topicId} and created send task: ${sendTaskProcess.id}`);
+    console.log(`Generated topic history for topic: ${topicId} and created send task: ${sendTaskProcess.id} scheduled for: ${nextScheduledTime.toISOString()}`);
   }
 } 

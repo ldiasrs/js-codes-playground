@@ -9,7 +9,6 @@ export * from './application/commands/customer/UpdateCustomerCommand';
 export * from './application/commands/customer/DeleteCustomerCommand';
 export * from './application/commands/topic/AddTopicCommand';
 export * from './application/commands/topic/DeleteTopicCommand';
-export * from './application/commands/topic-history/AddTopicHistoryCommand';
 
 // Application Queries
 export * from './application/queries/customer/GetCustomerByIdQuery';

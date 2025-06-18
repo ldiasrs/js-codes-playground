@@ -15,7 +15,6 @@ export const TYPES = {
   DeleteCustomerCommand: Symbol.for('DeleteCustomerCommand'),
   AddTopicCommand: Symbol.for('AddTopicCommand'),
   DeleteTopicCommand: Symbol.for('DeleteTopicCommand'),
-  AddTopicHistoryCommand: Symbol.for('AddTopicHistoryCommand'),
   GenerateTopicHistoryCommand: Symbol.for('GenerateTopicHistoryCommand'),
   GenerateAndEmailTopicHistoryCommand: Symbol.for('GenerateAndEmailTopicHistoryCommand'),
 
@@ -25,7 +24,6 @@ export const TYPES = {
   DeleteCustomerFeature: Symbol.for('DeleteCustomerFeature'),
   AddTopicFeature: Symbol.for('AddTopicFeature'),
   DeleteTopicFeature: Symbol.for('DeleteTopicFeature'),
-  AddTopicHistoryFeature: Symbol.for('AddTopicHistoryFeature'),
   GenerateAndEmailTopicHistoryFeature: Symbol.for('GenerateAndEmailTopicHistoryFeature'),
   TasksProcessExecutor: Symbol.for('TasksProcessExecutor'),
 

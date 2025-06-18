@@ -169,8 +169,17 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
 
   async findPendingTaskProcessByStatusAndType(status: TaskProcessStatus, type: TaskProcessType, limit: number = 10): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
+      const nowISOString = new Date().toISOString();
       this.db.find(
-        { status, type },
+        {
+          status,
+          type,
+          $or: [
+            { scheduledTo: { $exists: false } },
+            { scheduledTo: null },
+            { scheduledTo: { $lte: nowISOString } }
+          ]
+        },
         (err, docs) => {
           if (err) {
             reject(err);
