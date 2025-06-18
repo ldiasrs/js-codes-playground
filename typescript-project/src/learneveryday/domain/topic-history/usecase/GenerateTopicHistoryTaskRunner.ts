@@ -71,7 +71,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     scheduledTimeRegenerate.setHours(scheduledTimeRegenerate.getHours()); 
     
     const newRegenerateTaskProcess = new TaskProcess(
-      topic.customerId, // Use customer ID as entityId for regenerate task
+      topic.id, 
       topic.customerId,
       TaskProcess.REGENERATE_TOPIC_HISTORY,
       'pending',

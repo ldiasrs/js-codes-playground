@@ -72,6 +72,7 @@ export class TriggerTaskProcessExecutorCron {
       console.log('🚀 Starting task processing workflow for all customers');
 
       // Step 1: Schedule topic history generation
+      console.log('\n\n');
       console.log('📅 Step 1: Scheduling topic history generation...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.REGENERATE_TOPIC_HISTORY, limit: 10 },
@@ -80,14 +81,17 @@ export class TriggerTaskProcessExecutorCron {
       console.log('✅ Topic history scheduling completed');
 
       // Step 2: Generate topic histories
+      console.log('\n\n');
       console.log('📝 Step 2: Generating topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.GENERATE_TOPIC_HISTORY, limit: 10 },
         this.generateTopicHistoryTaskRunner
       );
+
       console.log('✅ Topic history generation completed');
 
       // Step 3: Send topic histories
+      console.log('\n\n');
       console.log('📧 Step 3: Sending topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.SEND_TOPIC_HISTORY, limit: 10 },

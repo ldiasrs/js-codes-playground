@@ -26,7 +26,8 @@ export class ReGenerateTopicHistoryTaskRunner
    * @throws Error if customer has no topics or task creation fails
    */
   async execute(taskProcess: TaskProcess): Promise<void> {
-    const customerId = taskProcess.entityId;
+    const customerId = taskProcess.customerId;
+    const topicId = taskProcess.entityId;
 
     // Step 1: Check if customer has any topics
     const customerTopics = await this.topicRepository.findByCustomerId(
@@ -69,7 +70,7 @@ export class ReGenerateTopicHistoryTaskRunner
 
         // Create verification scheduled task
         const verificationTaskProcess = new TaskProcess(
-          customerId, // Use customer ID as entityId
+          topicId, 
           customerId,
           TaskProcess.REGENERATE_TOPIC_HISTORY,
           "pending",
