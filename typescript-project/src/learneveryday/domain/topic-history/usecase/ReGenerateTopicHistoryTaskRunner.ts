@@ -43,8 +43,7 @@ export class ReGenerateTopicHistoryTaskRunner
 
     const completedSendTasks = await this.taskProcessRepository.search({
       customerId: customerId,
-      type: TaskProcess.SEND_TOPIC_HISTORY,
-      status: "completed",
+      type: TaskProcess.GENERATE_TOPIC_HISTORY,
       dateFrom: oneMonthAgo,
       dateTo: new Date()
     });
@@ -54,17 +53,17 @@ export class ReGenerateTopicHistoryTaskRunner
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     const recentCompletedTasks = completedSendTasks.filter(task => 
-      task.processAt && task.processAt >= twentyFourHoursAgo
+      task.createdAt && task.createdAt >= twentyFourHoursAgo
     );
 
-    if (recentCompletedTasks.length > 1) {
+    if (recentCompletedTasks.length > 0) {
       // Step 4: Find the newest completed task and schedule verification
       const newestTask = recentCompletedTasks.reduce((latest, current) => 
-        (current.processAt && latest.processAt && current.processAt > latest.processAt) ? current : latest
+        (current.createdAt && latest.createdAt && current.createdAt > latest.createdAt) ? current : latest
       );
 
-      if (newestTask.processAt) {
-        const lastSendingDate = newestTask.processAt;
+      if (newestTask.createdAt) {
+        const lastSendingDate = newestTask.createdAt;
         const verificationDate = new Date(lastSendingDate);
         verificationDate.setHours(verificationDate.getHours() + 24);
 

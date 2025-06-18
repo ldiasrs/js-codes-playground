@@ -93,6 +93,14 @@ export class LearnEverydayCLI {
         await this.listTasks(options);
       });
 
+    // Seed Data command
+    this.program
+      .command('seed')
+      .description('Cria dados de exemplo: um cliente e dois tópicos')
+      .action(async () => {
+        await this.seedData();
+      });
+
     // Trigger Task Processing command
     this.program
       .command('triggerTaskProcessing')
@@ -388,6 +396,85 @@ export class LearnEverydayCLI {
       
     } catch (error) {
       console.error('❌ Erro ao listar tarefas:', error);
+      process.exit(1);
+    }
+  }
+
+  private async seedData(): Promise<void> {
+    try {
+      console.log('🌱 Iniciando seed de dados...');
+      
+      await this.initializeContainer();
+      
+      // Get features from container
+      const createCustomerFeature = this.container.get(TYPES.CreateCustomerFeature);
+      const addTopicFeature = this.container.get(TYPES.AddTopicFeature);
+      
+      // Step 1: Create customer
+      console.log('👤 Criando cliente de exemplo...');
+      
+      const createCustomerCommand = new CreateCustomerCommand({
+        customerName: 'João Silva',
+        govIdentification: {
+          type: 'CPF',
+          content: '123.456.789-00'
+        },
+        email: 'ldias.rs@gmail.com',
+        phoneNumber: '(11) 99999-9999'
+      }, createCustomerFeature);
+      
+      const customer = await createCustomerCommand.execute();
+      
+      console.log('✅ Cliente criado com sucesso!');
+      console.log(`   ID: ${customer.id}`);
+      console.log(`   Nome: ${customer.customerName}`);
+      console.log(`   Email: ${customer.email}`);
+      console.log('');
+      
+      // Step 2: Create first topic - Bitcoin
+      console.log('📚 Criando primeiro tópico: Bitcoin...');
+      
+      const addTopicCommand1 = new AddTopicCommand({
+        customerId: customer.id,
+        subject: 'Bitcoin'
+      }, addTopicFeature);
+      
+      const topic1 = await addTopicCommand1.execute();
+      
+      console.log('✅ Tópico "Bitcoin" criado com sucesso!');
+      console.log(`   ID: ${topic1.id}`);
+      console.log(`   Assunto: ${topic1.subject}`);
+      console.log('');
+      
+      // Step 3: Create second topic - Receitas fitness para jantar
+      console.log('📚 Criando segundo tópico: Receitas fitness para jantar...');
+      
+      const addTopicCommand2 = new AddTopicCommand({
+        customerId: customer.id,
+        subject: 'Receitas fitness para jantar'
+      }, addTopicFeature);
+      
+      const topic2 = await addTopicCommand2.execute();
+      
+      console.log('✅ Tópico "Receitas fitness para jantar" criado com sucesso!');
+      console.log(`   ID: ${topic2.id}`);
+      console.log(`   Assunto: ${topic2.subject}`);
+      console.log('');
+      
+      // Step 4: Summary
+      console.log('🎉 Seed de dados concluído com sucesso!');
+      console.log('📊 Resumo:');
+      console.log(`   👤 Cliente: ${customer.customerName} (${customer.id})`);
+      console.log(`   📚 Tópico 1: ${topic1.subject} (${topic1.id})`);
+      console.log(`   📚 Tópico 2: ${topic2.subject} (${topic2.id})`);
+      console.log('');
+      console.log('💡 Agora você pode usar os comandos:');
+      console.log('   npm run cli listCustomers');
+      console.log('   npm run cli listTopics');
+      console.log('   npm run cli listTasks');
+      
+    } catch (error) {
+      console.error('❌ Erro ao executar seed de dados:', error);
       process.exit(1);
     }
   }

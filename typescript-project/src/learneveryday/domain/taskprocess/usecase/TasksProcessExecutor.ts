@@ -39,11 +39,58 @@ export class TasksProcessExecutor {
 
     console.log(`Found ${pendingTasks.length} pending tasks for process type: ${processType}`);
 
-    // Step 2: Process each task
-    const processingPromises = pendingTasks.map(taskProcess => this.processTask(taskProcess, runner));
+    // Step 2: Group tasks by customerId for sequential processing per customer
+    const tasksByCustomer = this.groupTasksByCustomer(pendingTasks);
     
-    // Step 3: Wait for all tasks to complete
-    await Promise.allSettled(processingPromises);
+    console.log(`Grouped tasks into ${tasksByCustomer.size} customer groups`);
+
+    // Step 3: Process each customer group sequentially, but different customers in parallel
+    const customerProcessingPromises = Array.from(tasksByCustomer.entries()).map(
+      ([customerId, tasks]) => this.processCustomerTasks(customerId, tasks, runner)
+    );
+    
+    // Step 4: Wait for all customer groups to complete
+    await Promise.allSettled(customerProcessingPromises);
+  }
+
+  /**
+   * Groups tasks by customerId
+   * @param tasks Array of tasks to group
+   * @returns Map of customerId to array of tasks
+   */
+  private groupTasksByCustomer(tasks: TaskProcess[]): Map<string, TaskProcess[]> {
+    const tasksByCustomer = new Map<string, TaskProcess[]>();
+    
+    for (const task of tasks) {
+      if (!tasksByCustomer.has(task.customerId)) {
+        tasksByCustomer.set(task.customerId, []);
+      }
+      tasksByCustomer.get(task.customerId)!.push(task);
+    }
+    
+    return tasksByCustomer;
+  }
+
+  /**
+   * Processes all tasks for a specific customer sequentially
+   * @param customerId The customer ID
+   * @param tasks Array of tasks for this customer
+   * @param runner The task process runner
+   * @returns Promise<void> Resolves when all tasks for this customer are processed
+   */
+  private async processCustomerTasks(
+    customerId: string, 
+    tasks: TaskProcess[], 
+    runner: TaskProcessRunner
+  ): Promise<void> {
+    console.log(`Processing ${tasks.length} tasks sequentially for customer: ${customerId}`);
+    
+    // Process tasks for this customer sequentially
+    for (const task of tasks) {
+      await this.processTask(task, runner);
+    }
+    
+    console.log(`✅ Completed processing all tasks for customer: ${customerId}`);
   }
 
   /**
