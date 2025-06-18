@@ -200,23 +200,8 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
             reject(err);
           } else {
             const taskProcesses = docs.map(doc => this.dataToTaskProcess(doc));
-            
-            // Group tasks by customerId and get the oldest task for each customer
-            const customerTaskMap = new Map<string, TaskProcess>();
-            
-            taskProcesses.forEach(task => {
-              const existingTask = customerTaskMap.get(task.customerId);
-              if (!existingTask || task.createdAt.getTime() < existingTask.createdAt.getTime()) {
-                customerTaskMap.set(task.customerId, task);
-              }
-            });
-            
-            // Convert map values to array and sort by createdAt (oldest first)
-            const oneTaskPerCustomer = Array.from(customerTaskMap.values())
-              .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-              .slice(0, limit);
               
-            resolve(oneTaskPerCustomer);
+            resolve(taskProcesses);
           }
         }
       );

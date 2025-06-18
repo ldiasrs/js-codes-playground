@@ -4,6 +4,7 @@ import * as cron from 'node-cron';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
+import { ScheduleGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ScheduleGenerateTopicHistoryTaskRunner';
 import { TYPES } from '../di/types';
 
 @injectable()
@@ -14,7 +15,8 @@ export class TriggerTaskProcessExecutorCron {
   constructor(
     @inject(TYPES.TasksProcessExecutor) private readonly tasksProcessExecutor: TasksProcessExecutor,
     @inject(TYPES.GenerateTopicHistoryTaskRunner) private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
-    @inject(TYPES.SendTopicHistoryTaskRunner) private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner
+    @inject(TYPES.SendTopicHistoryTaskRunner) private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
+    @inject(TYPES.ScheduleGenerateTopicHistoryTaskRunner) private readonly scheduleGenerateTopicHistoryTaskRunner: ScheduleGenerateTopicHistoryTaskRunner
   ) {}
 
   /**
@@ -94,12 +96,12 @@ export class TriggerTaskProcessExecutorCron {
   }
 
   /**
-   * Executes the task processing workflow for a specific customer
-   * 1. Generate topic histories for the customer
-   * 2. Send topic histories for the customer
-   * @param customerId The customer ID to process tasks for
+   * Executes the task processing workflow for all customers
+   * 1. Schedule topic history generation
+   * 2. Generate topic histories
+   * 3. Send topic histories
    */
-  async executeTaskProcessingForCustomer(customerId: string): Promise<void> {
+  async executeTaskProcessingForCustomer(): Promise<void> {
     if (this.isRunning) {
       console.log('Task processing is already running, skipping this execution');
       return;
@@ -109,30 +111,38 @@ export class TriggerTaskProcessExecutorCron {
     const startTime = new Date();
 
     try {
-      console.log(`🚀 Starting task processing workflow for customer: ${customerId}`);
+      console.log('🚀 Starting task processing workflow for all customers');
 
-      // Step 1: Generate topic histories for the customer
-      console.log(`📝 Step 1: Generating topic histories for customer: ${customerId}...`);
+      // Step 1: Schedule topic history generation
+      console.log('📅 Step 1: Scheduling topic history generation...');
+      await this.tasksProcessExecutor.execute(
+        { processType: 'schedule-generation-topic-history', limit: 10 },
+        this.scheduleGenerateTopicHistoryTaskRunner
+      );
+      console.log('✅ Topic history scheduling completed');
+
+      // Step 2: Generate topic histories
+      console.log('📝 Step 2: Generating topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: 'topic-history-generation', limit: 10 },
         this.generateTopicHistoryTaskRunner
       );
-      console.log(`✅ Topic history generation completed for customer: ${customerId}`);
+      console.log('✅ Topic history generation completed');
 
-      // Step 2: Send topic histories for the customer
-      console.log(`📧 Step 2: Sending topic histories for customer: ${customerId}...`);
+      // Step 3: Send topic histories
+      console.log('📧 Step 3: Sending topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: 'topic-history-send', limit: 10 },
         this.sendTopicHistoryTaskRunner
       );
-      console.log(`✅ Topic history sending completed for customer: ${customerId}`);
+      console.log('✅ Topic history sending completed');
 
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
-      console.log(`🎉 Task processing workflow completed for customer: ${customerId} in ${duration}ms`);
+      console.log(`🎉 Task processing workflow completed in ${duration}ms`);
 
     } catch (error) {
-      console.error(`❌ Error during task processing workflow for customer: ${customerId}:`, error);
+      console.error('❌ Error during task processing workflow:', error);
     } finally {
       this.isRunning = false;
     }

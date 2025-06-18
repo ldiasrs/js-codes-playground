@@ -9,12 +9,11 @@ export interface CustomerDTO {
   govIdentification: GovIdentificationDTO;
   email: string;
   phoneNumber: string;
-  topics: TopicDTO[];
   dateCreated: Date;
 }
 
 export class CustomerDTOMapper {
-  static toDTO(customer: Customer, topics: Topic[]): CustomerDTO {
+  static toDTO(customer: Customer): CustomerDTO {
     return {
       id: customer.id || '',
       customerName: customer.customerName,
@@ -24,7 +23,6 @@ export class CustomerDTOMapper {
       },
       email: customer.email,
       phoneNumber: customer.phoneNumber,
-      topics: topics.map(topic => TopicDTOMapper.toDTO(topic)),
       dateCreated: customer.dateCreated
     };
   }

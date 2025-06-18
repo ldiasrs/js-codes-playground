@@ -30,6 +30,7 @@ export const TYPES = {
   // Runners
   GenerateTopicHistoryTaskRunner: Symbol.for('GenerateTopicHistoryTaskRunner'),
   SendTopicHistoryTaskRunner: Symbol.for('SendTopicHistoryTaskRunner'),
+  ScheduleGenerateTopicHistoryTaskRunner: Symbol.for('ScheduleGenerateTopicHistoryTaskRunner'),
 
   // Schedulers
   TriggerTaskProcessExecutorCron: Symbol.for('TriggerTaskProcessExecutorCron'),

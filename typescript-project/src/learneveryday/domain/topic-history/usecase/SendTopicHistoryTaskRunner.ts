@@ -56,23 +56,6 @@ export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
       topicSubject: topic.subject
     });
 
-    // Step 5: Create a new TaskProcess for generating the next topic history, scheduled for 24 hours from now
-    const nextScheduledTime = new Date();
-    nextScheduledTime.setHours(nextScheduledTime.getHours() + 24);
-    
-    const nextTopicHistoryGenerationTask = new TaskProcess(
-      topic.id, // Use the topic ID as entityId
-      topic.customerId, // Use the customer ID from the topic
-      'topic-history-generation',
-      'pending',
-      undefined, // id will be auto-generated
-      undefined, // errorMsg
-      nextScheduledTime // scheduledTo - 24 hours from now
-    );
-
-    // Step 6: Save the new task process
-    await this.taskProcessRepository.save(nextTopicHistoryGenerationTask);
-
-    console.log(`Sent topic history ${topicHistoryId} to customer ${customer.email} for topic: ${topic.subject} and queued next generation task: ${nextTopicHistoryGenerationTask.id} scheduled for: ${nextScheduledTime.toISOString()}`);
+    console.log(`Sent topic history ${topicHistoryId} to customer ${customer.email} for topic: ${topic.subject}`);
   }
 } 

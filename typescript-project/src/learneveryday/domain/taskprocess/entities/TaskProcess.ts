@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type TaskProcessType = 'topic-history-generation' | 'topic-history-send';
+export type TaskProcessType = 'topic-history-generation' | 'topic-history-send' | 'schedule-generation-topic-history';
 
 export type TaskProcessStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 

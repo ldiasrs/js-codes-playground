@@ -37,6 +37,6 @@ export class CreateCustomerCommand extends BaseCommand<CustomerDTO> {
     const result = await this.createCustomerFeature.execute(featureData);
 
     // Convert result to DTO
-    return CustomerDTOMapper.toDTO(result.customer, result.topics);
+    return CustomerDTOMapper.toDTO(result);
   }
 } 
