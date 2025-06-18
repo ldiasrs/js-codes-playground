@@ -48,18 +48,18 @@ export class ScheduleGenerateTopicHistoryTaskRunner
         `Skipping task creation - customer ${customerId} already has a pending topic-history-generation task: ${existingTasks[0].id}`
       );
     } else {
-      // Step 3: Find the topic with the oldest topic history
-      const topicWithOldestHistory = await this.findTopicWithOldestHistory(
+      // Step 3: Find the topic with fewer topic histories
+      const topicWithLessHistories = await this.findTopicIdWithLessTopicsHistories(
         customerTopics
       );
 
-      if (topicWithOldestHistory) {
+      if (topicWithLessHistories) {
         // Step 4: Create a new TaskProcess for topic history generation
         const scheduledTime = new Date();
         scheduledTime.setMinutes(scheduledTime.getMinutes());
 
         const newTaskProcess = new TaskProcess(
-          topicWithOldestHistory.id, // Use the topic with oldest history as entityId
+          topicWithLessHistories.id, // Use the topic with fewer histories as entityId
           customerId,
           "topic-history-generation",
           "pending",
@@ -73,12 +73,12 @@ export class ScheduleGenerateTopicHistoryTaskRunner
 
         console.log(
           `Scheduled topic history generation task for customer ${customerId} using topic ${
-            topicWithOldestHistory.id
-          } (oldest history), scheduled for: ${scheduledTime.toISOString()}`
+            topicWithLessHistories.id
+          } (fewer histories), scheduled for: ${scheduledTime.toISOString()}`
         );
       } else {
         console.log(
-          `No topic with oldest history found for customer ${customerId}`
+          `No topic with fewer histories found for customer ${customerId}`
         );
       }
     }
@@ -106,49 +106,35 @@ export class ScheduleGenerateTopicHistoryTaskRunner
   }
 
   /**
-   * Finds the topic with the oldest topic history among the given topics
+   * Finds the topic with fewer topic histories among the given topics
    * @param topics Array of topics to check
-   * @returns Promise<Topic> The topic with the oldest history, or the first topic if no histories exist
+   * @returns Promise<Topic> The topic with fewer histories, or the first topic if no histories exist
    */
-  private async findTopicWithOldestHistory(topics: any[]): Promise<any> {
-    let oldestTopicHistory: any = null;
-    let oldestTopic: any = null;
-    let oldestDate: Date | null = null;
+  private async findTopicIdWithLessTopicsHistories(topics: any[]): Promise<any> {
+    let topicWithLessHistories: any = null;
+    let leastHistories = Infinity;
 
-    // Check each topic for its oldest history
     for (const topic of topics) {
       const topicHistories = await this.topicHistoryRepository.findByTopicId(
         topic.id
       );
 
-      if (topicHistories && topicHistories.length > 0) {
-        // Find the oldest history for this topic
-        const oldestHistoryForTopic = topicHistories.reduce((oldest, current) =>
-          current.createdAt < oldest.createdAt ? current : oldest
-        );
-
-        // Compare with the overall oldest
-        if (!oldestDate || oldestHistoryForTopic.createdAt < oldestDate) {
-          oldestDate = oldestHistoryForTopic.createdAt;
-          oldestTopicHistory = oldestHistoryForTopic;
-          oldestTopic = topic;
-        }
+      if (topicHistories && topicHistories.length < leastHistories) {
+        leastHistories = topicHistories.length;
+        topicWithLessHistories = topic;
       }
     }
 
-    // If no topic histories found, return the first topic
-    if (!oldestTopic) {
+    if (!topicWithLessHistories) {
       console.log(
-        `No topic histories found for customer, using first topic: ${topics[0].id}`
+        `No topic with fewer histories found for customer, using first topic: ${topics[0].id}`
       );
       return topics[0];
     }
 
     console.log(
-      `Found topic with oldest history: ${
-        oldestTopic.id
-      }, oldest history created at: ${oldestDate?.toISOString()}`
+      `Found topic with fewer histories: ${topicWithLessHistories.id}, with ${leastHistories} histories`
     );
-    return oldestTopic;
+    return topicWithLessHistories;
   }
 }
