@@ -44,7 +44,7 @@ export class DeleteTopicFeature {
     // First, get all topic histories for this topic
     const topicHistories = await this.topicHistoryRepository.findByTopicId(id);
     for (const topicHistory of topicHistories) {
-      const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(topicHistory.id, TaskProcess.SEND_TOPIC_HISTOY);
+      const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(topicHistory.id, TaskProcess.SEND_TOPIC_HISTORY);
       for (const task of sendTasks) {
         await this.taskProcessRepository.delete(task.id);
       }

@@ -85,7 +85,7 @@ export class LearnEverydayCLI {
     // List Tasks command
     this.program
       .command('listTasks')
-      .description('Lista todas as tarefas ordenadas por processAt')
+      .description('Lista todas as tarefas ordenadas por data de processamento')
       .option('-l, --limit <limit>', 'Número máximo de tarefas a exibir (padrão: 50)', '50')
       .option('-s, --status <status>', 'Filtrar por status (pending, running, completed, failed, cancelled)')
       .option('-t, --type <type>', 'Filtrar por tipo (generate-topic-history, send-topic-history, regenerate-topic-history)')
@@ -201,6 +201,7 @@ export class LearnEverydayCLI {
       
       // Get repositories from container for topic verification
       const topicRepository = this.container.get(TYPES.TopicRepository);
+      const topicHistoryRepository = this.container.get(TYPES.TopicHistoryRepository);
       
       // Verify topic exists using query
       const getTopicQuery = new GetTopicByIdQuery(
@@ -313,12 +314,15 @@ export class LearnEverydayCLI {
 
   private async listTasks(options: any): Promise<void> {
     try {
-      console.log('📋 Listando tarefas ordenadas por processAt...');
+      console.log('📋 Listando tarefas ordenadas por data de processamento...');
       
       await this.initializeContainer();
       
-      // Get repository from container
+      // Get repositories from container
       const taskProcessRepository = this.container.get(TYPES.TaskProcessRepository);
+      const customerRepository = this.container.get(TYPES.CustomerRepository);
+      const topicRepository = this.container.get(TYPES.TopicRepository);
+      const topicHistoryRepository = this.container.get(TYPES.TopicHistoryRepository);
       
       // Get all tasks
       let tasks = await taskProcessRepository.findAll();
@@ -332,7 +336,7 @@ export class LearnEverydayCLI {
         tasks = tasks.filter(task => task.type === options.type);
       }
       
-      // Sort by processAt (null values last)
+      // Sort by processAt in descending order (most recent first, null values last)
       tasks.sort((a, b) => {
         if (!a.processAt && !b.processAt) return 0;
         if (!a.processAt) return 1;
@@ -354,7 +358,41 @@ export class LearnEverydayCLI {
       console.log(`📋 Encontradas ${tasks.length} tarefas:`);
       console.log('');
       
-      tasks.forEach((task, index) => {
+      // Table header
+      console.log('┌─────────────────────────┬─────────────┬─────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────┐');
+      console.log('│      Process Date       │    Type     │   Status    │    Customer Name    │     Topic Name      │   TopicHistory ID   │       Scheduled         │');
+      console.log('├─────────────────────────┼─────────────┼─────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────┤');
+      
+      for (const task of tasks) {
+        // Get customer info
+        const customer = await customerRepository.findById(task.customerId);
+        const customerName = customer ? customer.customerName : 'Cliente não encontrado';
+        
+        // Get topic info (entityId is the topic ID for generate-topic-history tasks)
+        let topicName = 'N/A';
+        let topicHistoryId = 'N/A';
+        
+        if (task.type === 'generate-topic-history') {
+          const topic = await topicRepository.findById(task.entityId);
+          topicName = topic ? topic.subject : 'Tópico não encontrado';
+          topicHistoryId = 'N/A'; // Will be generated
+        } else if (task.type === 'send-topic-history') {
+          // For send tasks, entityId is the topicHistoryId
+          topicHistoryId = task.entityId;
+          // Get the topic history to find the topic
+          const topicHistory = await topicHistoryRepository.findById(task.entityId);
+          if (topicHistory) {
+            const topic = await topicRepository.findById(topicHistory.topicId);
+            topicName = topic ? topic.subject : 'Tópico não encontrado';
+          } else {
+            topicName = 'Tópico não encontrado';
+          }
+        } else if (task.type === 'regenerate-topic-history') {
+          const topic = await topicRepository.findById(task.entityId);
+          topicName = topic ? topic.subject : 'Tópico não encontrado';
+          topicHistoryId = 'N/A'; // Will be regenerated
+        }
+        
         const statusEmoji = {
           'pending': '⏳',
           'running': '🔄',
@@ -369,30 +407,31 @@ export class LearnEverydayCLI {
           'regenerate-topic-history': '🔄'
         }[task.type] || '📋';
         
-        console.log(`${index + 1}. ${statusEmoji} ${typeEmoji} ${task.type}`);
-        console.log(`   ID: ${task.id}`);
-        console.log(`   Entity ID: ${task.entityId}`);
-        console.log(`   Customer ID: ${task.customerId}`);
-        console.log(`   Status: ${task.status}`);
+        const typeShort = {
+          'generate-topic-history': 'GENE',
+          'send-topic-history': 'SEND',
+          'regenerate-topic-history': 'RGEN'
+        }[task.type] || 'OTHR';
+        const type = `${typeEmoji} ${typeShort}`;
+        const typeFormatted = type.padEnd(11);
         
-        if (task.scheduledTo) {
-          console.log(`   Scheduled: ${task.scheduledTo.toLocaleString('pt-BR')}`);
-        }
+        const status = `${statusEmoji} ${task.status}`;
+        const statusFormatted = status.padEnd(11);
         
-        if (task.processAt) {
-          console.log(`   Processed: ${task.processAt.toLocaleString('pt-BR')}`);
-        } else {
-          console.log(`   Processed: Não processado`);
-        }
+        const processDate = task.processAt ? task.processAt.toLocaleString('pt-BR') : 'Pendente';
+        const scheduled = task.scheduledTo ? task.scheduledTo.toLocaleString('pt-BR') : 'N/A';
+        const scheduledFormatted = scheduled.padEnd(23);
         
-        console.log(`   Created: ${task.createdAt.toLocaleString('pt-BR')}`);
+        // Format the table row with proper padding
+        const processDateFormatted = processDate.padEnd(23);
+        const customerNameFormatted = customerName.substring(0, 19).padEnd(19);
+        const topicNameFormatted = topicName.substring(0, 19).padEnd(19);
+        const topicHistoryIdFormatted = topicHistoryId.substring(0, 19).padEnd(19);
         
-        if (task.errorMsg) {
-          console.log(`   Error: ${task.errorMsg}`);
-        }
-        
-        console.log('');
-      });
+        console.log(`│ ${processDateFormatted} │ ${typeFormatted} │ ${statusFormatted} │ ${customerNameFormatted} │ ${topicNameFormatted} │ ${topicHistoryIdFormatted} │ ${scheduledFormatted} │`);
+      }
+      
+      console.log('└─────────────────────────┴─────────────┴─────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────────┘');
       
     } catch (error) {
       console.error('❌ Erro ao listar tarefas:', error);
@@ -461,7 +500,7 @@ export class LearnEverydayCLI {
    await addTopicCommand3.execute();
 
     const addTopicCommand4 = new AddTopicCommand({
-      customerId: customer.id,
+      customerId: customer2.id,
       subject: 'MARIA Topic 2'
     }, addTopicFeature);
     
