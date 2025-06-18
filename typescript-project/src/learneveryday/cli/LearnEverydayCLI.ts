@@ -81,6 +81,14 @@ export class LearnEverydayCLI {
       .action(async () => {
         await this.listTopics();
       });
+
+    // Trigger Task Processing command
+    this.program
+      .command('triggerTaskProcessing')
+      .description('Executa manualmente o processamento de tarefas agendadas')
+      .action(async () => {
+        await this.triggerTaskProcessing();
+      });
   }
 
   private async initializeContainer(): Promise<void> {

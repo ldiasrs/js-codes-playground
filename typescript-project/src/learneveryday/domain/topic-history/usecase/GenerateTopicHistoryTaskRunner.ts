@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
@@ -14,8 +13,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    @inject(TYPES.GenerateTopicHistoryPort) private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.GenerateTopicHistoryPort) private readonly generateTopicHistoryPort: GenerateTopicHistoryPort
   ) {}
 
   /**
@@ -44,7 +42,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
 
     // Step 4: Create and save the new history entry
     const newHistory = new TopicHistory(topicId, generatedContent);
-    const savedHistory = await this.topicHistoryRepository.save(newHistory);
+    await this.topicHistoryRepository.save(newHistory);
 
     console.log(`Generated topic history for topic: ${topicId}`);
   }

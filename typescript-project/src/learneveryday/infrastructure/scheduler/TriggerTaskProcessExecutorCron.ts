@@ -51,49 +51,6 @@ export class TriggerTaskProcessExecutorCron {
     }
   }
 
-  /**
-   * Executes the task processing workflow for all customers
-   * 1. Generate topic histories
-   * 2. Send topic histories
-   */
-  private async executeTaskProcessing(): Promise<void> {
-    if (this.isRunning) {
-      console.log('Task processing is already running, skipping this execution');
-      return;
-    }
-
-    this.isRunning = true;
-    const startTime = new Date();
-
-    try {
-      console.log('🚀 Starting scheduled task processing workflow');
-
-      // Step 1: Generate topic histories
-      console.log('📝 Step 1: Generating topic histories...');
-      await this.tasksProcessExecutor.execute(
-        { processType: 'topic-history-generation', limit: 10 },
-        this.generateTopicHistoryTaskRunner
-      );
-      console.log('✅ Topic history generation completed');
-
-      // Step 2: Send topic histories
-      console.log('📧 Step 2: Sending topic histories...');
-      await this.tasksProcessExecutor.execute(
-        { processType: 'topic-history-send', limit: 10 },
-        this.sendTopicHistoryTaskRunner
-      );
-      console.log('✅ Topic history sending completed');
-
-      const endTime = new Date();
-      const duration = endTime.getTime() - startTime.getTime();
-      console.log(`🎉 Task processing workflow completed in ${duration}ms`);
-
-    } catch (error) {
-      console.error('❌ Error during task processing workflow:', error);
-    } finally {
-      this.isRunning = false;
-    }
-  }
 
   /**
    * Executes the task processing workflow for all customers
@@ -101,7 +58,7 @@ export class TriggerTaskProcessExecutorCron {
    * 2. Generate topic histories
    * 3. Send topic histories
    */
-  async executeTaskProcessingForCustomer(): Promise<void> {
+  async executeTaskProcessing(): Promise<void> {
     if (this.isRunning) {
       console.log('Task processing is already running, skipping this execution');
       return;

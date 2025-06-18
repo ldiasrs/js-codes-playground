@@ -61,9 +61,28 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
       await this.taskProcessRepository.save(newTaskProcess);
 
       console.log(`Scheduled topic history generation task for customer ${customerId} using topic ${topicWithOldestHistory.id} (oldest history), scheduled for: ${scheduledTime.toISOString()}`);
+
+      // Step 6: Create a new TaskProcess for topic history sending (2 minutes from now)
+      const scheduledTimeSend = new Date();
+      scheduledTimeSend.setMinutes(scheduledTimeSend.getMinutes() + 2); // Schedule for 2 minutes from now
+      
+      const newSendTaskProcess = new TaskProcess(
+        topicWithOldestHistory.id, // Use the topic with oldest history as entityId
+        customerId,
+        'topic-history-send',
+        'pending',
+        undefined, // id will be auto-generated
+        undefined, // errorMsg
+        scheduledTimeSend // scheduledTo
+      );
+
+      // Step 7: Save the new send task process
+      await this.taskProcessRepository.save(newSendTaskProcess);
+
+      console.log(`Scheduled topic history send task for customer ${customerId} using topic ${topicWithOldestHistory.id}, scheduled for: ${scheduledTimeSend.toISOString()}`);
     }
 
-    // Step 6: Create a new TaskProcess for schedule-generation-topic-history (next 24 hours)
+    // Step 8: Create a new TaskProcess for schedule-generation-topic-history (next 24 hours)
     const scheduledTime24h = new Date();
     scheduledTime24h.setHours(scheduledTime24h.getHours() + 24); // Schedule for 24 hours from now
 
@@ -77,11 +96,10 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
       scheduledTime24h // scheduledTo
     );
 
-    // Step 7: Save the new schedule task process
+    // Step 9: Save the new schedule task process
     await this.taskProcessRepository.save(newScheduleTaskProcess);
 
     console.log(`Scheduled schedule-generation-topic-history task for customer ${customerId}, scheduled for: ${scheduledTime24h.toISOString()}`);
-
   }
 
   /**
@@ -122,4 +140,4 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
     console.log(`Found topic with oldest history: ${oldestTopic.id}, oldest history created at: ${oldestDate?.toISOString()}`);
     return oldestTopic;
   }
-} 
+}
