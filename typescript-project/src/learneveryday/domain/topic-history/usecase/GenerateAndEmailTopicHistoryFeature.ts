@@ -23,10 +23,17 @@ export class GenerateAndEmailTopicHistoryFeature {
   ) {}
 
   async execute(data: GenerateAndEmailTopicHistoryFeatureData): Promise<TopicHistory> {
+    // Get the topic to find the customerId
+    const topic = await this.topicRepository.findById(data.topicId);
+    if (!topic) {
+      throw new Error(`Topic with ID ${data.topicId} not found`);
+    }
+
     // First, generate the topic history using the task runner
     // Create a proper TaskProcess instance for the runner to work with
     const taskProcess = new TaskProcess(
       data.topicId,
+      topic.customerId,
       'topic-history-generation',
       'running'
     );
@@ -41,12 +48,6 @@ export class GenerateAndEmailTopicHistoryFeature {
 
     if (!latestTopicHistory) {
       throw new Error(`Failed to generate topic history for topic ID ${data.topicId}`);
-    }
-
-    // Get the topic to include in the email
-    const topic = await this.topicRepository.findById(data.topicId);
-    if (!topic) {
-      throw new Error(`Topic with ID ${data.topicId} not found`);
     }
 
     // Send the topic history via email

@@ -49,6 +49,7 @@ export class AddTopicFeature {
     // Step 4: Create a TaskProcess for generating topic history
     const topicHistoryGenerationTask = new TaskProcess(
       savedTopic.id, // Use the topic ID as entityId
+      customerId, // Use the customer ID
       'topic-history-generation',
       'pending'
     );

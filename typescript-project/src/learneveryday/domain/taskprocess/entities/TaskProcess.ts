@@ -7,6 +7,7 @@ export type TaskProcessStatus = 'pending' | 'running' | 'completed' | 'failed' |
 export class TaskProcess {
   public readonly id: string;
   public readonly entityId: string;
+  public readonly customerId: string;
   public readonly type: TaskProcessType;
   public readonly status: TaskProcessStatus;
   public readonly errorMsg?: string;
@@ -16,6 +17,7 @@ export class TaskProcess {
 
   constructor(
     entityId: string,
+    customerId: string,
     type: TaskProcessType,
     status: TaskProcessStatus = 'pending',
     id?: string,
@@ -26,6 +28,7 @@ export class TaskProcess {
   ) {
     this.id = id || uuidv4();
     this.entityId = entityId;
+    this.customerId = customerId;
     this.type = type;
     this.status = status;
     this.errorMsg = errorMsg;
@@ -43,6 +46,7 @@ export class TaskProcess {
   updateStatus(status: TaskProcessStatus, errorMsg?: string): TaskProcess {
     return new TaskProcess(
       this.entityId,
+      this.customerId,
       this.type,
       status,
       this.id,
@@ -60,6 +64,7 @@ export class TaskProcess {
   startProcessing(): TaskProcess {
     return new TaskProcess(
       this.entityId,
+      this.customerId,
       this.type,
       'running',
       this.id,

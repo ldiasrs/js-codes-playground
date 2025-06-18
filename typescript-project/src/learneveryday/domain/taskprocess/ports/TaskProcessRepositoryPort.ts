@@ -2,6 +2,7 @@ import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../entities/Tas
 
 export interface TaskProcessSearchCriteria {
   entityId?: string;
+  customerId?: string;
   type?: TaskProcessType;
   status?: TaskProcessStatus;
   dateFrom?: Date;
@@ -15,6 +16,7 @@ export interface TaskProcessRepositoryPort {
   findById(id: string): Promise<TaskProcess | undefined>;
   findAll(): Promise<TaskProcess[]>;
   findByEntityId(entityId: string): Promise<TaskProcess[]>;
+  findByCustomerId(customerId: string): Promise<TaskProcess[]>;
   findByType(type: TaskProcessType): Promise<TaskProcess[]>;
   findByStatus(status: TaskProcessStatus): Promise<TaskProcess[]>;
   findByEntityIdAndType(entityId: string, type: TaskProcessType): Promise<TaskProcess[]>;
@@ -26,6 +28,7 @@ export interface TaskProcessRepositoryPort {
   search(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]>;
   delete(id: string): Promise<boolean>;
   deleteByEntityId(entityId: string): Promise<void>;
+  deleteByCustomerId(customerId: string): Promise<void>;
   count(): Promise<number>;
   countByStatus(status: TaskProcessStatus): Promise<number>;
   countByType(type: TaskProcessType): Promise<number>;

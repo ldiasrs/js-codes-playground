@@ -50,7 +50,7 @@ export class TriggerTaskProcessExecutorCron {
   }
 
   /**
-   * Executes the task processing workflow
+   * Executes the task processing workflow for all customers
    * 1. Generate topic histories
    * 2. Send topic histories
    */
@@ -94,6 +94,51 @@ export class TriggerTaskProcessExecutorCron {
   }
 
   /**
+   * Executes the task processing workflow for a specific customer
+   * 1. Generate topic histories for the customer
+   * 2. Send topic histories for the customer
+   * @param customerId The customer ID to process tasks for
+   */
+  async executeTaskProcessingForCustomer(customerId: string): Promise<void> {
+    if (this.isRunning) {
+      console.log('Task processing is already running, skipping this execution');
+      return;
+    }
+
+    this.isRunning = true;
+    const startTime = new Date();
+
+    try {
+      console.log(`🚀 Starting task processing workflow for customer: ${customerId}`);
+
+      // Step 1: Generate topic histories for the customer
+      console.log(`📝 Step 1: Generating topic histories for customer: ${customerId}...`);
+      await this.tasksProcessExecutor.execute(
+        { processType: 'topic-history-generation', limit: 10 },
+        this.generateTopicHistoryTaskRunner
+      );
+      console.log(`✅ Topic history generation completed for customer: ${customerId}`);
+
+      // Step 2: Send topic histories for the customer
+      console.log(`📧 Step 2: Sending topic histories for customer: ${customerId}...`);
+      await this.tasksProcessExecutor.execute(
+        { processType: 'topic-history-send', limit: 10 },
+        this.sendTopicHistoryTaskRunner
+      );
+      console.log(`✅ Topic history sending completed for customer: ${customerId}`);
+
+      const endTime = new Date();
+      const duration = endTime.getTime() - startTime.getTime();
+      console.log(`🎉 Task processing workflow completed for customer: ${customerId} in ${duration}ms`);
+
+    } catch (error) {
+      console.error(`❌ Error during task processing workflow for customer: ${customerId}:`, error);
+    } finally {
+      this.isRunning = false;
+    }
+  }
+
+  /**
    * Manually triggers the task processing workflow
    * Useful for testing or immediate execution
    */
@@ -111,4 +156,4 @@ export class TriggerTaskProcessExecutorCron {
       hasCronJob: this.cronJob !== null
     };
   }
-} 
+}

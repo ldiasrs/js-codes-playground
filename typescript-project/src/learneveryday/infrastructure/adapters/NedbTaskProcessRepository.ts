@@ -9,6 +9,7 @@ import moment from 'moment';
 interface TaskProcessData {
   _id?: string;
   entityId: string;
+  customerId: string;
   type: TaskProcessType;
   status: TaskProcessStatus;
   errorMsg?: string;
@@ -30,6 +31,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
     return {
       _id: taskProcess.id,
       entityId: taskProcess.entityId,
+      customerId: taskProcess.customerId,
       type: taskProcess.type,
       status: taskProcess.status,
       errorMsg: taskProcess.errorMsg,
@@ -42,6 +44,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
   private dataToTaskProcess(data: TaskProcessData): TaskProcess {
     return new TaskProcess(
       data.entityId,
+      data.customerId,
       data.type,
       data.status,
       data._id!,
@@ -98,6 +101,18 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
   async findByEntityId(entityId: string): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
       this.db.find({ entityId }, (err, docs) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+        }
+      });
+    });
+  }
+
+  async findByCustomerId(customerId: string): Promise<TaskProcess[]> {
+    return new Promise((resolve, reject) => {
+      this.db.find({ customerId }, (err, docs) => {
         if (err) {
           reject(err);
         } else {
@@ -185,11 +200,23 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
             reject(err);
           } else {
             const taskProcesses = docs.map(doc => this.dataToTaskProcess(doc));
-            // Apply limit and sort by createdAt (oldest first for processing order)
-            const sortedAndLimited = taskProcesses
+            
+            // Group tasks by customerId and get the oldest task for each customer
+            const customerTaskMap = new Map<string, TaskProcess>();
+            
+            taskProcesses.forEach(task => {
+              const existingTask = customerTaskMap.get(task.customerId);
+              if (!existingTask || task.createdAt.getTime() < existingTask.createdAt.getTime()) {
+                customerTaskMap.set(task.customerId, task);
+              }
+            });
+            
+            // Convert map values to array and sort by createdAt (oldest first)
+            const oneTaskPerCustomer = Array.from(customerTaskMap.values())
               .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
               .slice(0, limit);
-            resolve(sortedAndLimited);
+              
+            resolve(oneTaskPerCustomer);
           }
         }
       );
@@ -202,6 +229,10 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
 
       if (criteria.entityId) {
         query.entityId = criteria.entityId;
+      }
+
+      if (criteria.customerId) {
+        query.customerId = criteria.customerId;
       }
 
       if (criteria.type) {
@@ -255,6 +286,18 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
   async deleteByEntityId(entityId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.remove({ entityId }, { multi: true }, (err, numRemoved) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
+  async deleteByCustomerId(customerId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.remove({ customerId }, { multi: true }, (err, numRemoved) => {
         if (err) {
           reject(err);
         } else {
