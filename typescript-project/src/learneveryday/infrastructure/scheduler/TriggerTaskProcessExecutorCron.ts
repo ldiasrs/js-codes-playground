@@ -90,7 +90,7 @@ export class TriggerTaskProcessExecutorCron {
       // Step 3: Send topic histories
       console.log('📧 Step 3: Sending topic histories...');
       await this.tasksProcessExecutor.execute(
-        { processType: TaskProcess.SEND_TOPIC_HISTOY, limit: 10 },
+        { processType: TaskProcess.SEND_TOPIC_HISTORY, limit: 10 },
         this.sendTopicHistoryTaskRunner
       );
       console.log('✅ Topic history sending completed');
