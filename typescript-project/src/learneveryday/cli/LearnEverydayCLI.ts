@@ -303,6 +303,95 @@ export class LearnEverydayCLI {
     }
   }
 
+  private async listTasks(options: any): Promise<void> {
+    try {
+      console.log('📋 Listando tarefas ordenadas por processAt...');
+      
+      await this.initializeContainer();
+      
+      // Get repository from container
+      const taskProcessRepository = this.container.get(TYPES.TaskProcessRepository);
+      
+      // Get all tasks
+      let tasks = await taskProcessRepository.findAll();
+      
+      // Apply filters if provided
+      if (options.status) {
+        tasks = tasks.filter(task => task.status === options.status);
+      }
+      
+      if (options.type) {
+        tasks = tasks.filter(task => task.type === options.type);
+      }
+      
+      // Sort by processAt (null values last)
+      tasks.sort((a, b) => {
+        if (!a.processAt && !b.processAt) return 0;
+        if (!a.processAt) return 1;
+        if (!b.processAt) return -1;
+        return new Date(b.processAt).getTime() - new Date(a.processAt).getTime();
+      });
+      
+      // Apply limit
+      const limit = parseInt(options.limit);
+      if (limit > 0) {
+        tasks = tasks.slice(0, limit);
+      }
+      
+      if (tasks.length === 0) {
+        console.log('📭 Nenhuma tarefa encontrada.');
+        return;
+      }
+      
+      console.log(`📋 Encontradas ${tasks.length} tarefas:`);
+      console.log('');
+      
+      tasks.forEach((task, index) => {
+        const statusEmoji = {
+          'pending': '⏳',
+          'running': '🔄',
+          'completed': '✅',
+          'failed': '❌',
+          'cancelled': '🚫'
+        }[task.status] || '❓';
+        
+        const typeEmoji = {
+          'generate-topic-history': '📚',
+          'send-topic-history': '📧',
+          'regenerate-topic-history': '🔄'
+        }[task.type] || '📋';
+        
+        console.log(`${index + 1}. ${statusEmoji} ${typeEmoji} ${task.type}`);
+        console.log(`   ID: ${task.id}`);
+        console.log(`   Entity ID: ${task.entityId}`);
+        console.log(`   Customer ID: ${task.customerId}`);
+        console.log(`   Status: ${task.status}`);
+        
+        if (task.scheduledTo) {
+          console.log(`   Scheduled: ${task.scheduledTo.toLocaleString('pt-BR')}`);
+        }
+        
+        if (task.processAt) {
+          console.log(`   Processed: ${task.processAt.toLocaleString('pt-BR')}`);
+        } else {
+          console.log(`   Processed: Não processado`);
+        }
+        
+        console.log(`   Created: ${task.createdAt.toLocaleString('pt-BR')}`);
+        
+        if (task.errorMsg) {
+          console.log(`   Error: ${task.errorMsg}`);
+        }
+        
+        console.log('');
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao listar tarefas:', error);
+      process.exit(1);
+    }
+  }
+
   private async startScheduler(options: any): Promise<void> {
     try {
       console.log('🚀 Iniciando o agendador de tarefas...');
