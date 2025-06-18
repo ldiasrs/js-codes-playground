@@ -42,7 +42,7 @@ export class ReGenerateTopicHistoryTaskRunner
 
     const completedSendTasks = await this.taskProcessRepository.search({
       customerId: customerId,
-      type: TaskProcess.SEND_TOPIC_HISTOY,
+      type: TaskProcess.SEND_TOPIC_HISTORY,
       status: "completed",
       dateFrom: oneMonthAgo,
       dateTo: new Date()
