@@ -104,7 +104,6 @@ export class ReGenerateTopicHistoryTaskRunner
     if (topicWithLessHistories) {
       // Create a new TaskProcess for topic history generation
       const scheduledTime = new Date();
-      scheduledTime.setMinutes(scheduledTime.getMinutes());
 
       const newTaskProcess = new TaskProcess(
         topicWithLessHistories.id, // Use the topic with fewer histories as entityId
