@@ -17,7 +17,6 @@ export class AddTopicFeature {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
   ) {}
 
   /**
@@ -46,18 +45,7 @@ export class AddTopicFeature {
     const newTopic = new Topic(customerId, subject);
     const savedTopic = await this.topicRepository.save(newTopic);
 
-    // Step 4: Create a TaskProcess for generating topic history
-    const topicHistoryGenerationTask = new TaskProcess(
-      savedTopic.id, // Use the topic ID as entityId
-      customerId, // Use the customer ID
-      'topic-history-generation',
-      'pending'
-    );
-
-    // Step 5: Save the task process
-    await this.taskProcessRepository.save(topicHistoryGenerationTask);
-
-    console.log(`Created topic: ${savedTopic.id} and queued topic history generation task: ${topicHistoryGenerationTask.id}`);
+    console.log(`Created topic: ${savedTopic.id}`);
 
     return savedTopic;
   }

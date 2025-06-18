@@ -1,18 +1,22 @@
-import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
-import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
-import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { TYPES } from '../../../infrastructure/di/types';
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import { TaskProcess } from "../../taskprocess/entities/TaskProcess";
+import { TaskProcessRunner } from "../../taskprocess/ports/TaskProcessRunner";
+import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRepositoryPort";
+import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
+import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
+import { TYPES } from "../../../infrastructure/di/types";
 
 @injectable()
-export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner {
+export class ScheduleGenerateTopicHistoryTaskRunner
+  implements TaskProcessRunner {
   constructor(
-    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
-    @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TopicRepository)
+    private readonly topicRepository: TopicRepositoryPort,
+    @inject(TYPES.TopicHistoryRepository)
+    private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
+    @inject(TYPES.TaskProcessRepository)
+    private readonly taskProcessRepository: TaskProcessRepositoryPort
   ) {}
 
   /**
@@ -23,9 +27,11 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
    */
   async execute(taskProcess: TaskProcess): Promise<void> {
     const customerId = taskProcess.entityId;
-    
+
     // Step 1: Check if customer has any topics
-    const customerTopics = await this.topicRepository.findByCustomerId(customerId);
+    const customerTopics = await this.topicRepository.findByCustomerId(
+      customerId
+    );
     if (!customerTopics || customerTopics.length === 0) {
       throw new Error(`Customer with ID ${customerId} has no topics`);
     }
@@ -33,53 +39,48 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
     // Step 2: Check if there's already a pending topic-history-generation task for this customer
     const existingTasks = await this.taskProcessRepository.search({
       customerId: customerId,
-      type: 'topic-history-generation',
-      status: 'pending'
+      type: "topic-history-generation",
+      status: "pending",
     });
 
     if (existingTasks && existingTasks.length > 0) {
-      console.log(`Skipping task creation - customer ${customerId} already has a pending topic-history-generation task: ${existingTasks[0].id}`);
+      console.log(
+        `Skipping task creation - customer ${customerId} already has a pending topic-history-generation task: ${existingTasks[0].id}`
+      );
     } else {
       // Step 3: Find the topic with the oldest topic history
-      const topicWithOldestHistory = await this.findTopicWithOldestHistory(customerTopics);
-      
-      // Step 4: Create a new TaskProcess for topic history generation
-      const scheduledTime = new Date();
-      scheduledTime.setMinutes(scheduledTime.getMinutes() + 1); // Schedule for 1 minute from now
-      
-      const newTaskProcess = new TaskProcess(
-        topicWithOldestHistory.id, // Use the topic with oldest history as entityId
-        customerId,
-        'topic-history-generation',
-        'pending',
-        undefined, // id will be auto-generated
-        undefined, // errorMsg
-        scheduledTime // scheduledTo
+      const topicWithOldestHistory = await this.findTopicWithOldestHistory(
+        customerTopics
       );
 
-      // Step 5: Save the new task process
-      await this.taskProcessRepository.save(newTaskProcess);
+      if (topicWithOldestHistory) {
+        // Step 4: Create a new TaskProcess for topic history generation
+        const scheduledTime = new Date();
+        scheduledTime.setMinutes(scheduledTime.getMinutes());
 
-      console.log(`Scheduled topic history generation task for customer ${customerId} using topic ${topicWithOldestHistory.id} (oldest history), scheduled for: ${scheduledTime.toISOString()}`);
+        const newTaskProcess = new TaskProcess(
+          topicWithOldestHistory.id, // Use the topic with oldest history as entityId
+          customerId,
+          "topic-history-generation",
+          "pending",
+          undefined, // id will be auto-generated
+          undefined, // errorMsg
+          scheduledTime // scheduledTo
+        );
 
-      // Step 6: Create a new TaskProcess for topic history sending (2 minutes from now)
-      const scheduledTimeSend = new Date();
-      scheduledTimeSend.setMinutes(scheduledTimeSend.getMinutes() + 2); // Schedule for 2 minutes from now
-      
-      const newSendTaskProcess = new TaskProcess(
-        topicWithOldestHistory.id, // Use the topic with oldest history as entityId
-        customerId,
-        'topic-history-send',
-        'pending',
-        undefined, // id will be auto-generated
-        undefined, // errorMsg
-        scheduledTimeSend // scheduledTo
-      );
+        // Step 5: Save the new task process
+        await this.taskProcessRepository.save(newTaskProcess);
 
-      // Step 7: Save the new send task process
-      await this.taskProcessRepository.save(newSendTaskProcess);
-
-      console.log(`Scheduled topic history send task for customer ${customerId} using topic ${topicWithOldestHistory.id}, scheduled for: ${scheduledTimeSend.toISOString()}`);
+        console.log(
+          `Scheduled topic history generation task for customer ${customerId} using topic ${
+            topicWithOldestHistory.id
+          } (oldest history), scheduled for: ${scheduledTime.toISOString()}`
+        );
+      } else {
+        console.log(
+          `No topic with oldest history found for customer ${customerId}`
+        );
+      }
     }
 
     // Step 8: Create a new TaskProcess for schedule-generation-topic-history (next 24 hours)
@@ -89,8 +90,8 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
     const newScheduleTaskProcess = new TaskProcess(
       customerId, // Use the customer ID as entityId
       customerId,
-      'schedule-generation-topic-history',
-      'pending',
+      "schedule-generation-topic-history",
+      "pending",
       undefined, // id will be auto-generated
       undefined, // errorMsg
       scheduledTime24h // scheduledTo
@@ -99,7 +100,9 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
     // Step 9: Save the new schedule task process
     await this.taskProcessRepository.save(newScheduleTaskProcess);
 
-    console.log(`Scheduled schedule-generation-topic-history task for customer ${customerId}, scheduled for: ${scheduledTime24h.toISOString()}`);
+    console.log(
+      `Scheduled schedule-generation-topic-history task for customer ${customerId}, scheduled for: ${scheduledTime24h.toISOString()}`
+    );
   }
 
   /**
@@ -114,11 +117,13 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
 
     // Check each topic for its oldest history
     for (const topic of topics) {
-      const topicHistories = await this.topicHistoryRepository.findByTopicId(topic.id);
-      
+      const topicHistories = await this.topicHistoryRepository.findByTopicId(
+        topic.id
+      );
+
       if (topicHistories && topicHistories.length > 0) {
         // Find the oldest history for this topic
-        const oldestHistoryForTopic = topicHistories.reduce((oldest, current) => 
+        const oldestHistoryForTopic = topicHistories.reduce((oldest, current) =>
           current.createdAt < oldest.createdAt ? current : oldest
         );
 
@@ -133,11 +138,17 @@ export class ScheduleGenerateTopicHistoryTaskRunner implements TaskProcessRunner
 
     // If no topic histories found, return the first topic
     if (!oldestTopic) {
-      console.log(`No topic histories found for customer, using first topic: ${topics[0].id}`);
+      console.log(
+        `No topic histories found for customer, using first topic: ${topics[0].id}`
+      );
       return topics[0];
     }
 
-    console.log(`Found topic with oldest history: ${oldestTopic.id}, oldest history created at: ${oldestDate?.toISOString()}`);
+    console.log(
+      `Found topic with oldest history: ${
+        oldestTopic.id
+      }, oldest history created at: ${oldestDate?.toISOString()}`
+    );
     return oldestTopic;
   }
 }

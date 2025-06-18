@@ -29,18 +29,7 @@ export class GenerateTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
     if (!topic) {
       throw new Error(`Topic with ID ${this.data.topicId} not found`);
     }
-
-    // Create a TaskProcess instance for the runner
-    const taskProcess = new TaskProcess(
-      this.data.topicId,
-      topic.customerId,
-      'topic-history-generation',
-      'running'
-    );
-
-    // Execute the task runner
-    await this.generateTopicHistoryTaskRunner.execute(taskProcess);
-
+    
     // Get the latest generated topic history
     const topicHistories = await this.topicHistoryRepository.findByTopicId(this.data.topicId);
     const latestTopicHistory = topicHistories.sort((a, b) => 

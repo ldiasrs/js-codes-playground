@@ -7,13 +7,15 @@ import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
 import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
 import { TYPES } from '../../../infrastructure/di/types';
+import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 
 @injectable()
 export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    @inject(TYPES.GenerateTopicHistoryPort) private readonly generateTopicHistoryPort: GenerateTopicHistoryPort
+    @inject(TYPES.GenerateTopicHistoryPort) private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
   ) {}
 
   /**
@@ -45,5 +47,23 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     await this.topicHistoryRepository.save(newHistory);
 
     console.log(`Generated topic history for topic: ${topicId}`);
+
+    const scheduledTimeSend = new Date();
+    scheduledTimeSend.setMinutes(scheduledTimeSend.getMinutes()); 
+    
+    const newSendTaskProcess = new TaskProcess(
+      newHistory.id, 
+      topic.customerId,
+      'topic-history-send',
+      'pending',
+      undefined, // id will be auto-generated
+      undefined, // errorMsg
+      scheduledTimeSend // scheduledTo
+    );
+
+    // Step 7: Save the new send task process
+    await this.taskProcessRepository.save(newSendTaskProcess);
+
+    console.log(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topicId}, scheduled for: ${scheduledTimeSend.toISOString()}`);
   }
 } 

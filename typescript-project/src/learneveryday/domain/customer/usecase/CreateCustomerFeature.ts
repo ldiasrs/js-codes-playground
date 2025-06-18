@@ -47,7 +47,7 @@ export class CreateCustomerFeature {
 
     // Step 3: Create a TaskProcess for scheduling topic history generation
     const scheduledTime = new Date();
-    scheduledTime.setMinutes(scheduledTime.getMinutes() + 1); // Schedule for 1 minute from now
+    scheduledTime.setMinutes(scheduledTime.getMinutes()); 
     
     const scheduleTaskProcess = new TaskProcess(
       savedCustomer.id, // Use the customer ID as entityId

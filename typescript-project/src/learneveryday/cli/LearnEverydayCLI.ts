@@ -259,23 +259,32 @@ export class LearnEverydayCLI {
       
       await this.initializeContainer();
       
+      // Get repository from container
       const topicRepository = this.container.get(TYPES.TopicRepository);
+      const customerRepository = this.container.get(TYPES.CustomerRepository);
+      
+      // Get all topics
       const topics = await topicRepository.findAll();
       
       if (topics.length === 0) {
-        console.log('📭 Nenhum tópico encontrado');
+        console.log('📭 Nenhum tópico encontrado.');
         return;
       }
       
-      console.log(`📋 Total de tópicos: ${topics.length}\n`);
+      console.log(`📚 Encontrados ${topics.length} tópicos:`);
+      console.log('');
       
-      topics.forEach((topic: any, index: number) => {
-        console.log(`${index + 1}. ${topic.subject}`);
+      for (const topic of topics) {
+        // Get customer info for each topic
+        const customer = await customerRepository.findById(topic.customerId);
+        const customerName = customer ? customer.customerName : 'Cliente não encontrado';
+        
         console.log(`   ID: ${topic.id}`);
-        console.log(`   Cliente ID: ${topic.customerId}`);
-        console.log(`   Criado em: ${topic.dateCreated.toLocaleDateString()}`);
+        console.log(`   Assunto: ${topic.subject}`);
+        console.log(`   Cliente: ${customerName} (${topic.customerId})`);
+        console.log(`   Criado em: ${topic.dateCreated.toLocaleString('pt-BR')}`);
         console.log('');
-      });
+      }
       
     } catch (error) {
       console.error('❌ Erro ao listar tópicos:', error);
@@ -322,6 +331,26 @@ export class LearnEverydayCLI {
       
     } catch (error) {
       console.error('❌ Erro ao iniciar agendador:', error);
+      process.exit(1);
+    }
+  }
+
+  private async triggerTaskProcessing(): Promise<void> {
+    try {
+      console.log('🚀 Executando processamento manual de tarefas...');
+      
+      await this.initializeContainer();
+      
+      // Get scheduler from container
+      const triggerTaskProcessExecutorCron = this.container.get(TYPES.TriggerTaskProcessExecutorCron);
+      
+      // Trigger the task processing
+      await triggerTaskProcessExecutorCron.triggerNow();
+      
+      console.log('✅ Processamento de tarefas executado com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro ao executar processamento de tarefas:', error);
       process.exit(1);
     }
   }
