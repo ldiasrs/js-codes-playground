@@ -411,10 +411,10 @@ export class LearnEverydayCLI {
       const addTopicFeature = this.container.get(TYPES.AddTopicFeature);
       
       // Step 1: Create customer
-      console.log('👤 Criando cliente de exemplo...');
+      console.log('👤 Criando seed...');
       
       const createCustomerCommand = new CreateCustomerCommand({
-        customerName: 'João Silva',
+        customerName: 'JOAO',
         govIdentification: {
           type: 'CPF',
           content: '123.456.789-00'
@@ -425,53 +425,48 @@ export class LearnEverydayCLI {
       
       const customer = await createCustomerCommand.execute();
       
-      console.log('✅ Cliente criado com sucesso!');
-      console.log(`   ID: ${customer.id}`);
-      console.log(`   Nome: ${customer.customerName}`);
-      console.log(`   Email: ${customer.email}`);
-      console.log('');
-      
-      // Step 2: Create first topic - Bitcoin
-      console.log('📚 Criando primeiro tópico: Bitcoin...');
-      
       const addTopicCommand1 = new AddTopicCommand({
         customerId: customer.id,
-        subject: 'Bitcoin'
+        subject: 'JOAO Topic 1'
       }, addTopicFeature);
       
-      const topic1 = await addTopicCommand1.execute();
-      
-      console.log('✅ Tópico "Bitcoin" criado com sucesso!');
-      console.log(`   ID: ${topic1.id}`);
-      console.log(`   Assunto: ${topic1.subject}`);
-      console.log('');
-      
-      // Step 3: Create second topic - Receitas fitness para jantar
-      console.log('📚 Criando segundo tópico: Receitas fitness para jantar...');
-      
+     await addTopicCommand1.execute();
+
       const addTopicCommand2 = new AddTopicCommand({
         customerId: customer.id,
-        subject: 'Receitas fitness para jantar'
+        subject: 'JOAO Topic 2'
       }, addTopicFeature);
       
-      const topic2 = await addTopicCommand2.execute();
-      
-      console.log('✅ Tópico "Receitas fitness para jantar" criado com sucesso!');
-      console.log(`   ID: ${topic2.id}`);
-      console.log(`   Assunto: ${topic2.subject}`);
-      console.log('');
-      
-      // Step 4: Summary
-      console.log('🎉 Seed de dados concluído com sucesso!');
-      console.log('📊 Resumo:');
-      console.log(`   👤 Cliente: ${customer.customerName} (${customer.id})`);
-      console.log(`   📚 Tópico 1: ${topic1.subject} (${topic1.id})`);
-      console.log(`   📚 Tópico 2: ${topic2.subject} (${topic2.id})`);
-      console.log('');
-      console.log('💡 Agora você pode usar os comandos:');
-      console.log('   npm run cli listCustomers');
-      console.log('   npm run cli listTopics');
-      console.log('   npm run cli listTasks');
+     await addTopicCommand2.execute();
+
+
+     
+     const createCustomerCommand2 = new CreateCustomerCommand({
+      customerName: 'MARIA',
+      govIdentification: {
+        type: 'CPF',
+        content: '123.456.789-00'
+      },
+      email: 'ldias.rs@gmail.com',
+      phoneNumber: '(11) 99999-9999'
+    }, createCustomerFeature);
+    
+    const customer2 = await createCustomerCommand2.execute();
+    
+    const addTopicCommand3= new AddTopicCommand({
+      customerId: customer2.id,
+      subject: 'MARIA Topic 1'
+    }, addTopicFeature);
+    
+   await addTopicCommand3.execute();
+
+    const addTopicCommand4 = new AddTopicCommand({
+      customerId: customer.id,
+      subject: 'MARIA Topic 2'
+    }, addTopicFeature);
+    
+   await addTopicCommand4.execute();
+
       
     } catch (error) {
       console.error('❌ Erro ao executar seed de dados:', error);
