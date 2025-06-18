@@ -4,7 +4,7 @@ import * as cron from 'node-cron';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { ScheduleGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ScheduleGenerateTopicHistoryTaskRunner';
+import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 import { TYPES } from '../di/types';
 
 @injectable()
@@ -16,7 +16,7 @@ export class TriggerTaskProcessExecutorCron {
     @inject(TYPES.TasksProcessExecutor) private readonly tasksProcessExecutor: TasksProcessExecutor,
     @inject(TYPES.GenerateTopicHistoryTaskRunner) private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
     @inject(TYPES.SendTopicHistoryTaskRunner) private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
-    @inject(TYPES.ScheduleGenerateTopicHistoryTaskRunner) private readonly scheduleGenerateTopicHistoryTaskRunner: ScheduleGenerateTopicHistoryTaskRunner
+    @inject(TYPES.ScheduleGenerateTopicHistoryTaskRunner) private readonly scheduleGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner
   ) {}
 
   /**

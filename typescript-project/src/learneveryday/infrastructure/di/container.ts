@@ -30,7 +30,7 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 // Runners
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { ScheduleGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ScheduleGenerateTopicHistoryTaskRunner';
+import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 
 // Schedulers
 import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
@@ -124,8 +124,8 @@ export class ContainerBuilder {
       .to(SendTopicHistoryTaskRunner)
       .inSingletonScope();
 
-    this.container.bind<ScheduleGenerateTopicHistoryTaskRunner>(TYPES.ScheduleGenerateTopicHistoryTaskRunner)
-      .to(ScheduleGenerateTopicHistoryTaskRunner)
+    this.container.bind<ReGenerateTopicHistoryTaskRunner>(TYPES.ScheduleGenerateTopicHistoryTaskRunner)
+      .to(ReGenerateTopicHistoryTaskRunner)
       .inSingletonScope();
 
     // Bind schedulers
