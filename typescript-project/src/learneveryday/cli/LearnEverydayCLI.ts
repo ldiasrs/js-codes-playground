@@ -7,6 +7,7 @@ import { GenerateAndEmailTopicHistoryCommand } from '../application/commands/top
 import { GetAllCustomersQuery } from '../application/queries/customer/GetAllCustomersQuery';
 import { GetCustomerByIdQuery } from '../application/queries/customer/GetCustomerByIdQuery';
 import { GetTopicByIdQuery } from '../application/queries/topic/GetTopicByIdQuery';
+import { TriggerTaskProcessExecutorCron } from '../infrastructure/scheduler/TriggerTaskProcessExecutorCron';
 
 export class LearnEverydayCLI {
   private program: Command;
@@ -54,6 +55,16 @@ export class LearnEverydayCLI {
       .requiredOption('-e, --email <email>', 'Email para envio')
       .action(async (options) => {
         await this.generateAndSendTopicHistory(options);
+      });
+
+    // Start Scheduler command
+    this.program
+      .command('startScheduler')
+      .description('Inicia o agendador de tarefas para processamento automático')
+      .option('-c, --cron <cron>', 'Expressão cron personalizada (padrão: "0 * * * *" - a cada hora)', '0 * * * *')
+      .option('-d, --dataDir <dataDir>', 'Diretório de dados (padrão: "./data/production/led")', './data/production/led')
+      .action(async (options) => {
+        await this.startScheduler(options);
       });
 
     // List commands for debugging
@@ -260,6 +271,49 @@ export class LearnEverydayCLI {
       
     } catch (error) {
       console.error('❌ Erro ao listar tópicos:', error);
+      process.exit(1);
+    }
+  }
+
+  private async startScheduler(options: any): Promise<void> {
+    try {
+      console.log('🚀 Iniciando o agendador de tarefas...');
+      console.log(`📅 Cron: ${options.cron}`);
+      console.log(`📁 Data Directory: ${options.dataDir}`);
+      
+      // Update data directory if provided
+      if (options.dataDir !== this.dataDir) {
+        this.dataDir = options.dataDir;
+        this.container = null; // Reset container to use new data directory
+      }
+      
+      await this.initializeContainer();
+      
+      // Get scheduler from container
+      const scheduler = this.container.get(TYPES.TriggerTaskProcessExecutorCron);
+      
+      // Start the scheduler
+      scheduler.start(options.cron);
+      
+      console.log('✅ Agendador iniciado com sucesso!');
+      console.log('⏰ O sistema agora processará tarefas automaticamente');
+      console.log('📝 Para parar o agendador, pressione Ctrl+C');
+      
+      // Keep the process running
+      process.on('SIGINT', () => {
+        console.log('\n🛑 Parando o agendador...');
+        scheduler.stop();
+        console.log('✅ Agendador parado com sucesso!');
+        process.exit(0);
+      });
+      
+      // Keep the process alive
+      setInterval(() => {
+        // This keeps the process running
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Erro ao iniciar agendador:', error);
       process.exit(1);
     }
   }
