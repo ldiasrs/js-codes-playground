@@ -17,6 +17,7 @@ export class AddTopicFeature {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
   ) {}
 
   /**
@@ -46,6 +47,25 @@ export class AddTopicFeature {
     const savedTopic = await this.topicRepository.save(newTopic);
 
     console.log(`Created topic: ${savedTopic.id}`);
+
+    // Step 4: Create and save a new topic-history-generation task
+    const scheduledTime = new Date();
+    scheduledTime.setMinutes(scheduledTime.getMinutes()); // Schedule for immediate execution
+    
+    const newTaskProcess = new TaskProcess(
+      savedTopic.id, // Use the topic ID as entityId
+      customerId,
+      'topic-history-generation',
+      'pending',
+      undefined, // id will be auto-generated
+      undefined, // errorMsg
+      scheduledTime // scheduledTo
+    );
+
+    // Save the new task process
+    await this.taskProcessRepository.save(newTaskProcess);
+
+    console.log(`Scheduled topic history generation task for topic ${savedTopic.id}, scheduled for: ${scheduledTime.toISOString()}`);
 
     return savedTopic;
   }
