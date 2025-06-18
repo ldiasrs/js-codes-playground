@@ -10,4 +10,7 @@ export * from './customer';
 export * from './topic';
 
 // Topic History Domain
-export * from './topic-history'; 
+export * from './topic-history';
+
+// TaskProcess Domain
+export * from './taskprocess'; 

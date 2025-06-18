@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
-import { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from '../../../domain/topic-history/features/AddTopicHistoryFeature';
+import { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from '../../../domain/topic-history/usecase/AddTopicHistoryFeature';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicHistoryCommandData {

@@ -6,6 +6,9 @@ export { TopicHistory } from './entities/TopicHistory';
 // Ports
 export { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from './ports/TopicHistoryRepositoryPort';
 
-// Features
-export { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from './features/AddTopicHistoryFeature';
-export { GenerateTopicHistoryFeature, GenerateTopicHistoryFeatureData } from './features/GenerateTopicHistoryFeature'; 
+// Use Cases
+export { AddTopicHistoryFeature, AddTopicHistoryFeatureData } from './usecase/AddTopicHistoryFeature';
+
+// Runners
+export { GenerateTopicHistoryTaskRunner } from './usecase/GenerateTopicHistoryTaskRunner';
+export { SendTopicHistoryTaskRunner } from './usecase/SendTopicHistoryTaskRunner'; 

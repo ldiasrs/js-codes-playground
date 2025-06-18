@@ -6,7 +6,7 @@ import { TYPES } from './types';
 import { CustomerRepositoryPort } from '../../domain/customer/ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../domain/topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../domain/shared/ports/TaskProcessRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../domain/taskprocess/ports/TaskProcessRepositoryPort';
 import { NedbCustomerRepository } from '../adapters/NedbCustomerRepository';
 import { NedbTopicRepository } from '../adapters/NedbTopicRepository';
 import { NedbTopicHistoryRepository } from '../adapters/NedbTopicHistoryRepository';
@@ -18,17 +18,22 @@ import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/Se
 import { TopicHistoryGeneratorFactory } from '../factories/TopicHistoryGeneratorFactory';
 import { EmailSenderFactory } from '../factories/EmailSenderFactory';
 
-// Features
-import { CreateCustomerFeature } from '../../domain/customer/features/CreateCustomerFeature';
-import { UpdateCustomerFeature } from '../../domain/customer/features/UpdateCustomerFeature';
-import { DeleteCustomerFeature } from '../../domain/customer/features/DeleteCustomerFeature';
-import { AddTopicFeature } from '../../domain/topic/features/AddTopicFeature';
-import { DeleteTopicFeature } from '../../domain/topic/features/DeleteTopicFeature';
-import { AddTopicHistoryFeature } from '../../domain/topic-history/features/AddTopicHistoryFeature';
-import { GenerateTopicHistoryFeature } from '../../domain/topic-history/features/GenerateTopicHistoryFeature';
-import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
-import { SendTopicHistoryFeature } from '../../domain/topic-history/features/SendTopicHistoryFeature';
-import { TasksProcessExecutor } from '../../domain/shared/features/TasksProcessExecutor';
+// Use Cases
+import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
+import { UpdateCustomerFeature } from '../../domain/customer/usecase/UpdateCustomerFeature';
+import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
+import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
+import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
+import { AddTopicHistoryFeature } from '../../domain/topic-history/usecase/AddTopicHistoryFeature';
+import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
+import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
+
+// Runners
+import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
+import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
+
+// Schedulers
+import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
 
 // Database
 import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
@@ -82,7 +87,7 @@ export class ContainerBuilder {
       .toDynamicValue(() => EmailSenderFactory.createNodemailerSender())
       .inSingletonScope();
 
-    // Bind features
+    // Bind use cases
     this.container.bind<CreateCustomerFeature>(TYPES.CreateCustomerFeature)
       .to(CreateCustomerFeature)
       .inSingletonScope();
@@ -107,20 +112,26 @@ export class ContainerBuilder {
       .to(AddTopicHistoryFeature)
       .inSingletonScope();
 
-    this.container.bind<GenerateTopicHistoryFeature>(TYPES.GenerateTopicHistoryFeature)
-      .to(GenerateTopicHistoryFeature)
-      .inSingletonScope();
-
     this.container.bind<GenerateAndEmailTopicHistoryFeature>(TYPES.GenerateAndEmailTopicHistoryFeature)
       .to(GenerateAndEmailTopicHistoryFeature)
       .inSingletonScope();
 
-    this.container.bind<SendTopicHistoryFeature>(TYPES.SendTopicHistoryFeature)
-      .to(SendTopicHistoryFeature)
-      .inSingletonScope();
-
     this.container.bind<TasksProcessExecutor>(TYPES.TasksProcessExecutor)
       .to(TasksProcessExecutor)
+      .inSingletonScope();
+
+    // Bind runners
+    this.container.bind<GenerateTopicHistoryTaskRunner>(TYPES.GenerateTopicHistoryTaskRunner)
+      .to(GenerateTopicHistoryTaskRunner)
+      .inSingletonScope();
+
+    this.container.bind<SendTopicHistoryTaskRunner>(TYPES.SendTopicHistoryTaskRunner)
+      .to(SendTopicHistoryTaskRunner)
+      .inSingletonScope();
+
+    // Bind schedulers
+    this.container.bind<TriggerTaskProcessExecutorCron>(TYPES.TriggerTaskProcessExecutorCron)
+      .to(TriggerTaskProcessExecutorCron)
       .inSingletonScope();
 
     // Bind commands

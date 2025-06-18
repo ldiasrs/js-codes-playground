@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
-import { UpdateCustomerFeature, UpdateCustomerFeatureData } from '../../../domain/customer/features/UpdateCustomerFeature';
+import { UpdateCustomerFeature, UpdateCustomerFeatureData } from '../../../domain/customer/usecase/UpdateCustomerFeature';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface UpdateCustomerCommandData {

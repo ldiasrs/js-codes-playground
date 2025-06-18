@@ -19,16 +19,20 @@ export const TYPES = {
   GenerateTopicHistoryCommand: Symbol.for('GenerateTopicHistoryCommand'),
   GenerateAndEmailTopicHistoryCommand: Symbol.for('GenerateAndEmailTopicHistoryCommand'),
 
-  // Features
+  // Use Cases
   CreateCustomerFeature: Symbol.for('CreateCustomerFeature'),
   UpdateCustomerFeature: Symbol.for('UpdateCustomerFeature'),
   DeleteCustomerFeature: Symbol.for('DeleteCustomerFeature'),
   AddTopicFeature: Symbol.for('AddTopicFeature'),
-  AddTopicSimpleFeature: Symbol.for('AddTopicSimpleFeature'),
   DeleteTopicFeature: Symbol.for('DeleteTopicFeature'),
   AddTopicHistoryFeature: Symbol.for('AddTopicHistoryFeature'),
-  GenerateTopicHistoryFeature: Symbol.for('GenerateTopicHistoryFeature'),
   GenerateAndEmailTopicHistoryFeature: Symbol.for('GenerateAndEmailTopicHistoryFeature'),
-  SendTopicHistoryFeature: Symbol.for('SendTopicHistoryFeature'),
   TasksProcessExecutor: Symbol.for('TasksProcessExecutor'),
+
+  // Runners
+  GenerateTopicHistoryTaskRunner: Symbol.for('GenerateTopicHistoryTaskRunner'),
+  SendTopicHistoryTaskRunner: Symbol.for('SendTopicHistoryTaskRunner'),
+
+  // Schedulers
+  TriggerTaskProcessExecutorCron: Symbol.for('TriggerTaskProcessExecutorCron'),
 } as const; 

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
-import { DeleteTopicFeature, DeleteTopicFeatureData } from '../../../domain/topic/features/DeleteTopicFeature';
+import { DeleteTopicFeature, DeleteTopicFeatureData } from '../../../domain/topic/usecase/DeleteTopicFeature';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface DeleteTopicCommandData {

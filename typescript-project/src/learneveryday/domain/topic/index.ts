@@ -6,7 +6,6 @@ export { Topic } from './entities/Topic';
 // Ports
 export { TopicRepositoryPort, TopicSearchCriteria } from './ports/TopicRepositoryPort';
 
-// Features
-export { AddTopicFeature, AddTopicFeatureData } from './features/AddTopicFeature';
-export { AddTopicSimpleFeature, AddTopicSimpleFeatureData } from './features/AddTopicSimpleFeature';
-export { DeleteTopicFeature, DeleteTopicFeatureData } from './features/DeleteTopicFeature'; 
+// Use Cases
+export { AddTopicFeature, AddTopicFeatureData } from './usecase/AddTopicFeature';
+export { DeleteTopicFeature, DeleteTopicFeatureData } from './usecase/DeleteTopicFeature'; 

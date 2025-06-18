@@ -3,6 +3,8 @@ import { injectable, inject } from 'inversify';
 import { Topic } from '../entities/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
+import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicFeatureData {
@@ -14,7 +16,8 @@ export interface AddTopicFeatureData {
 export class AddTopicFeature {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
-    @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort
+    @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
   ) {}
 
   /**
@@ -42,6 +45,18 @@ export class AddTopicFeature {
     // Step 3: Create and save the new topic
     const newTopic = new Topic(customerId, subject);
     const savedTopic = await this.topicRepository.save(newTopic);
+
+    // Step 4: Create a TaskProcess for generating topic history
+    const topicHistoryGenerationTask = new TaskProcess(
+      savedTopic.id, // Use the topic ID as entityId
+      'topic-history-generation',
+      'pending'
+    );
+
+    // Step 5: Save the task process
+    await this.taskProcessRepository.save(topicHistoryGenerationTask);
+
+    console.log(`Created topic: ${savedTopic.id} and queued topic history generation task: ${topicHistoryGenerationTask.id}`);
 
     return savedTopic;
   }

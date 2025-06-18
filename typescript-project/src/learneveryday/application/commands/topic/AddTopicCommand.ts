@@ -2,8 +2,7 @@ import 'reflect-metadata';
 import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicDTO, TopicDTOMapper } from '../../dto/TopicDTO';
-import { AddTopicSimpleFeature, AddTopicSimpleFeatureData } from '../../../domain/topic/features/AddTopicSimpleFeature';
-import { AddTopicFeature } from '../../../domain/topic/features/AddTopicFeature';
+import { AddTopicFeature, AddTopicFeatureData } from '../../../domain/topic/usecase/AddTopicFeature';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicCommandData {
@@ -22,7 +21,7 @@ export class AddTopicCommand extends BaseCommand<TopicDTO> {
 
   async execute(): Promise<TopicDTO> {
     // Convert command data to feature data
-    const featureData: AddTopicSimpleFeatureData = {
+    const featureData: AddTopicFeatureData = {
       customerId: this.data.customerId,
       subject: this.data.subject
     };

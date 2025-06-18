@@ -6,7 +6,7 @@ export { Customer } from './entities/Customer';
 // Ports
 export { CustomerRepositoryPort, CustomerSearchCriteria } from './ports/CustomerRepositoryPort';
 
-// Features
-export { CreateCustomerFeature, CreateCustomerFeatureData } from './features/CreateCustomerFeature';
-export { UpdateCustomerFeature, UpdateCustomerFeatureData } from './features/UpdateCustomerFeature';
-export { DeleteCustomerFeature, DeleteCustomerFeatureData } from './features/DeleteCustomerFeature'; 
+// Use Cases
+export { CreateCustomerFeature, CreateCustomerFeatureData } from './usecase/CreateCustomerFeature';
+export { UpdateCustomerFeature, UpdateCustomerFeatureData } from './usecase/UpdateCustomerFeature';
+export { DeleteCustomerFeature, DeleteCustomerFeatureData } from './usecase/DeleteCustomerFeature'; 

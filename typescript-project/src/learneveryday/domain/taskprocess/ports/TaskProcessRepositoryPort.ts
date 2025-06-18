@@ -1,4 +1,4 @@
-import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../TaskProcess';
+import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../entities/TaskProcess';
 
 export interface TaskProcessSearchCriteria {
   entityId?: string;

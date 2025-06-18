@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
-import { GenerateAndEmailTopicHistoryFeature, GenerateAndEmailTopicHistoryFeatureData } from '../../../domain/topic-history/features/GenerateAndEmailTopicHistoryFeature';
+import { GenerateAndEmailTopicHistoryFeature, GenerateAndEmailTopicHistoryFeatureData } from '../../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface GenerateAndEmailTopicHistoryCommandData {

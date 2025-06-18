@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { TaskProcess, TaskProcessType } from '../TaskProcess';
+import { TaskProcess, TaskProcessType } from '../entities/TaskProcess';
 import { TaskProcessRepositoryPort } from '../ports/TaskProcessRepositoryPort';
 import { TaskProcessRunner } from '../ports/TaskProcessRunner';
 import { TYPES } from '../../../infrastructure/di/types';
