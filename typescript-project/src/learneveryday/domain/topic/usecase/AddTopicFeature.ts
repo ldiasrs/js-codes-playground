@@ -59,7 +59,7 @@ export class AddTopicFeature {
       'pending',
       undefined, // id will be auto-generated
       undefined, // errorMsg
-      scheduledTime // scheduledTo
+      new Date()
     );
 
     // Save the new task process
