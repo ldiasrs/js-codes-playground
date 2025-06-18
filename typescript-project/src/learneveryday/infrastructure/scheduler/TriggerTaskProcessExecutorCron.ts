@@ -6,6 +6,7 @@ import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/useca
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 import { TYPES } from '../di/types';
+import { TaskProcess } from '../../domain/taskprocess/entities/TaskProcess';
 
 @injectable()
 export class TriggerTaskProcessExecutorCron {
@@ -73,7 +74,7 @@ export class TriggerTaskProcessExecutorCron {
       // Step 1: Schedule topic history generation
       console.log('📅 Step 1: Scheduling topic history generation...');
       await this.tasksProcessExecutor.execute(
-        { processType: 'regenerate-topic-history', limit: 10 },
+        { processType: TaskProcess.REGENERATE_TOPIC_HISTORY, limit: 10 },
         this.scheduleGenerateTopicHistoryTaskRunner
       );
       console.log('✅ Topic history scheduling completed');
@@ -81,7 +82,7 @@ export class TriggerTaskProcessExecutorCron {
       // Step 2: Generate topic histories
       console.log('📝 Step 2: Generating topic histories...');
       await this.tasksProcessExecutor.execute(
-        { processType: 'topic-history-generation', limit: 10 },
+        { processType: TaskProcess.TOPIC_HISTORY_GENERATION, limit: 10 },
         this.generateTopicHistoryTaskRunner
       );
       console.log('✅ Topic history generation completed');
@@ -89,7 +90,7 @@ export class TriggerTaskProcessExecutorCron {
       // Step 3: Send topic histories
       console.log('📧 Step 3: Sending topic histories...');
       await this.tasksProcessExecutor.execute(
-        { processType: 'topic-history-send', limit: 10 },
+        { processType: TaskProcess.TOPIC_HISTORY_SEND, limit: 10 },
         this.sendTopicHistoryTaskRunner
       );
       console.log('✅ Topic history sending completed');

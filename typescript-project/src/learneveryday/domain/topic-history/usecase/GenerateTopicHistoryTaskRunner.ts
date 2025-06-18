@@ -54,7 +54,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newSendTaskProcess = new TaskProcess(
       newHistory.id, 
       topic.customerId,
-      'topic-history-send',
+      TaskProcess.TOPIC_HISTORY_SEND,
       'pending',
       undefined, // id will be auto-generated
       undefined, // errorMsg
@@ -73,7 +73,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newRegenerateTaskProcess = new TaskProcess(
       topic.customerId, // Use customer ID as entityId for regenerate task
       topic.customerId,
-      'regenerate-topic-history',
+      TaskProcess.REGENERATE_TOPIC_HISTORY,
       'pending',
       undefined, // id will be auto-generated
       undefined, // errorMsg

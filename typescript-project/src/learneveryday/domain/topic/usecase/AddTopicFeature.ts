@@ -55,7 +55,7 @@ export class AddTopicFeature {
     const newTaskProcess = new TaskProcess(
       savedTopic.id, // Use the topic ID as entityId
       customerId,
-      'topic-history-generation',
+      TaskProcess.TOPIC_HISTORY_GENERATION,
       'pending',
       undefined, // id will be auto-generated
       undefined, // errorMsg
