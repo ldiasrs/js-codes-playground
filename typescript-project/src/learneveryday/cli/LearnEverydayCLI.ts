@@ -82,6 +82,17 @@ export class LearnEverydayCLI {
         await this.listTopics();
       });
 
+    // List Tasks command
+    this.program
+      .command('listTasks')
+      .description('Lista todas as tarefas ordenadas por processAt')
+      .option('-l, --limit <limit>', 'Número máximo de tarefas a exibir (padrão: 50)', '50')
+      .option('-s, --status <status>', 'Filtrar por status (pending, running, completed, failed, cancelled)')
+      .option('-t, --type <type>', 'Filtrar por tipo (generate-topic-history, send-topic-history, regenerate-topic-history)')
+      .action(async (options) => {
+        await this.listTasks(options);
+      });
+
     // Trigger Task Processing command
     this.program
       .command('triggerTaskProcessing')

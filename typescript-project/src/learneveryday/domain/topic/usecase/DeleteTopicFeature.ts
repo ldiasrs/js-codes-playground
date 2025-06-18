@@ -35,7 +35,7 @@ export class DeleteTopicFeature {
 
     // Step 2: Delete all related TaskProcess entries for this topic
     // Delete topic history generation tasks
-    const generationTasks = await this.taskProcessRepository.findByEntityIdAndType(id, TaskProcess.TOPIC_HISTORY_GENERATION);
+    const generationTasks = await this.taskProcessRepository.findByEntityIdAndType(id, TaskProcess.GENERATE_TOPIC_HISTORY);
     for (const task of generationTasks) {
       await this.taskProcessRepository.delete(task.id);
     }
@@ -44,7 +44,7 @@ export class DeleteTopicFeature {
     // First, get all topic histories for this topic
     const topicHistories = await this.topicHistoryRepository.findByTopicId(id);
     for (const topicHistory of topicHistories) {
-      const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(topicHistory.id, TaskProcess.TOPIC_HISTORY_SEND);
+      const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(topicHistory.id, TaskProcess.SEND_TOPIC_HISTOY);
       for (const task of sendTasks) {
         await this.taskProcessRepository.delete(task.id);
       }

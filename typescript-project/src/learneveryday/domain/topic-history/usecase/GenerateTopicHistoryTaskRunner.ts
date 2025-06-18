@@ -54,7 +54,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newSendTaskProcess = new TaskProcess(
       newHistory.id, 
       topic.customerId,
-      TaskProcess.TOPIC_HISTORY_SEND,
+      TaskProcess.SEND_TOPIC_HISTOY,
       'pending',
       undefined, // id will be auto-generated
       undefined, // errorMsg

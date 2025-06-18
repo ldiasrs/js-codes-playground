@@ -34,7 +34,7 @@ export class GenerateAndEmailTopicHistoryFeature {
     const taskProcess = new TaskProcess(
       data.topicId,
       topic.customerId,
-      TaskProcess.TOPIC_HISTORY_GENERATION,
+      TaskProcess.GENERATE_TOPIC_HISTORY,
       'running'
     );
 

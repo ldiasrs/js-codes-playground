@@ -42,7 +42,7 @@ export class ReGenerateTopicHistoryTaskRunner
 
     const completedSendTasks = await this.taskProcessRepository.search({
       customerId: customerId,
-      type: TaskProcess.TOPIC_HISTORY_SEND,
+      type: TaskProcess.SEND_TOPIC_HISTOY,
       status: "completed",
       dateFrom: oneMonthAgo,
       dateTo: new Date()
@@ -100,7 +100,7 @@ export class ReGenerateTopicHistoryTaskRunner
         const newTaskProcess = new TaskProcess(
           topicWithLessHistories.id, // Use the topic with fewer histories as entityId
           customerId,
-          TaskProcess.TOPIC_HISTORY_GENERATION,
+          TaskProcess.GENERATE_TOPIC_HISTORY,
           "pending",
           undefined, // id will be auto-generated
           undefined, // errorMsg
