@@ -8,7 +8,7 @@ import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort"
 import { TYPES } from "../../../infrastructure/di/types";
 
 @injectable()
-export class ScheduleGenerateTopicHistoryTaskRunner
+export class ReGenerateTopicHistoryTaskRunner
   implements TaskProcessRunner {
   constructor(
     @inject(TYPES.TopicRepository)
@@ -20,9 +20,9 @@ export class ScheduleGenerateTopicHistoryTaskRunner
   ) {}
 
   /**
-   * Executes the schedule topic history generation task
+   * Executes the regenerate topic history task
    * @param taskProcess The task process containing the customer ID in entityId
-   * @returns Promise<void> Resolves when task is scheduled or skipped
+   * @returns Promise<void> Resolves when task is processed
    * @throws Error if customer has no topics or task creation fails
    */
   async execute(taskProcess: TaskProcess): Promise<void> {
@@ -36,25 +36,64 @@ export class ScheduleGenerateTopicHistoryTaskRunner
       throw new Error(`Customer with ID ${customerId} has no topics`);
     }
 
-    // Step 2: Check if there's already a pending topic-history-generation task for this customer
-    const existingTasks = await this.taskProcessRepository.search({
+    // Step 2: Get all topic-history-send completed tasks in the last month
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    const completedSendTasks = await this.taskProcessRepository.search({
       customerId: customerId,
-      type: "topic-history-generation",
-      status: "pending",
+      type: "topic-history-send",
+      status: "completed",
+      dateFrom: oneMonthAgo,
+      dateTo: new Date()
     });
 
-    if (existingTasks && existingTasks.length > 0) {
-      console.log(
-        `Skipping task creation - customer ${customerId} already has a pending topic-history-generation task: ${existingTasks[0].id}`
+    // Step 3: Check if there are more than 1 completed tasks in the last 24h
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+    const recentCompletedTasks = completedSendTasks.filter(task => 
+      task.processAt && task.processAt >= twentyFourHoursAgo
+    );
+
+    if (recentCompletedTasks.length > 1) {
+      // Step 4: Find the newest completed task and schedule verification
+      const newestTask = recentCompletedTasks.reduce((latest, current) => 
+        (current.processAt && latest.processAt && current.processAt > latest.processAt) ? current : latest
       );
+
+      if (newestTask.processAt) {
+        const lastSendingDate = newestTask.processAt;
+        const verificationDate = new Date(lastSendingDate);
+        verificationDate.setHours(verificationDate.getHours() + 24);
+
+        // Create verification scheduled task
+        const verificationTaskProcess = new TaskProcess(
+          customerId, // Use customer ID as entityId
+          customerId,
+          "regenerate-topic-history",
+          "pending",
+          undefined, // id will be auto-generated
+          undefined, // errorMsg
+          verificationDate // scheduledTo
+        );
+
+        await this.taskProcessRepository.save(verificationTaskProcess);
+
+        console.log(
+          `Scheduled verification task for customer ${customerId} due to multiple recent sends. ` +
+          `Last sending: ${lastSendingDate.toISOString()}, ` +
+          `Next verification: ${verificationDate.toISOString()}`
+        );
+      }
     } else {
-      // Step 3: Find the topic with fewer topic histories
+      // Step 5: Find topic with fewer histories and create generation task
       const topicWithLessHistories = await this.findTopicIdWithLessTopicsHistories(
         customerTopics
       );
 
       if (topicWithLessHistories) {
-        // Step 4: Create a new TaskProcess for topic history generation
+        // Create a new TaskProcess for topic history generation
         const scheduledTime = new Date();
         scheduledTime.setMinutes(scheduledTime.getMinutes());
 
@@ -68,7 +107,7 @@ export class ScheduleGenerateTopicHistoryTaskRunner
           scheduledTime // scheduledTo
         );
 
-        // Step 5: Save the new task process
+        // Save the new task process
         await this.taskProcessRepository.save(newTaskProcess);
 
         console.log(
@@ -82,27 +121,6 @@ export class ScheduleGenerateTopicHistoryTaskRunner
         );
       }
     }
-
-    // Step 8: Create a new TaskProcess for schedule-generation-topic-history (next 24 hours)
-    const scheduledTime24h = new Date();
-    scheduledTime24h.setHours(scheduledTime24h.getHours() + 24); // Schedule for 24 hours from now
-
-    const newScheduleTaskProcess = new TaskProcess(
-      customerId, // Use the customer ID as entityId
-      customerId,
-      "schedule-generation-topic-history",
-      "pending",
-      undefined, // id will be auto-generated
-      undefined, // errorMsg
-      scheduledTime24h // scheduledTo
-    );
-
-    // Step 9: Save the new schedule task process
-    await this.taskProcessRepository.save(newScheduleTaskProcess);
-
-    console.log(
-      `Scheduled schedule-generation-topic-history task for customer ${customerId}, scheduled for: ${scheduledTime24h.toISOString()}`
-    );
   }
 
   /**

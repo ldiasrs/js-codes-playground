@@ -65,5 +65,24 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     await this.taskProcessRepository.save(newSendTaskProcess);
 
     console.log(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topicId}, scheduled for: ${scheduledTimeSend.toISOString()}`);
+
+    // Step 8: Create and save a new regenerate-topic-history task
+    const scheduledTimeRegenerate = new Date();
+    scheduledTimeRegenerate.setHours(scheduledTimeRegenerate.getHours()); 
+    
+    const newRegenerateTaskProcess = new TaskProcess(
+      topic.customerId, // Use customer ID as entityId for regenerate task
+      topic.customerId,
+      'regenerate-topic-history',
+      'pending',
+      undefined, // id will be auto-generated
+      undefined, // errorMsg
+      scheduledTimeRegenerate // scheduledTo
+    );
+
+    // Save the new regenerate task process
+    await this.taskProcessRepository.save(newRegenerateTaskProcess);
+
+    console.log(`Scheduled regenerate topic history task for customer ${topic.customerId}, scheduled for: ${scheduledTimeRegenerate.toISOString()}`);
   }
 } 
