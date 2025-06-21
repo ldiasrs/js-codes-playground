@@ -1,14 +1,13 @@
 import { Command } from 'commander';
-import { ContainerBuilder } from '../infrastructure/di/container';
-import { TYPES } from '../infrastructure/di/types';
-import { CreateCustomerCommand } from '../application/commands/customer/CreateCustomerCommand';
-import { AddTopicCommand } from '../application/commands/topic/AddTopicCommand';
-import { GenerateAndEmailTopicHistoryCommand } from '../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
-import { GetAllCustomersQuery } from '../application/queries/customer/GetAllCustomersQuery';
-import { GetCustomerByIdQuery } from '../application/queries/customer/GetCustomerByIdQuery';
-import { GetTopicByIdQuery } from '../application/queries/topic/GetTopicByIdQuery';
-import { TriggerTaskProcessExecutorCron } from '../infrastructure/scheduler/TriggerTaskProcessExecutorCron';
-import { LoggerPort } from '../domain/shared/ports/LoggerPort';
+import { LoggerPort } from '../../domain';
+import { ContainerBuilder } from '../../infrastructure/di/container';
+import { TYPES } from '../../infrastructure/di/types';
+import { CreateCustomerCommand } from '../commands/customer/CreateCustomerCommand';
+import { GenerateAndEmailTopicHistoryCommand } from '../commands/topic-history/GenerateAndEmailTopicHistoryCommand';
+import { AddTopicCommand } from '../commands/topic/AddTopicCommand';
+import { GetAllCustomersQuery } from '../queries/customer/GetAllCustomersQuery';
+import { GetCustomerByIdQuery } from '../queries/customer/GetCustomerByIdQuery';
+import { GetTopicByIdQuery } from '../queries/topic/GetTopicByIdQuery';
 
 export class LearnEverydayCLI {
   private program: Command;
