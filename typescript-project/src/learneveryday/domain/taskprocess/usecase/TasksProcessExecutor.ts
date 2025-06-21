@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import { TaskProcess, TaskProcessType } from '../entities/TaskProcess';
 import { TaskProcessRepositoryPort } from '../ports/TaskProcessRepositoryPort';
 import { TaskProcessRunner } from '../ports/TaskProcessRunner';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface TasksProcessExecutorData {
@@ -13,7 +14,8 @@ export interface TasksProcessExecutorData {
 @injectable()
 export class TasksProcessExecutor {
   constructor(
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -33,16 +35,24 @@ export class TasksProcessExecutor {
     );
 
     if (pendingTasks.length === 0) {
-      console.log(`No pending tasks found for process type: ${processType}`);
+      this.logger.info(`No pending tasks found for process type: ${processType}`);
       return;
     }
 
-    console.log(`Found ${pendingTasks.length} pending tasks for process type: ${processType}`);
+    this.logger.info(`Found ${pendingTasks.length} pending tasks for process type: ${processType}`, {
+      processType,
+      taskCount: pendingTasks.length,
+      limit
+    });
 
     // Step 2: Group tasks by customerId for sequential processing per customer
     const tasksByCustomer = this.groupTasksByCustomer(pendingTasks);
     
-    console.log(`Grouped tasks into ${tasksByCustomer.size} customer groups`);
+    this.logger.info(`Grouped tasks into ${tasksByCustomer.size} customer groups`, {
+      processType,
+      customerGroups: tasksByCustomer.size,
+      totalTasks: pendingTasks.length
+    });
 
     // Step 3: Process each customer group sequentially, but different customers in parallel
     const customerProcessingPromises = Array.from(tasksByCustomer.entries()).map(
@@ -83,14 +93,21 @@ export class TasksProcessExecutor {
     tasks: TaskProcess[], 
     runner: TaskProcessRunner
   ): Promise<void> {
-    console.log(`Processing ${tasks.length} tasks sequentially for customer: ${customerId}`);
+    this.logger.info(`Processing ${tasks.length} tasks sequentially for customer: ${customerId}`, {
+      customerId,
+      taskCount: tasks.length,
+      taskTypes: tasks.map(t => t.type)
+    });
     
     // Process tasks for this customer sequentially
     for (const task of tasks) {
       await this.processTask(task, runner);
     }
     
-    console.log(`✅ Completed processing all tasks for customer: ${customerId}`);
+    this.logger.info(`✅ Completed processing all tasks for customer: ${customerId}`, {
+      customerId,
+      taskCount: tasks.length
+    });
   }
 
   /**
@@ -101,7 +118,12 @@ export class TasksProcessExecutor {
    */
   private async processTask(taskProcess: TaskProcess, runner: TaskProcessRunner): Promise<void> {
     try {
-      console.log(`Starting task process: ${taskProcess.id} (${taskProcess.type})`);
+      this.logger.info(`Starting task process: ${taskProcess.id} (${taskProcess.type})`, {
+        taskId: taskProcess.id,
+        taskType: taskProcess.type,
+        customerId: taskProcess.customerId,
+        entityId: taskProcess.entityId
+      });
 
       // Step 1: Update status to running and save
       const runningTask = taskProcess.startProcessing();
@@ -114,10 +136,19 @@ export class TasksProcessExecutor {
       const completedTask = runningTask.updateStatus('completed');
       await this.taskProcessRepository.save(completedTask);
 
-      console.log(`✅ Task process completed: ${taskProcess.id} (${taskProcess.type})`);
+      this.logger.info(`✅ Task process completed: ${taskProcess.id} (${taskProcess.type})`, {
+        taskId: taskProcess.id,
+        taskType: taskProcess.type,
+        customerId: taskProcess.customerId
+      });
 
     } catch (error) {
-      console.error(`❌ Task process failed: ${taskProcess.id} (${taskProcess.type})`, error);
+      this.logger.error(`❌ Task process failed: ${taskProcess.id} (${taskProcess.type})`, error as Error, {
+        taskId: taskProcess.id,
+        taskType: taskProcess.type,
+        customerId: taskProcess.customerId,
+        entityId: taskProcess.entityId
+      });
 
       // Step 4: Update status to failed with error message and save
       const errorMessage = error instanceof Error ? error.message : String(error);

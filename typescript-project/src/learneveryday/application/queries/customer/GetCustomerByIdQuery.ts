@@ -26,6 +26,6 @@ export class GetCustomerByIdQuery extends BaseQuery<CustomerDTO | undefined> {
     }
 
     const topics = await this.topicRepository.findByCustomerId(customerId);
-    return CustomerDTOMapper.toDTO(customer, topics);
+    return CustomerDTOMapper.toDTO(customer);
   }
 } 

@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface CreateCustomerFeatureData {
@@ -19,7 +20,8 @@ export interface CreateCustomerFeatureData {
 export class CreateCustomerFeature {
   constructor(
     @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
-    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort
+    @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -42,7 +44,11 @@ export class CreateCustomerFeature {
     // Step 2: Save the customer
     const savedCustomer = await this.customerRepository.save(customer);
 
-    console.log(`Created customer ${savedCustomer.id}`);
+    this.logger.info(`Created customer ${savedCustomer.id}`, { 
+      customerId: savedCustomer.id,
+      customerName: savedCustomer.customerName,
+      email: savedCustomer.email 
+    });
 
     return savedCustomer;
   }

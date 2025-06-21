@@ -5,6 +5,7 @@ import { TaskProcessRunner } from "../../taskprocess/ports/TaskProcessRunner";
 import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRepositoryPort";
 import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
 import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
+import { LoggerPort } from "../../shared/ports/LoggerPort";
 import { TYPES } from "../../../infrastructure/di/types";
 
 export interface ReGenerateTopicHistoryConfig {
@@ -22,7 +23,8 @@ export class ReGenerateTopicHistoryTaskRunner
     @inject(TYPES.TopicHistoryRepository)
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     @inject(TYPES.TaskProcessRepository)
-    private readonly taskProcessRepository: TaskProcessRepositoryPort
+    private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -87,10 +89,16 @@ export class ReGenerateTopicHistoryTaskRunner
 
         await this.taskProcessRepository.save(verificationTaskProcess);
 
-        console.log(
-          `Scheduled verification task for customer ${customerId} due to maximum topics per 24h reached (${this.config.maxTopicsPer24h}). ` +
-          `Last sending: ${lastSendingDate.toISOString()}, ` +
-          `Next verification: ${verificationDate.toISOString()}`
+        this.logger.info(
+          `Scheduled verification task for customer ${customerId} due to maximum topics per 24h reached (${this.config.maxTopicsPer24h})`,
+          {
+            customerId,
+            topicId,
+            maxTopicsPer24h: this.config.maxTopicsPer24h,
+            lastSending: lastSendingDate.toISOString(),
+            nextVerification: verificationDate.toISOString(),
+            recentCompletedTasks: recentCompletedTasks.length
+          }
         );
       }
       return;
@@ -118,14 +126,20 @@ export class ReGenerateTopicHistoryTaskRunner
       // Save the new task process
       await this.taskProcessRepository.save(newTaskProcess);
 
-      console.log(
-        `Scheduled topic history generation task for customer ${customerId} using topic ${
-          topicWithLessHistories.id
-        } (fewer histories), scheduled for: ${scheduledTime.toISOString()}`
+      this.logger.info(
+        `Scheduled topic history generation task for customer ${customerId} using topic ${topicWithLessHistories.id} (fewer histories)`,
+        {
+          customerId,
+          topicId: topicWithLessHistories.id,
+          topicSubject: topicWithLessHistories.subject,
+          scheduledTime: scheduledTime.toISOString(),
+          taskType: TaskProcess.GENERATE_TOPIC_HISTORY
+        }
       );
     } else {
-      console.log(
-        `No topic with fewer histories found for customer ${customerId}`
+      this.logger.info(
+        `No topic with fewer histories found for customer ${customerId}`,
+        { customerId, topicCount: customerTopics.length }
       );
     }
   }
@@ -151,14 +165,20 @@ export class ReGenerateTopicHistoryTaskRunner
     }
 
     if (!topicWithLessHistories) {
-      console.log(
-        `No topic with fewer histories found for customer, using first topic: ${topics[0].id}`
+      this.logger.info(
+        `No topic with fewer histories found for customer, using first topic: ${topics[0].id}`,
+        { topicId: topics[0].id, topicSubject: topics[0].subject }
       );
       return topics[0];
     }
 
-    console.log(
-      `Found topic with fewer histories: ${topicWithLessHistories.id}, with ${leastHistories} histories`
+    this.logger.info(
+      `Found topic with fewer histories: ${topicWithLessHistories.id}, with ${leastHistories} histories`,
+      {
+        topicId: topicWithLessHistories.id,
+        topicSubject: topicWithLessHistories.subject,
+        historyCount: leastHistories
+      }
     );
     return topicWithLessHistories;
   }

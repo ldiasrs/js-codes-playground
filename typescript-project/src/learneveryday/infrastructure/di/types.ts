@@ -9,6 +9,9 @@ export const TYPES = {
   GenerateTopicHistoryPort: Symbol.for('GenerateTopicHistoryPort'),
   SendTopicHistoryByEmailPort: Symbol.for('SendTopicHistoryByEmailPort'),
 
+  // Shared Services
+  Logger: Symbol.for('Logger'),
+
   // Commands
   CreateCustomerCommand: Symbol.for('CreateCustomerCommand'),
   UpdateCustomerCommand: Symbol.for('UpdateCustomerCommand'),

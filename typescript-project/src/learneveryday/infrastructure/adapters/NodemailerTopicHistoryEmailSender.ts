@@ -1,15 +1,21 @@
+import 'reflect-metadata';
+import { injectable } from 'inversify';
 import nodemailer from 'nodemailer';
 import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { EmailConfiguration } from '../config/email.config';
+import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 import moment from 'moment';
 import fs from 'fs';
 import path from 'path';
 
+@injectable()
 export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmailPort {
   private readonly emailConfig: EmailConfiguration;
   private transporter: nodemailer.Transporter;
 
-  constructor() {
+  constructor(
+    private readonly logger: LoggerPort
+  ) {
     this.emailConfig = EmailConfiguration.getInstance();
     this.transporter = nodemailer.createTransport({
       host: this.emailConfig.getHost(),
@@ -31,7 +37,12 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
     
   }
 
-
+  /**
+   * Sends topic history content by email
+   * @param data The data containing email, topic history, and optional topic subject
+   * @returns Promise<void> Resolves when email is sent successfully
+   * @throws Error if email sending fails
+   */
   async send(data: SendTopicHistoryByEmailPortData): Promise<void> {
     try {
       // Verify connection before sending
@@ -63,7 +74,12 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
         throw new Error('Failed to send email: No message ID returned');
       }
 
-      console.log(`✅ Email sent successfully to ${email} with message ID: ${result.messageId}`);
+      this.logger.info(`✅ Email sent successfully to ${email} with message ID: ${result.messageId}`, {
+        email,
+        messageId: result.messageId,
+        topicHistoryId: topicHistory.id,
+        topicSubject: topicSubject || 'Learning Topic'
+      });
 
     } catch (error) {
       const errorMessage = this.getErrorMessage(error);

@@ -19,7 +19,7 @@ export class GetAllCustomersQuery extends BaseQuery<CustomerDTO[]> {
     const customersWithTopics = await Promise.all(
       customers.map(async (customer) => {
         const topics = await this.topicRepository.findByCustomerId(customer.id || '');
-        return CustomerDTOMapper.toDTO(customer, topics);
+        return CustomerDTOMapper.toDTO(customer);
       })
     );
     

@@ -7,6 +7,7 @@ import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/S
 import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 import { TYPES } from '../di/types';
 import { TaskProcess } from '../../domain/taskprocess/entities/TaskProcess';
+import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 
 @injectable()
 export class TriggerTaskProcessExecutorCron {
@@ -17,7 +18,8 @@ export class TriggerTaskProcessExecutorCron {
     @inject(TYPES.TasksProcessExecutor) private readonly tasksProcessExecutor: TasksProcessExecutor,
     @inject(TYPES.GenerateTopicHistoryTaskRunner) private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
     @inject(TYPES.SendTopicHistoryTaskRunner) private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
-    @inject(TYPES.ScheduleGenerateTopicHistoryTaskRunner) private readonly scheduleGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner
+    @inject(TYPES.ScheduleGenerateTopicHistoryTaskRunner) private readonly scheduleGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -26,11 +28,11 @@ export class TriggerTaskProcessExecutorCron {
    */
   start(cronExpression: string = '0 * * * *'): void {
     if (this.cronJob) {
-      console.log('Cron job is already running');
+      this.logger.warn('Cron job is already running');
       return;
     }
 
-    console.log(`Starting TriggerTaskProcessExecutorCron with schedule: ${cronExpression}`);
+    this.logger.info(`Starting TriggerTaskProcessExecutorCron with schedule: ${cronExpression}`);
 
     this.cronJob = cron.schedule(cronExpression, async () => {
       await this.executeTaskProcessing();
@@ -38,7 +40,7 @@ export class TriggerTaskProcessExecutorCron {
       timezone: 'UTC'
     });
 
-    console.log('TriggerTaskProcessExecutorCron started successfully');
+    this.logger.info('TriggerTaskProcessExecutorCron started successfully');
   }
 
   /**
@@ -48,7 +50,7 @@ export class TriggerTaskProcessExecutorCron {
     if (this.cronJob) {
       this.cronJob.stop();
       this.cronJob = null;
-      console.log('TriggerTaskProcessExecutorCron stopped');
+      this.logger.info('TriggerTaskProcessExecutorCron stopped');
     }
   }
 
@@ -61,7 +63,7 @@ export class TriggerTaskProcessExecutorCron {
    */
   async executeTaskProcessing(): Promise<void> {
     if (this.isRunning) {
-      console.log('Task processing is already running, skipping this execution');
+      this.logger.warn('Task processing is already running, skipping this execution');
       return;
     }
 
@@ -69,42 +71,39 @@ export class TriggerTaskProcessExecutorCron {
     const startTime = new Date();
 
     try {
-      console.log('🚀 Starting task processing workflow for all customers');
+      this.logger.info('🚀 Starting task processing workflow for all customers');
 
       // Step 1: Schedule topic history generation
-      console.log('\n\n');
-      console.log('📅 Step 1: Scheduling topic history generation...');
+      this.logger.info('📅 Step 1: Scheduling topic history generation...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.REGENERATE_TOPIC_HISTORY, limit: 10 },
         this.scheduleGenerateTopicHistoryTaskRunner
       );
-      console.log('✅ Topic history scheduling completed');
+      this.logger.info('✅ Topic history scheduling completed');
 
       // Step 2: Generate topic histories
-      console.log('\n\n');
-      console.log('📝 Step 2: Generating topic histories...');
+      this.logger.info('📝 Step 2: Generating topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.GENERATE_TOPIC_HISTORY, limit: 10 },
         this.generateTopicHistoryTaskRunner
       );
 
-      console.log('✅ Topic history generation completed');
+      this.logger.info('✅ Topic history generation completed');
 
       // Step 3: Send topic histories
-      console.log('\n\n');
-      console.log('📧 Step 3: Sending topic histories...');
+      this.logger.info('📧 Step 3: Sending topic histories...');
       await this.tasksProcessExecutor.execute(
         { processType: TaskProcess.SEND_TOPIC_HISTORY, limit: 10 },
         this.sendTopicHistoryTaskRunner
       );
-      console.log('✅ Topic history sending completed');
+      this.logger.info('✅ Topic history sending completed');
 
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
-      console.log(`🎉 Task processing workflow completed in ${duration}ms`);
+      this.logger.info(`🎉 Task processing workflow completed in ${duration}ms`, { duration });
 
     } catch (error) {
-      console.error('❌ Error during task processing workflow:', error);
+      this.logger.error('❌ Error during task processing workflow:', error as Error);
     } finally {
       this.isRunning = false;
     }
@@ -115,7 +114,7 @@ export class TriggerTaskProcessExecutorCron {
    * Useful for testing or immediate execution
    */
   async triggerNow(): Promise<void> {
-    console.log('🔄 Manually triggering task processing workflow');
+    this.logger.info('🔄 Manually triggering task processing workflow');
     await this.executeTaskProcessing();
   }
 

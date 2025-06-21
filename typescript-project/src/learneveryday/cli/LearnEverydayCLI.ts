@@ -8,11 +8,13 @@ import { GetAllCustomersQuery } from '../application/queries/customer/GetAllCust
 import { GetCustomerByIdQuery } from '../application/queries/customer/GetCustomerByIdQuery';
 import { GetTopicByIdQuery } from '../application/queries/topic/GetTopicByIdQuery';
 import { TriggerTaskProcessExecutorCron } from '../infrastructure/scheduler/TriggerTaskProcessExecutorCron';
+import { LoggerPort } from '../domain/shared/ports/LoggerPort';
 
 export class LearnEverydayCLI {
   private program: Command;
   private dataDir: string = './data/production/led';
   private container: any;
+  private logger: LoggerPort;
 
   constructor() {
     this.program = new Command();
@@ -113,6 +115,7 @@ export class LearnEverydayCLI {
   private async initializeContainer(): Promise<void> {
     if (!this.container) {
       this.container = ContainerBuilder.build(this.dataDir);
+      this.logger = this.container.get(TYPES.Logger);
     }
   }
 
@@ -144,6 +147,10 @@ export class LearnEverydayCLI {
       console.log(`   Email: ${customer.email}`);
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao criar cliente:', error as Error, {
+        customerName: options.name,
+        email: options.email
+      });
       console.error('❌ Erro ao criar cliente:', error);
       process.exit(1);
     }
@@ -188,6 +195,10 @@ export class LearnEverydayCLI {
       console.log(`   Cliente: ${customer.customerName}`);
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao criar tópico:', error as Error, {
+        customerId: options.customerId,
+        subject: options.subject
+      });
       console.error('❌ Erro ao criar tópico:', error);
       process.exit(1);
     }
@@ -232,6 +243,10 @@ export class LearnEverydayCLI {
       console.log(`   Conteúdo: ${result.content.substring(0, 100)}...`);
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao gerar e enviar topic history:', error as Error, {
+        topicId: options.topicId,
+        email: options.email
+      });
       console.error('❌ Erro ao gerar e enviar topic history:', error);
       process.exit(1);
     }
@@ -268,6 +283,7 @@ export class LearnEverydayCLI {
       });
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao listar clientes:', error as Error);
       console.error('❌ Erro ao listar clientes:', error);
       process.exit(1);
     }
@@ -307,6 +323,7 @@ export class LearnEverydayCLI {
       }
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao listar tópicos:', error as Error);
       console.error('❌ Erro ao listar tópicos:', error);
       process.exit(1);
     }
@@ -434,6 +451,11 @@ export class LearnEverydayCLI {
       console.log('└─────────────────────────┴─────────────┴─────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────────┘');
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao listar tarefas:', error as Error, {
+        limit: options.limit,
+        status: options.status,
+        type: options.type
+      });
       console.error('❌ Erro ao listar tarefas:', error);
       process.exit(1);
     }
@@ -508,6 +530,7 @@ export class LearnEverydayCLI {
 
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao executar seed de dados:', error as Error);
       console.error('❌ Erro ao executar seed de dados:', error);
       process.exit(1);
     }
@@ -551,6 +574,10 @@ export class LearnEverydayCLI {
       }, 1000);
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao iniciar agendador:', error as Error, {
+        cron: options.cron,
+        dataDir: options.dataDir
+      });
       console.error('❌ Erro ao iniciar agendador:', error);
       process.exit(1);
     }
@@ -571,6 +598,7 @@ export class LearnEverydayCLI {
       console.log('✅ Processamento de tarefas executado com sucesso!');
       
     } catch (error) {
+      this.logger?.error('❌ Erro ao executar processamento de tarefas:', error as Error);
       console.error('❌ Erro ao executar processamento de tarefas:', error);
       process.exit(1);
     }

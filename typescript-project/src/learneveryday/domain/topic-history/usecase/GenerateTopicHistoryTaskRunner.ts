@@ -6,6 +6,7 @@ import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
 import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 
@@ -15,7 +16,8 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     @inject(TYPES.GenerateTopicHistoryPort) private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -46,7 +48,12 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newHistory = new TopicHistory(topicId, generatedContent);
     await this.topicHistoryRepository.save(newHistory);
 
-    console.log(`Generated topic history for topic: ${topicId}`);
+    this.logger.info(`Generated topic history for topic: ${topicId}`, {
+      topicId,
+      topicSubject: topic.subject,
+      customerId: topic.customerId,
+      historyId: newHistory.id
+    });
 
     const scheduledTimeSend = new Date();
     scheduledTimeSend.setMinutes(scheduledTimeSend.getMinutes()); 
@@ -64,7 +71,13 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     // Step 7: Save the new send task process
     await this.taskProcessRepository.save(newSendTaskProcess);
 
-    console.log(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topicId}, scheduled for: ${scheduledTimeSend.toISOString()}`);
+    this.logger.info(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topicId}`, {
+      topicId,
+      customerId: topic.customerId,
+      historyId: newHistory.id,
+      scheduledTime: scheduledTimeSend.toISOString(),
+      taskType: TaskProcess.SEND_TOPIC_HISTORY
+    });
 
     // Step 8: Create and save a new regenerate-topic-history task
     const scheduledTimeRegenerate = new Date();
@@ -83,6 +96,11 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     // Save the new regenerate task process
     await this.taskProcessRepository.save(newRegenerateTaskProcess);
 
-    console.log(`Scheduled regenerate topic history task for customer ${topic.customerId}, scheduled for: ${scheduledTimeRegenerate.toISOString()}`);
+    this.logger.info(`Scheduled regenerate topic history task for customer ${topic.customerId}`, {
+      topicId,
+      customerId: topic.customerId,
+      scheduledTime: scheduledTimeRegenerate.toISOString(),
+      taskType: TaskProcess.REGENERATE_TOPIC_HISTORY
+    });
   }
 } 

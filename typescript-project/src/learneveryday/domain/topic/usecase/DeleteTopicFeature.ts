@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../topic-history/ports/TopicHistoryRepositoryPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 
@@ -15,7 +16,8 @@ export class DeleteTopicFeature {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -50,7 +52,11 @@ export class DeleteTopicFeature {
       }
     }
 
-    console.log(`Deleted ${generationTasks.length} generation tasks and related send tasks for topic: ${id}`);
+    this.logger.info(`Deleted ${generationTasks.length} generation tasks and related send tasks for topic: ${id}`, {
+      topicId: id,
+      deletedGenerationTasks: generationTasks.length,
+      deletedSendTasks: topicHistories.length
+    });
 
     // Step 3: Delete topic history first (if any)
     // Note: This would need to be implemented in TopicHistoryRepository
@@ -59,7 +65,11 @@ export class DeleteTopicFeature {
       await this.topicHistoryRepository.deleteByTopicId(id);
     } catch (error) {
       // If deleteByTopicId is not implemented, we'll continue
-      console.warn('Could not delete topic history:', error);
+      this.logger.warn('Could not delete topic history', { 
+        topicId: id, 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
 
     // Step 4: Delete the topic
@@ -68,7 +78,11 @@ export class DeleteTopicFeature {
       throw new Error(`Failed to delete topic with ID ${id}`);
     }
 
-    console.log(`Successfully deleted topic: ${id} and all related data`);
+    this.logger.info(`Successfully deleted topic: ${id} and all related data`, {
+      topicId: id,
+      topicSubject: existingTopic.subject,
+      customerId: existingTopic.customerId
+    });
 
     return true;
   }

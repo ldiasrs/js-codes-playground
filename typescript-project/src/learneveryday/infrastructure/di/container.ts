@@ -17,6 +17,12 @@ import { GenerateTopicHistoryPort } from '../../domain/topic-history/ports/Gener
 import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { TopicHistoryGeneratorFactory } from '../factories/TopicHistoryGeneratorFactory';
 import { EmailSenderFactory } from '../factories/EmailSenderFactory';
+import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
+
+// Shared Services
+import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { ConsoleLogger } from '../adapters/ConsoleLogger';
+import { LoggerFactory } from '../factories/LoggerFactory';
 
 // Use Cases
 import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
@@ -83,7 +89,12 @@ export class ContainerBuilder {
       .inSingletonScope();
 
     this.container.bind<SendTopicHistoryByEmailPort>(TYPES.SendTopicHistoryByEmailPort)
-      .toDynamicValue(() => EmailSenderFactory.createNodemailerSender())
+      .to(NodemailerTopicHistoryEmailSender)
+      .inSingletonScope();
+
+    // Bind shared services
+    this.container.bind<LoggerPort>(TYPES.Logger)
+      .toDynamicValue(() => LoggerFactory.createLoggerFromEnv())
       .inSingletonScope();
 
     // Bind use cases

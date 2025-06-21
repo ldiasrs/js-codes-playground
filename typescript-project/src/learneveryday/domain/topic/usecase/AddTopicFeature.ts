@@ -5,6 +5,7 @@ import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 
 export interface AddTopicFeatureData {
@@ -17,7 +18,8 @@ export class AddTopicFeature {
   constructor(
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.CustomerRepository) private readonly customerRepository: CustomerRepositoryPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -46,7 +48,11 @@ export class AddTopicFeature {
     const newTopic = new Topic(customerId, subject);
     const savedTopic = await this.topicRepository.save(newTopic);
 
-    console.log(`Created topic: ${savedTopic.id}`);
+    this.logger.info(`Created topic: ${savedTopic.id}`, {
+      topicId: savedTopic.id,
+      customerId: savedTopic.customerId,
+      subject: savedTopic.subject
+    });
 
     // Step 4: Create and save a new topic-history-generation task
     const scheduledTime = new Date();
@@ -65,7 +71,12 @@ export class AddTopicFeature {
     // Save the new task process
     await this.taskProcessRepository.save(newTaskProcess);
 
-    console.log(`Scheduled topic history generation task for topic ${savedTopic.id}, scheduled for: ${scheduledTime.toISOString()}`);
+    this.logger.info(`Scheduled topic history generation task for topic ${savedTopic.id}`, {
+      topicId: savedTopic.id,
+      customerId: customerId,
+      scheduledTime: scheduledTime.toISOString(),
+      taskType: TaskProcess.GENERATE_TOPIC_HISTORY
+    });
 
     return savedTopic;
   }

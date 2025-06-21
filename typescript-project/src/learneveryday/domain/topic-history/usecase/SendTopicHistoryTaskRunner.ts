@@ -10,6 +10,7 @@ import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryP
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
 import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TYPES } from '../../../infrastructure/di/types';
 
 @injectable()
@@ -19,7 +20,8 @@ export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
     @inject(TYPES.TopicRepository) private readonly topicRepository: TopicRepositoryPort,
     @inject(TYPES.TopicHistoryRepository) private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     @inject(TYPES.SendTopicHistoryByEmailPort) private readonly sendTopicHistoryByEmailPort: SendTopicHistoryByEmailPort,
-    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort
+    @inject(TYPES.TaskProcessRepository) private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -56,6 +58,12 @@ export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
       topicSubject: topic.subject
     });
 
-    console.log(`Sent topic history ${topicHistoryId} to customer ${customer.email} for topic: ${topic.subject}`);
+    this.logger.info(`Sent topic history ${topicHistoryId} to customer ${customer.email} for topic: ${topic.subject}`, {
+      topicHistoryId,
+      topicId: topic.id,
+      topicSubject: topic.subject,
+      customerId: customer.id,
+      customerEmail: customer.email
+    });
   }
 } 
