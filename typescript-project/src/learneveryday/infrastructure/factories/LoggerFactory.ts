@@ -1,7 +1,7 @@
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
-import { ConsoleLogger } from '../adapters/ConsoleLogger';
-import { FileLogger } from '../adapters/FileLogger';
-import { CompositeLogger } from '../adapters/CompositeLogger';
+import { ConsoleLogger } from '../adapters/logs/ConsoleLogger';
+import { FileLogger } from '../adapters/logs/FileLogger';
+import { CompositeLogger } from '../adapters/logs/CompositeLogger';
 
 export interface LoggerConfig {
   type: 'console' | 'file' | 'composite';

@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { injectable } from 'inversify';
 import Datastore from 'nedb';
-import { TopicHistory } from '../../domain/topic-history/entities/TopicHistory';
-import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
-import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
+import { TopicHistory } from '../../../domain/topic-history/entities/TopicHistory';
+import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
+import { NedbDatabaseManager } from '../../database/NedbDatabaseManager';
 import moment from 'moment';
 
 interface TopicHistoryData {

@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { injectable } from 'inversify';
 import Datastore from 'nedb';
-import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../domain/taskprocess/entities/TaskProcess';
-import { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from '../../domain/taskprocess/ports/TaskProcessRepositoryPort';
-import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
+import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../../domain/taskprocess/entities/TaskProcess';
+import { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from '../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
+import { NedbDatabaseManager } from '../../database/NedbDatabaseManager';
 import moment from 'moment';
 
 interface TaskProcessData {

@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import { injectable } from 'inversify';
 import Datastore from 'nedb';
-import { Customer } from '../../domain/customer/entities/Customer';
-import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../domain/customer/ports/CustomerRepositoryPort';
-import { GovIdentificationType } from '../../domain/shared/GovIdentification';
-import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
+import { Customer } from '../../../domain/customer/entities/Customer';
+import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../../domain/customer/ports/CustomerRepositoryPort';
+import { GovIdentificationType } from '../../../domain/shared/GovIdentification';
+import { NedbDatabaseManager } from '../../database/NedbDatabaseManager';
 import moment from 'moment';
 
 interface CustomerData {

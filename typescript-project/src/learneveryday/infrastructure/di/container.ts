@@ -7,10 +7,10 @@ import { CustomerRepositoryPort } from '../../domain/customer/ports/CustomerRepo
 import { TopicRepositoryPort } from '../../domain/topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../domain/topic-history/ports/TopicHistoryRepositoryPort';
 import { TaskProcessRepositoryPort } from '../../domain/taskprocess/ports/TaskProcessRepositoryPort';
-import { NedbCustomerRepository } from '../adapters/NedbCustomerRepository';
-import { NedbTopicRepository } from '../adapters/NedbTopicRepository';
-import { NedbTopicHistoryRepository } from '../adapters/NedbTopicHistoryRepository';
-import { NedbTaskProcessRepository } from '../adapters/NedbTaskProcessRepository';
+import { NedbCustomerRepository } from '../adapters/repositories/NedbCustomerRepository';
+import { NedbTopicRepository } from '../adapters/repositories/NedbTopicRepository';
+import { NedbTopicHistoryRepository } from '../adapters/repositories/NedbTopicHistoryRepository';
+import { NedbTaskProcessRepository } from '../adapters/repositories/NedbTaskProcessRepository';
 
 // Ports
 import { GenerateTopicHistoryPort } from '../../domain/topic-history/ports/GenerateTopicHistoryPort';
