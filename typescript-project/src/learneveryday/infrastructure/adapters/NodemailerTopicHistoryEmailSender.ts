@@ -1,9 +1,10 @@
 import 'reflect-metadata';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import nodemailer from 'nodemailer';
 import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { EmailConfiguration } from '../config/email.config';
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { TYPES } from '../di/types';
 import moment from 'moment';
 import fs from 'fs';
 import path from 'path';
@@ -14,7 +15,7 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
   private transporter: nodemailer.Transporter;
 
   constructor(
-    private readonly logger: LoggerPort
+    @inject(TYPES.Logger) private readonly logger: LoggerPort
   ) {
     this.emailConfig = EmailConfiguration.getInstance();
     this.transporter = nodemailer.createTransport({
