@@ -1,4 +1,4 @@
-import { normalizeDate } from './src/investments/common/common-helpers';
+import { normalizeDate } from '../investments/common/common-helpers';
 
 // Test various date formats
 const testDates = [

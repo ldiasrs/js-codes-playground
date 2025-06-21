@@ -1,0 +1,25 @@
+{
+    "update_invest_spread_sheet": {
+        "input_data_file": "data/investimentos-2024-05-20.json",
+        "spread_sheet_id": "",
+        "private_key": "",
+        "client_email": ""
+    },
+    "find_best_investment": {
+        "input_data_file": "data/produtos-para-investir.json"
+    },
+    "chatgpt_topic_history": {
+        "api_key": "your-openai-api-key-here",
+        "model": "gpt-3.5-turbo",
+        "max_tokens": 500,
+        "temperature": 0.7
+    },
+    "email": {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "secure": false,
+        "user": "your-gmail@gmail.com",
+        "pass": "your-16-character-app-password",
+        "from": "your-gmail@gmail.com"
+    }
+}

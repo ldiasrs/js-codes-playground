@@ -1,4 +1,4 @@
-import { normalizeCurrency } from './src/investments/common/common-helpers';
+import { normalizeCurrency } from '../investments/common/common-helpers';
 
 // Test various currency formats
 const testCurrencies = [
