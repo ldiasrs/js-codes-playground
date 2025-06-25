@@ -1,7 +1,6 @@
 import { ReGenerateTopicHistoryTaskRunner, ReGenerateTopicHistoryConfig } from './ReGenerateTopicHistoryTaskRunner';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { Topic } from '../../topic/entities/Topic';
-import { TopicHistory } from '../entities/TopicHistory';
 
 // Mock repositories
 const mockTopicRepository = {

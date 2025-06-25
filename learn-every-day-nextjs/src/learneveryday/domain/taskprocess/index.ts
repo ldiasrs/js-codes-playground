@@ -1,11 +1,11 @@
 // TaskProcess Domain Exports
 
 // Entities
-export { TaskProcess, TaskProcessType, TaskProcessStatus } from './entities/TaskProcess';
+export type { TaskProcess, TaskProcessType, TaskProcessStatus } from './entities/TaskProcess';
 
 // Ports
-export { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from './ports/TaskProcessRepositoryPort';
-export { TaskProcessRunner } from './ports/TaskProcessRunner';
+export type { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from './ports/TaskProcessRepositoryPort';
+export type { TaskProcessRunner } from './ports/TaskProcessRunner';
 
 // Use Cases
-export { TasksProcessExecutor, TasksProcessExecutorData } from './usecase/TasksProcessExecutor'; 
+export type { TasksProcessExecutor, TasksProcessExecutorData } from './usecase/TasksProcessExecutor'; 

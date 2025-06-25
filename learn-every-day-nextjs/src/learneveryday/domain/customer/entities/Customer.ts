@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { GovIdentification, GovIdentificationType } from '../../shared/GovIdentification';
+import { GovIdentification, GovIdentificationType } from './GovIdentification';
 
 export class Customer {
   constructor(
@@ -12,7 +12,7 @@ export class Customer {
   ) {
     // Generate ID if not provided
     if (!id) {
-      (this as any).id = uuidv4();
+      this.id = uuidv4();
     }
   }
 

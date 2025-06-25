@@ -1,9 +1,6 @@
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
-import { Customer } from '../../customer/entities/Customer';
-import { Topic } from '../../topic/entities/Topic';
-import { TopicHistory } from '../entities/TopicHistory';
 import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';

@@ -1,10 +1,10 @@
 // Topic History Domain Exports
 
 // Entities
-export { TopicHistory } from './entities/TopicHistory';
+export type { TopicHistory } from './entities/TopicHistory';
 
 // Ports
-export { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from './ports/TopicHistoryRepositoryPort';
+export type { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from './ports/TopicHistoryRepositoryPort';
 
 // Runners
 export { GenerateTopicHistoryTaskRunner } from './usecase/GenerateTopicHistoryTaskRunner';

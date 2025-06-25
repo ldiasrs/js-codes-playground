@@ -1,4 +1,4 @@
-import { GovIdentificationType } from '../../domain/shared/GovIdentification';
+import { GovIdentificationType } from '../../domain/customer/entities/GovIdentification';
 
 export interface GovIdentificationDTO {
   type: GovIdentificationType;

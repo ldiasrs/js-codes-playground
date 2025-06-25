@@ -1,7 +1,8 @@
 import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { GovIdentification, GovIdentificationType } from '../../shared/GovIdentification';
+import { GovIdentification, GovIdentificationType } from '../entities/GovIdentification';
+import { Topic } from '../../topic/entities/Topic';
 
 export interface UpdateCustomerFeatureData {
   id: string;
@@ -26,7 +27,7 @@ export class UpdateCustomerFeature {
    * @returns Promise<{customer: Customer, topics: Topic[]}> The updated customer and their topics
    * @throws Error if customer doesn't exist or update fails
    */
-  async execute(data: UpdateCustomerFeatureData): Promise<{customer: Customer, topics: any[]}> {
+  async execute(data: UpdateCustomerFeatureData): Promise<{customer: Customer, topics: Topic[]}> {
     const { id, customerName, govIdentification, email, phoneNumber } = data;
 
     // Step 1: Find existing customer

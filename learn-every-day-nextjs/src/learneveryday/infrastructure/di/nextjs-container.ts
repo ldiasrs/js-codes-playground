@@ -1,12 +1,12 @@
-import { NedbDatabaseManager } from '../database/NedbDatabaseManager';
+import { DatabaseManager } from '../database/DatabaseManager';
 import { TopicHistoryGeneratorFactory } from '../factories/TopicHistoryGeneratorFactory';
 import { LoggerFactory } from '../factories/LoggerFactory';
 
 // Repositories
-import { NedbCustomerRepository } from '../adapters/repositories/NedbCustomerRepository';
-import { NedbTopicRepository } from '../adapters/repositories/NedbTopicRepository';
-import { NedbTopicHistoryRepository } from '../adapters/repositories/NedbTopicHistoryRepository';
-import { NedbTaskProcessRepository } from '../adapters/repositories/NedbTaskProcessRepository';
+import { SQLCustomerRepository } from '../adapters/repositories/SQLCustomerRepository';
+import { SQLTopicRepository } from '../adapters/repositories/SQLTopicRepository';
+import { SQLTopicHistoryRepository } from '../adapters/repositories/SQLTopicHistoryRepository';
+import { SQLTaskProcessRepository } from '../adapters/repositories/SQLTaskProcessRepository';
 
 // Ports
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
@@ -54,13 +54,13 @@ export class NextJSContainer implements Container {
 
   private initializeServices(): void {
     // Initialize database manager
-    NedbDatabaseManager.getInstance({ dataDir: './data/production/led' });
+    DatabaseManager.getInstance();
 
     // Register repositories
-    this.registerSingleton('CustomerRepository', () => new NedbCustomerRepository());
-    this.registerSingleton('TopicRepository', () => new NedbTopicRepository());
-    this.registerSingleton('TopicHistoryRepository', () => new NedbTopicHistoryRepository());
-    this.registerSingleton('TaskProcessRepository', () => new NedbTaskProcessRepository());
+    this.registerSingleton('CustomerRepository', () => new SQLCustomerRepository());
+    this.registerSingleton('TopicRepository', () => new SQLTopicRepository());
+    this.registerSingleton('TopicHistoryRepository', () => new SQLTopicHistoryRepository());
+    this.registerSingleton('TaskProcessRepository', () => new SQLTaskProcessRepository());
 
     // Register ports
     this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv());
