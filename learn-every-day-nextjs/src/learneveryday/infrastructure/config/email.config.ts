@@ -8,11 +8,20 @@ export interface EmailConfig {
   host: string;
   port: number;
   secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
+  username: string;
+  password: string;
   from: string;
+}
+
+interface ConfigFile {
+  email?: {
+    host?: string;
+    port?: number;
+    secure?: boolean;
+    username?: string;
+    password?: string;
+    from?: string;
+  };
 }
 
 /**
@@ -28,40 +37,38 @@ export class EmailConfiguration {
   private config: EmailConfig;
 
   private constructor() {
-    let configFromFile: any = {};
+    let configFromFile: ConfigFile = {};
     try {
       const configPath = path.join(__dirname, '../../../../config/global-config.prod.json');
       if (fs.existsSync(configPath)) {
         const file = fs.readFileSync(configPath, 'utf-8');
-        const parsed = JSON.parse(file);
+        const parsed = JSON.parse(file) as ConfigFile;
         if (parsed.email) {
-          configFromFile = parsed.email;
+          configFromFile = parsed;
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore file errors, fallback to env
     }
 
-    const host = configFromFile.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
-    const port = configFromFile.port || parseInt(process.env.EMAIL_PORT || '587');
-    const secure = configFromFile.secure || (process.env.EMAIL_SECURE === 'true');
-    const user = configFromFile.user || process.env.EMAIL_USER;
-    const pass = configFromFile.pass || process.env.EMAIL_PASS;
-    const from = configFromFile.from || process.env.EMAIL_FROM || user;
+    const host = configFromFile.email?.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
+    const port = configFromFile.email?.port || parseInt(process.env.EMAIL_PORT || '587');
+    const secure = configFromFile.email?.secure || (process.env.EMAIL_SECURE === 'true');
+    const username = configFromFile.email?.username || process.env.EMAIL_USERNAME;
+    const password = configFromFile.email?.password || process.env.EMAIL_PASSWORD;
+    const from = configFromFile.email?.from || process.env.EMAIL_FROM;
 
-    if (!user || !pass) {
-      throw new Error('EMAIL_USER and EMAIL_PASS environment variables or email.user and email.pass in global-config.prod.json are required');
+    if (!username || !password) {
+      throw new Error('EMAIL_USERNAME and EMAIL_PASSWORD environment variables or email.username and email.password in global-config.prod.json are required');
     }
 
     this.config = {
       host,
       port,
       secure,
-      auth: {
-        user,
-        pass
-      },
-      from
+      username,
+      password,
+      from: from || username
     };
   }
 
@@ -88,15 +95,21 @@ export class EmailConfiguration {
     return this.config.secure;
   }
 
-  public getUser(): string {
-    return this.config.auth.user;
+  public getUsername(): string {
+    return this.config.username;
   }
 
-  public getPass(): string {
-    return this.config.auth.pass;
+  public getPassword(): string {
+    return this.config.password;
   }
 
-  public getFrom(): string {
+  public getFromEmail(): string {
     return this.config.from;
+  }
+
+  public static resetInstance(): void {
+    if (EmailConfiguration.instance) {
+      EmailConfiguration.instance = undefined as unknown as EmailConfiguration;
+    }
   }
 } 

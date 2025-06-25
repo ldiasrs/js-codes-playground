@@ -4,6 +4,7 @@ import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRe
 import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
 import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
 import { LoggerPort } from "../../shared/ports/LoggerPort";
+import { Topic } from "../../topic/entities/Topic";
 
 export interface ReGenerateTopicHistoryConfig {
   maxTopicsPer24h: number; // 1 or 3
@@ -142,8 +143,8 @@ export class ReGenerateTopicHistoryTaskRunner
    * @param topics Array of topics to check
    * @returns Promise<Topic> The topic with fewer histories, or the first topic if no histories exist
    */
-  private async findTopicIdWithLessTopicsHistories(topics: any[]): Promise<any> {
-    let topicWithLessHistories: any = null;
+  private async findTopicIdWithLessTopicsHistories(topics: Topic[]): Promise<Topic | null> {
+    let topicWithLessHistories: Topic | null = null;
     let leastHistories = Infinity;
 
     for (const topic of topics) {

@@ -1,19 +1,84 @@
 import { ReGenerateTopicHistoryTaskRunner, ReGenerateTopicHistoryConfig } from './ReGenerateTopicHistoryTaskRunner';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { Topic } from '../../topic/entities/Topic';
+import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 
 // Mock repositories
-const mockTopicRepository = {
+const mockTopicRepository: jest.Mocked<TopicRepositoryPort> = {
   findByCustomerId: jest.fn(),
+  save: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+  findBySubject: jest.fn(),
+  findByDateRange: jest.fn(),
+  findWithRecentActivity: jest.fn(),
+  findTopicsWithOldestHistories: jest.fn(),
+  existsByCustomerIdAndSubject: jest.fn(),
+  search: jest.fn(),
+  delete: jest.fn(),
+  count: jest.fn(),
+  getTopicsCreatedToday: jest.fn(),
+  getTopicsCreatedThisWeek: jest.fn(),
+  getTopicsCreatedThisMonth: jest.fn(),
 };
 
-const mockTopicHistoryRepository = {
+const mockTopicHistoryRepository: jest.Mocked<TopicHistoryRepositoryPort> = {
   findByTopicId: jest.fn(),
+  save: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+  findByContent: jest.fn(),
+  findByDateRange: jest.fn(),
+  findWithRecentActivity: jest.fn(),
+  search: jest.fn(),
+  findLastTopicHistoryByCustomerId: jest.fn(),
+  findByCustomerId: jest.fn(),
+  delete: jest.fn(),
+  deleteByTopicId: jest.fn(),
+  count: jest.fn(),
+  getTopicHistoryCreatedToday: jest.fn(),
+  getTopicHistoryCreatedThisWeek: jest.fn(),
+  getTopicHistoryCreatedThisMonth: jest.fn(),
 };
 
-const mockTaskProcessRepository = {
+const mockTaskProcessRepository: jest.Mocked<TaskProcessRepositoryPort> = {
   search: jest.fn(),
   save: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+  findByEntityId: jest.fn(),
+  findByCustomerId: jest.fn(),
+  findByType: jest.fn(),
+  findByStatus: jest.fn(),
+  findByEntityIdAndType: jest.fn(),
+  findPendingTasks: jest.fn(),
+  findRunningTasks: jest.fn(),
+  findScheduledTasks: jest.fn(),
+  findFailedTasks: jest.fn(),
+  findPendingTaskProcessByStatusAndType: jest.fn(),
+  delete: jest.fn(),
+  deleteByEntityId: jest.fn(),
+  deleteByCustomerId: jest.fn(),
+  count: jest.fn(),
+  countByStatus: jest.fn(),
+  countByType: jest.fn(),
+  getTasksCreatedToday: jest.fn(),
+  getTasksCreatedThisWeek: jest.fn(),
+  getTasksCreatedThisMonth: jest.fn(),
+  getTasksScheduledForDate: jest.fn(),
+  getTasksScheduledForDateRange: jest.fn(),
+};
+
+const mockLogger: jest.Mocked<LoggerPort> = {
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  log: jest.fn(),
+  child: jest.fn(),
 };
 
 describe('ReGenerateTopicHistoryTaskRunner', () => {
@@ -24,9 +89,10 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
     jest.clearAllMocks();
     
     taskRunner = new ReGenerateTopicHistoryTaskRunner(
-      mockTopicRepository as any,
-      mockTopicHistoryRepository as any,
-      mockTaskProcessRepository as any
+      mockTopicRepository,
+      mockTopicHistoryRepository,
+      mockTaskProcessRepository,
+      mockLogger
     );
 
     mockTaskProcess = new TaskProcess(

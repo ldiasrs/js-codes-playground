@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { DatabaseConfiguration } from '../config/database.config';
 
 export interface DatabaseConnection {
-  query(sql: string, params?: unknown[]): Promise<unknown[]>;
+  query(sql: string, params?: unknown[]): Promise<Record<string, unknown>[]>;
   close(): Promise<void>;
 }
 
@@ -16,13 +16,13 @@ export class SQLiteConnection implements DatabaseConnection {
     this.db = new sqlite3.Database(dbPath);
   }
 
-  async query(sql: string, params: unknown[] = []): Promise<unknown[]> {
+  async query(sql: string, params: unknown[] = []): Promise<Record<string, unknown>[]> {
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, rows) => {
         if (err) {
           reject(err);
         } else {
-          resolve(rows || []);
+          resolve((rows as Record<string, unknown>[]) || []);
         }
       });
     });
@@ -65,7 +65,7 @@ export class PostgreSQLConnection implements DatabaseConnection {
     });
   }
 
-  async query(sql: string, params: unknown[] = []): Promise<unknown[]> {
+  async query(sql: string, params: unknown[] = []): Promise<Record<string, unknown>[]> {
     const client = await this.pool.connect();
     try {
       const result = await client.query(sql, params);
@@ -211,7 +211,7 @@ export class DatabaseManager {
   public static resetInstance(): void {
     if (DatabaseManager.instance) {
       DatabaseManager.instance.closeAll();
-      DatabaseManager.instance = undefined as any;
+      DatabaseManager.instance = undefined as unknown as DatabaseManager;
     }
   }
 } 

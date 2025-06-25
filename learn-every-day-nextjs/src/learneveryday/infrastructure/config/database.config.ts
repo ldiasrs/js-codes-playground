@@ -24,6 +24,24 @@ export interface DatabaseConfig {
   };
 }
 
+interface ConfigFile {
+  database?: {
+    type?: string;
+    sqlite?: {
+      database?: string;
+      dataDir?: string;
+    };
+    postgres?: {
+      host?: string;
+      port?: number;
+      database?: string;
+      username?: string;
+      password?: string;
+      ssl?: boolean;
+    };
+  };
+}
+
 /**
  * Loads database configuration from global-config.prod.json (database section) if available,
  * otherwise falls back to environment variables.
@@ -37,25 +55,25 @@ export class DatabaseConfiguration {
   private config: DatabaseConfig;
 
   private constructor() {
-    let configFromFile: any = {};
+    let configFromFile: ConfigFile = {};
     try {
       const configPath = path.join(__dirname, '../../../../config/global-config.prod.json');
       if (fs.existsSync(configPath)) {
         const file = fs.readFileSync(configPath, 'utf-8');
-        const parsed = JSON.parse(file);
+        const parsed = JSON.parse(file) as ConfigFile;
         if (parsed.database) {
-          configFromFile = parsed.database;
+          configFromFile = parsed;
         }
       }
-    } catch (e) {
+    } catch (error) {
       // Ignore file errors, fallback to env
     }
 
-    const type = (configFromFile.type || process.env.DATABASE_TYPE || 'sqlite') as DatabaseType;
+    const type = (configFromFile.database?.type || process.env.DATABASE_TYPE || 'sqlite') as DatabaseType;
 
     if (type === 'sqlite') {
-      const dataDir = configFromFile.sqlite?.dataDir || process.env.SQLITE_DATA_DIR || './data/local';
-      const database = configFromFile.sqlite?.database || process.env.SQLITE_DATABASE || 'learneveryday.db';
+      const dataDir = configFromFile.database?.sqlite?.dataDir || process.env.SQLITE_DATA_DIR || './data/local';
+      const database = configFromFile.database?.sqlite?.database || process.env.SQLITE_DATABASE || 'learneveryday.db';
       
       this.config = {
         type: 'sqlite',
@@ -65,12 +83,12 @@ export class DatabaseConfiguration {
         }
       };
     } else if (type === 'postgres') {
-      const host = configFromFile.postgres?.host || process.env.POSTGRES_HOST || 'localhost';
-      const port = configFromFile.postgres?.port || parseInt(process.env.POSTGRES_PORT || '5432');
-      const database = configFromFile.postgres?.database || process.env.POSTGRES_DATABASE || 'learneveryday';
-      const username = configFromFile.postgres?.username || process.env.POSTGRES_USERNAME;
-      const password = configFromFile.postgres?.password || process.env.POSTGRES_PASSWORD;
-      const ssl = configFromFile.postgres?.ssl || (process.env.POSTGRES_SSL === 'true');
+      const host = configFromFile.database?.postgres?.host || process.env.POSTGRES_HOST || 'localhost';
+      const port = configFromFile.database?.postgres?.port || parseInt(process.env.POSTGRES_PORT || '5432');
+      const database = configFromFile.database?.postgres?.database || process.env.POSTGRES_DATABASE || 'learneveryday';
+      const username = configFromFile.database?.postgres?.username || process.env.POSTGRES_USERNAME;
+      const password = configFromFile.database?.postgres?.password || process.env.POSTGRES_PASSWORD;
+      const ssl = configFromFile.database?.postgres?.ssl || (process.env.POSTGRES_SSL === 'true');
 
       if (!username || !password) {
         throw new Error('POSTGRES_USERNAME and POSTGRES_PASSWORD environment variables or postgres.username and postgres.password in global-config.prod.json are required for PostgreSQL');
@@ -131,7 +149,7 @@ export class DatabaseConfiguration {
 
   public static resetInstance(): void {
     if (DatabaseConfiguration.instance) {
-      DatabaseConfiguration.instance = undefined as any;
+      DatabaseConfiguration.instance = undefined as unknown as DatabaseConfiguration;
     }
   }
 } 
