@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { Topic } from '../../../domain/topic/entities/Topic';
 import { TopicRepositoryPort, TopicSearchCriteria } from '../../../domain/topic/ports/TopicRepositoryPort';
@@ -13,61 +11,41 @@ interface TopicData {
   dateCreated: string;
 }
 
-@injectable()
 export class NedbTopicRepository implements TopicRepositoryPort {
-  private db: Datastore;
-  private readonly topicHistoryDb: Datastore;
+  private db: Datastore<TopicData>;
 
   constructor() {
-    const dbManager = NedbDatabaseManager.getInstance();
-    this.db = dbManager.getTopicDatabase();
-    this.topicHistoryDb = dbManager.getTopicHistoryDatabase();
+    this.db = NedbDatabaseManager.getInstance().getTopicDatabase();
   }
 
-  private topicToData(topic: Topic): TopicData {
-    return {
+  async save(topic: Topic): Promise<Topic> {
+    const topicData: TopicData = {
       _id: topic.id,
       customerId: topic.customerId,
       subject: topic.subject,
       dateCreated: topic.dateCreated.toISOString()
     };
-  }
 
-  private dataToTopic(data: TopicData): Topic {
-    return new Topic(
-      data.customerId,
-      data.subject,
-      data._id!,
-      new Date(data.dateCreated)
-    );
-  }
-
-  async save(topic: Topic): Promise<Topic> {
     return new Promise((resolve, reject) => {
-      const topicData = this.topicToData(topic);
-      
-      this.db.update(
-        { _id: topic.id },
-        topicData,
-        { upsert: true },
-        (err, numReplaced) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(topic);
-          }
+      this.db.update({ _id: topic.id }, topicData, { upsert: true }, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(topic);
         }
-      );
+      });
     });
   }
 
   async findById(id: string): Promise<Topic | undefined> {
     return new Promise((resolve, reject) => {
-      this.db.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err: any, doc: TopicData) => {
         if (err) {
           reject(err);
+        } else if (!doc) {
+          resolve(undefined);
         } else {
-          resolve(doc ? this.dataToTopic(doc) : undefined);
+          resolve(this.mapToTopic(doc));
         }
       });
     });
@@ -75,11 +53,11 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findAll(): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({}, (err, docs) => {
+      this.db.find({}, (err: any, docs: TopicData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTopic(doc)));
+          resolve(docs.map(doc => this.mapToTopic(doc)));
         }
       });
     });
@@ -87,11 +65,11 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async findByCustomerId(customerId: string): Promise<Topic[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({ customerId }, (err, docs) => {
+      this.db.find({ customerId }, (err: any, docs: TopicData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTopic(doc)));
+          resolve(docs.map(doc => this.mapToTopic(doc)));
         }
       });
     });
@@ -105,7 +83,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTopic(doc)));
+            resolve(docs.map(doc => this.mapToTopic(doc)));
           }
         }
       );
@@ -125,7 +103,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTopic(doc)));
+            resolve(docs.map(doc => this.mapToTopic(doc)));
           }
         }
       );
@@ -139,32 +117,32 @@ export class NedbTopicRepository implements TopicRepositoryPort {
   }
 
   async search(criteria: TopicSearchCriteria): Promise<Topic[]> {
+    const query: any = {};
+
+    if (criteria.customerId) {
+      query.customerId = criteria.customerId;
+    }
+
+    if (criteria.subject) {
+      query.subject = { $regex: criteria.subject, $options: 'i' };
+    }
+
+    if (criteria.dateFrom || criteria.dateTo) {
+      query.dateCreated = {};
+      if (criteria.dateFrom) {
+        query.dateCreated.$gte = criteria.dateFrom.toISOString();
+      }
+      if (criteria.dateTo) {
+        query.dateCreated.$lte = criteria.dateTo.toISOString();
+      }
+    }
+
     return new Promise((resolve, reject) => {
-      const query: any = {};
-
-      if (criteria.customerId) {
-        query.customerId = criteria.customerId;
-      }
-
-      if (criteria.subject) {
-        query.subject = { $regex: new RegExp(criteria.subject, 'i') };
-      }
-
-      if (criteria.dateFrom || criteria.dateTo) {
-        query.dateCreated = {};
-        if (criteria.dateFrom) {
-          query.dateCreated.$gte = criteria.dateFrom.toISOString();
-        }
-        if (criteria.dateTo) {
-          query.dateCreated.$lte = criteria.dateTo.toISOString();
-        }
-      }
-
-      this.db.find(query, (err, docs) => {
+      this.db.find(query, (err: any, docs: TopicData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTopic(doc)));
+          resolve(docs.map(doc => this.mapToTopic(doc)));
         }
       });
     });
@@ -172,7 +150,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err: any, numRemoved: number) => {
         if (err) {
           reject(err);
         } else {
@@ -184,7 +162,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.db.count({}, (err, count) => {
+      this.db.count({}, (err: any, count: number) => {
         if (err) {
           reject(err);
         } else {
@@ -214,19 +192,13 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   async existsByCustomerIdAndSubject(customerId: string, subject: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.db.findOne(
-        { 
-          customerId,
-          subject: { $regex: new RegExp(`^${subject}$`, 'i') }
-        },
-        (err, doc) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(!!doc);
-          }
+      this.db.count({ customerId, subject }, (err: any, count: number) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(count > 0);
         }
-      );
+      });
     });
   }
 
@@ -240,7 +212,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
         }
 
         try {
-          const topics = topicDocs.map(doc => this.dataToTopic(doc));
+          const topics = topicDocs.map(doc => this.mapToTopic(doc));
           const topicsWithHistoryInfo: Array<{ topic: Topic; lastHistoryDate: Date | null }> = [];
 
           // For each topic, find the latest topic history
@@ -310,7 +282,7 @@ export class NedbTopicRepository implements TopicRepositoryPort {
 
   private async getLatestTopicHistoryForTopic(topicId: string): Promise<{ createdAt: Date } | null> {
     return new Promise((resolve, reject) => {
-      this.topicHistoryDb.findOne(
+      this.db.findOne(
         { topicId },
         { sort: { createdAt: -1 } },
         (err, doc) => {
@@ -322,5 +294,14 @@ export class NedbTopicRepository implements TopicRepositoryPort {
         }
       );
     });
+  }
+
+  private mapToTopic(doc: TopicData): Topic {
+    return new Topic(
+      doc.customerId,
+      doc.subject,
+      doc._id,
+      new Date(doc.dateCreated)
+    );
   }
 } 

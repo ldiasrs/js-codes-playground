@@ -1,20 +1,16 @@
-import 'reflect-metadata';
-import { injectable, inject, unmanaged } from 'inversify';
 import { BaseCommand } from '../Command';
 import { TopicHistoryDTO, TopicHistoryDTOMapper } from '../../dto/TopicDTO';
 import { GenerateAndEmailTopicHistoryFeature, GenerateAndEmailTopicHistoryFeatureData } from '../../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
-import { TYPES } from '../../../infrastructure/di/types';
 
 export interface GenerateAndEmailTopicHistoryCommandData {
   topicId: string;
   recipientEmail: string;
 }
 
-@injectable()
 export class GenerateAndEmailTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
   constructor(
-    @unmanaged() private readonly data: GenerateAndEmailTopicHistoryCommandData,
-    @inject(TYPES.GenerateAndEmailTopicHistoryFeature) private readonly generateAndEmailTopicHistoryFeature: GenerateAndEmailTopicHistoryFeature
+    private readonly data: GenerateAndEmailTopicHistoryCommandData,
+    private readonly generateAndEmailTopicHistoryFeature: GenerateAndEmailTopicHistoryFeature
   ) {
     super();
   }
@@ -27,9 +23,9 @@ export class GenerateAndEmailTopicHistoryCommand extends BaseCommand<TopicHistor
     };
 
     // Execute the feature
-    const topicHistory = await this.generateAndEmailTopicHistoryFeature.execute(featureData);
+    const result = await this.generateAndEmailTopicHistoryFeature.execute(featureData);
 
     // Convert result to DTO
-    return TopicHistoryDTOMapper.toDTO(topicHistory);
+    return TopicHistoryDTOMapper.toDTO(result);
   }
 } 

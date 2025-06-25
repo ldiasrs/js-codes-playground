@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { GenerateTopicHistoryPort, GenerateTopicHistoryPortData } from '../../domain/topic-history/ports/GenerateTopicHistoryPort';
 import { TopicHistory } from '../../domain/topic-history/entities/TopicHistory';
+import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 import { OpenAIConfiguration } from '../config/openai.config';
 import moment from 'moment';
 
@@ -8,15 +9,17 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
   private readonly openai: OpenAI;
   private readonly config: OpenAIConfiguration;
 
-  constructor(apiKey?: string) {
+  constructor(private readonly logger: LoggerPort) {
     this.config = OpenAIConfiguration.getInstance();
     this.openai = new OpenAI({
-      apiKey: apiKey || this.config.getApiKey(),
+      apiKey: this.config.getApiKey(),
     });
   }
 
   async generate(data: GenerateTopicHistoryPortData): Promise<string> {
     try {
+      this.logger.info('Generating topic history using ChatGPT', { topicSubject: data.topicSubject });
+
       const prompt = this.buildPrompt(data.topicSubject, data.history);
       
       const response = await this.openai.chat.completions.create({
@@ -32,7 +35,7 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
           }
         ],
         max_tokens: this.config.getMaxTokens(),
-        temperature: this.config.getTemperature(),
+        temperature: this.config.getTemperature()
       });
 
       const generatedContent = response.choices[0]?.message?.content;
@@ -41,8 +44,17 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
         throw new Error('No content generated from ChatGPT');
       }
 
+      this.logger.info('Topic history generated successfully', { 
+        topicSubject: data.topicSubject, 
+        contentLength: generatedContent.length 
+      });
+
       return generatedContent.trim();
     } catch (error) {
+      this.logger.error('Error generating topic history with ChatGPT', { 
+        topicSubject: data.topicSubject, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
       throw new Error(`Failed to generate topic history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

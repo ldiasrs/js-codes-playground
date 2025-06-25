@@ -1,8 +1,6 @@
-import 'reflect-metadata';
-import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../../domain/taskprocess/entities/TaskProcess';
-import { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from '../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
 import { NedbDatabaseManager } from '../../database/NedbDatabaseManager';
 import moment from 'moment';
 
@@ -18,17 +16,15 @@ interface TaskProcessData {
   createdAt: string;
 }
 
-@injectable()
 export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
-  private db: Datastore;
+  private db: Datastore<TaskProcessData>;
 
   constructor() {
-    const dbManager = NedbDatabaseManager.getInstance();
-    this.db = dbManager.getTaskProcessDatabase();
+    this.db = NedbDatabaseManager.getInstance().getTaskProcessDatabase();
   }
 
-  private taskProcessToData(taskProcess: TaskProcess): TaskProcessData {
-    return {
+  async save(taskProcess: TaskProcess): Promise<TaskProcess> {
+    const taskProcessData: TaskProcessData = {
       _id: taskProcess.id,
       entityId: taskProcess.entityId,
       customerId: taskProcess.customerId,
@@ -39,72 +35,39 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
       processAt: taskProcess.processAt?.toISOString(),
       createdAt: taskProcess.createdAt.toISOString()
     };
-  }
 
-  private dataToTaskProcess(data: TaskProcessData): TaskProcess {
-    return new TaskProcess(
-      data.entityId,
-      data.customerId,
-      data.type,
-      data.status,
-      data._id!,
-      data.errorMsg,
-      data.scheduledTo ? new Date(data.scheduledTo) : undefined,
-      data.processAt ? new Date(data.processAt) : undefined,
-      new Date(data.createdAt)
-    );
-  }
-
-  async save(taskProcess: TaskProcess): Promise<TaskProcess> {
     return new Promise((resolve, reject) => {
-      const processData = this.taskProcessToData(taskProcess);
-      
-      this.db.update(
-        { _id: taskProcess.id },
-        processData,
-        { upsert: true },
-        (err, numReplaced) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(taskProcess);
-          }
+      this.db.update({ _id: taskProcess.id }, taskProcessData, { upsert: true }, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(taskProcess);
         }
-      );
+      });
     });
   }
 
   async findById(id: string): Promise<TaskProcess | undefined> {
     return new Promise((resolve, reject) => {
-      this.db.findOne({ _id: id }, (err, doc) => {
+      this.db.findOne({ _id: id }, (err: any, doc: TaskProcessData) => {
         if (err) {
           reject(err);
+        } else if (!doc) {
+          resolve(undefined);
         } else {
-          resolve(doc ? this.dataToTaskProcess(doc) : undefined);
+          resolve(this.mapToTaskProcess(doc));
         }
       });
     });
   }
 
-  async findAll(): Promise<TaskProcess[]> {
+  async findByTopicId(topicId: string): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({}, (err, docs) => {
+      this.db.find({ topicId }, (err: any, docs: TaskProcessData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
-        }
-      });
-    });
-  }
-
-  async findByEntityId(entityId: string): Promise<TaskProcess[]> {
-    return new Promise((resolve, reject) => {
-      this.db.find({ entityId }, (err, docs) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -112,23 +75,11 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
 
   async findByCustomerId(customerId: string): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({ customerId }, (err, docs) => {
+      this.db.find({ customerId }, (err: any, docs: TaskProcessData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
-        }
-      });
-    });
-  }
-
-  async findByType(type: TaskProcessType): Promise<TaskProcess[]> {
-    return new Promise((resolve, reject) => {
-      this.db.find({ type }, (err, docs) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -136,11 +87,85 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
 
   async findByStatus(status: TaskProcessStatus): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({ status }, (err, docs) => {
+      this.db.find({ status }, (err: any, docs: TaskProcessData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
+        }
+      });
+    });
+  }
+
+  async findAll(): Promise<TaskProcess[]> {
+    return new Promise((resolve, reject) => {
+      this.db.find({}, (err: any, docs: TaskProcessData[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
+        }
+      });
+    });
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.db.remove({ _id: id }, {}, (err: any, numRemoved: number) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(numRemoved > 0);
+        }
+      });
+    });
+  }
+
+  async count(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.db.count({}, (err: any, count: number) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(count);
+        }
+      });
+    });
+  }
+
+  private mapToTaskProcess(doc: TaskProcessData): TaskProcess {
+    return new TaskProcess(
+      doc.entityId,
+      doc.customerId,
+      doc.type,
+      doc.status,
+      doc._id,
+      doc.errorMsg,
+      doc.scheduledTo ? new Date(doc.scheduledTo) : undefined,
+      doc.processAt ? new Date(doc.processAt) : undefined,
+      new Date(doc.createdAt)
+    );
+  }
+
+  async findByEntityId(entityId: string): Promise<TaskProcess[]> {
+    return new Promise((resolve, reject) => {
+      this.db.find({ entityId }, (err: any, docs: TaskProcessData[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
+        }
+      });
+    });
+  }
+
+  async findByType(type: TaskProcessType): Promise<TaskProcess[]> {
+    return new Promise((resolve, reject) => {
+      this.db.find({ type }, (err: any, docs: TaskProcessData[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -152,7 +177,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -172,7 +197,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -199,7 +224,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            const taskProcesses = docs.map(doc => this.dataToTaskProcess(doc));
+            const taskProcesses = docs.map(doc => this.mapToTaskProcess(doc));
               
             resolve(taskProcesses);
           }
@@ -208,7 +233,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
     });
   }
 
-  async search(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]> {
+  async search(criteria: any): Promise<TaskProcess[]> {
     return new Promise((resolve, reject) => {
       const query: any = {};
 
@@ -250,19 +275,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTaskProcess(doc)));
-        }
-      });
-    });
-  }
-
-  async delete(id: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(numRemoved > 0);
+          resolve(docs.map(doc => this.mapToTaskProcess(doc)));
         }
       });
     });
@@ -287,18 +300,6 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           reject(err);
         } else {
           resolve();
-        }
-      });
-    });
-  }
-
-  async count(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      this.db.count({}, (err, count) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(count);
         }
       });
     });
@@ -339,7 +340,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+            resolve(docs.map(doc => this.mapToTaskProcess(doc)));
           }
         }
       );
@@ -357,7 +358,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+            resolve(docs.map(doc => this.mapToTaskProcess(doc)));
           }
         }
       );
@@ -375,7 +376,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+            resolve(docs.map(doc => this.mapToTaskProcess(doc)));
           }
         }
       );
@@ -393,7 +394,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+            resolve(docs.map(doc => this.mapToTaskProcess(doc)));
           }
         }
       );
@@ -411,7 +412,7 @@ export class NedbTaskProcessRepository implements TaskProcessRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTaskProcess(doc)));
+            resolve(docs.map(doc => this.mapToTaskProcess(doc)));
           }
         }
       );

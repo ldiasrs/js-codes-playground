@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { ReGenerateTopicHistoryTaskRunner, ReGenerateTopicHistoryConfig } from './ReGenerateTopicHistoryTaskRunner';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { Topic } from '../../topic/entities/Topic';

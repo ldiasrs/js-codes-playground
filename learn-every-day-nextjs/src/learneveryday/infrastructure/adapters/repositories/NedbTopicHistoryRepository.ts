@@ -1,8 +1,6 @@
-import 'reflect-metadata';
-import { injectable } from 'inversify';
 import Datastore from 'nedb';
 import { TopicHistory } from '../../../domain/topic-history/entities/TopicHistory';
-import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
 import { NedbDatabaseManager } from '../../database/NedbDatabaseManager';
 import moment from 'moment';
 
@@ -27,73 +25,43 @@ interface TopicActivitySummary {
   averageEntriesPerDay: number;
 }
 
-@injectable()
 export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
-  private db: Datastore;
-  private readonly topicDb: Datastore;
+  private db: Datastore<TopicHistoryData>;
+  private readonly topicDb: Datastore<TopicData>;
 
   constructor() {
-    const dbManager = NedbDatabaseManager.getInstance();
-    this.db = dbManager.getTopicHistoryDatabase();
-    this.topicDb = dbManager.getTopicDatabase();
+    this.db = NedbDatabaseManager.getInstance().getTopicHistoryDatabase();
+    this.topicDb = NedbDatabaseManager.getInstance().getTopicDatabase();
   }
 
-  private topicHistoryToData(topicHistory: TopicHistory): TopicHistoryData {
-    return {
+  async save(topicHistory: TopicHistory): Promise<TopicHistory> {
+    const topicHistoryData: TopicHistoryData = {
       _id: topicHistory.id,
       topicId: topicHistory.topicId,
       content: topicHistory.content,
       createdAt: topicHistory.createdAt.toISOString()
     };
-  }
 
-  private dataToTopicHistory(data: TopicHistoryData): TopicHistory {
-    return new TopicHistory(
-      data.topicId,
-      data.content,
-      data._id!,
-      new Date(data.createdAt)
-    );
-  }
-
-  async save(topicHistory: TopicHistory): Promise<TopicHistory> {
     return new Promise((resolve, reject) => {
-      const historyData = this.topicHistoryToData(topicHistory);
-      
-      this.db.update(
-        { _id: topicHistory.id },
-        historyData,
-        { upsert: true },
-        (err, numReplaced) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(topicHistory);
-          }
-        }
-      );
-    });
-  }
-
-  async findById(id: string): Promise<TopicHistory | undefined> {
-    return new Promise((resolve, reject) => {
-      this.db.findOne({ _id: id }, (err, doc) => {
+      this.db.update({ _id: topicHistory.id }, topicHistoryData, { upsert: true }, (err: any) => {
         if (err) {
           reject(err);
         } else {
-          resolve(doc ? this.dataToTopicHistory(doc) : undefined);
+          resolve(topicHistory);
         }
       });
     });
   }
 
-  async findAll(): Promise<TopicHistory[]> {
+  async findById(id: string): Promise<TopicHistory | undefined> {
     return new Promise((resolve, reject) => {
-      this.db.find({}, (err, docs) => {
+      this.db.findOne({ _id: id }, (err: any, doc: TopicHistoryData) => {
         if (err) {
           reject(err);
+        } else if (!doc) {
+          resolve(undefined);
         } else {
-          resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+          resolve(this.mapToTopicHistory(doc));
         }
       });
     });
@@ -101,11 +69,53 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async findByTopicId(topicId: string): Promise<TopicHistory[]> {
     return new Promise((resolve, reject) => {
-      this.db.find({ topicId }, (err, docs) => {
+      this.db.find({ topicId }, (err: any, docs: TopicHistoryData[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+          resolve(docs.map(doc => this.mapToTopicHistory(doc)));
+        }
+      });
+    });
+  }
+
+  async findByCustomerId(customerId: string): Promise<TopicHistory[]> {
+    // Since TopicHistory doesn't have customerId, we need to get it from topics
+    const topicDb = NedbDatabaseManager.getInstance().getTopicDatabase();
+    
+    return new Promise((resolve, reject) => {
+      // First get all topics for the customer
+      topicDb.find({ customerId }, (err: any, topicDocs: any[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          const topicIds = topicDocs.map(doc => doc._id);
+          
+          if (topicIds.length === 0) {
+            resolve([]);
+            return;
+          }
+
+          // Then get all topic histories for these topics
+          this.db.find({ topicId: { $in: topicIds } }, (err: any, docs: TopicHistoryData[]) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(docs.map(doc => this.mapToTopicHistory(doc)));
+            }
+          });
+        }
+      });
+    });
+  }
+
+  async findAll(): Promise<TopicHistory[]> {
+    return new Promise((resolve, reject) => {
+      this.db.find({}, (err: any, docs: TopicHistoryData[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs.map(doc => this.mapToTopicHistory(doc)));
         }
       });
     });
@@ -119,7 +129,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+            resolve(docs.map(doc => this.mapToTopicHistory(doc)));
           }
         }
       );
@@ -139,7 +149,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+            resolve(docs.map(doc => this.mapToTopicHistory(doc)));
           }
         }
       );
@@ -156,7 +166,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+            resolve(docs.map(doc => this.mapToTopicHistory(doc)));
           }
         }
       );
@@ -189,7 +199,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
         if (err) {
           reject(err);
         } else {
-          resolve(docs.map(doc => this.dataToTopicHistory(doc)));
+          resolve(docs.map(doc => this.mapToTopicHistory(doc)));
         }
       });
     });
@@ -217,7 +227,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
               if (err) {
                 reject(err);
               } else {
-                resolve(historyDoc ? this.dataToTopicHistory(historyDoc) : undefined);
+                resolve(historyDoc ? this.mapToTopicHistory(historyDoc) : undefined);
               }
             }
           );
@@ -228,7 +238,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.db.remove({ _id: id }, {}, (err, numRemoved) => {
+      this.db.remove({ _id: id }, {}, (err: any, numRemoved: number) => {
         if (err) {
           reject(err);
         } else {
@@ -252,7 +262,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
   async count(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this.db.count({}, (err, count) => {
+      this.db.count({}, (err: any, count: number) => {
         if (err) {
           reject(err);
         } else {
@@ -289,7 +299,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
           if (err) {
             reject(err);
           } else {
-            resolve(doc ? this.dataToTopicHistory(doc) : undefined);
+            resolve(doc ? this.mapToTopicHistory(doc) : undefined);
           }
         }
       );
@@ -314,7 +324,7 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
         if (err) {
           reject(err);
         } else {
-          const histories = docs.map(doc => this.dataToTopicHistory(doc));
+          const histories = docs.map(doc => this.mapToTopicHistory(doc));
           
           if (histories.length === 0) {
             resolve({
@@ -355,5 +365,14 @@ export class NedbTopicHistoryRepository implements TopicHistoryRepositoryPort {
         }
       });
     });
+  }
+
+  private mapToTopicHistory(doc: TopicHistoryData): TopicHistory {
+    return new TopicHistory(
+      doc.topicId,
+      doc.content,
+      doc._id,
+      new Date(doc.createdAt)
+    );
   }
 } 
