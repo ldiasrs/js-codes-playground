@@ -39,7 +39,7 @@ export class EmailConfiguration {
   private constructor() {
     let configFromFile: ConfigFile = {};
     try {
-      const configPath = path.join(__dirname, '../../../../config/global-config.prod.json');
+      const configPath = path.join(__dirname, '../../config/global-config.prod.json');
       if (fs.existsSync(configPath)) {
         const file = fs.readFileSync(configPath, 'utf-8');
         const parsed = JSON.parse(file) as ConfigFile;

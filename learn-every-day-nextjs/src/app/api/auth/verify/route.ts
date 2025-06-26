@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const { email, verificationCode } = await request.json();
 
+    console.log('Verify API request received:', { email, verificationCode });
     if (!email || !verificationCode) {
       return NextResponse.json(
         { success: false, message: 'Email and verification code are required' },
