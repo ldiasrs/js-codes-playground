@@ -58,7 +58,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM customers WHERE id = ?',
       [id]
-    ) as CustomerData[];
+    ) as unknown as CustomerData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -70,7 +70,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
   async findAll(): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query('SELECT * FROM customers') as CustomerData[];
+    const rows = await connection.query('SELECT * FROM customers') as unknown as CustomerData[];
     return rows.map(row => this.mapToCustomer(row));
   }
 
@@ -80,7 +80,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM customers WHERE customer_name LIKE ?',
       [`%${customerName}%`]
-    ) as CustomerData[];
+    ) as unknown as CustomerData[];
 
     return rows.map(row => this.mapToCustomer(row));
   }
@@ -91,7 +91,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM customers WHERE gov_identification_type = ? AND gov_identification_content = ?',
       [govIdentification.type, govIdentification.content]
-    ) as CustomerData[];
+    ) as unknown as CustomerData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -106,7 +106,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM customers WHERE date_created BETWEEN ? AND ?',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as CustomerData[];
+    ) as unknown as CustomerData[];
 
     return rows.map(row => this.mapToCustomer(row));
   }
@@ -144,7 +144,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
       }
     }
 
-    const rows = await connection.query(sql, params) as CustomerData[];
+    const rows = await connection.query(sql, params) as unknown as CustomerData[];
     return rows.map(row => this.mapToCustomer(row));
   }
 
@@ -195,7 +195,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
        INNER JOIN topics t ON c.id = t.customer_id
        WHERE t.date_created >= ?`,
       [cutoffDate]
-    ) as CustomerData[];
+    ) as unknown as CustomerData[];
 
     return rows.map(row => this.mapToCustomer(row));
   }

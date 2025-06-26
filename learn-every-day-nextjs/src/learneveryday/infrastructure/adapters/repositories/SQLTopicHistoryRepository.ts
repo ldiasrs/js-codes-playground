@@ -48,7 +48,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topic_histories WHERE id = ?',
       [id]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -63,7 +63,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topic_histories WHERE topic_id = ? ORDER BY created_at DESC',
       [topicId]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     return rows.map(row => this.mapToTopicHistory(row));
   }
@@ -74,7 +74,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topic_histories WHERE content LIKE ? ORDER BY created_at DESC',
       [`%${content}%`]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     return rows.map(row => this.mapToTopicHistory(row));
   }
@@ -85,7 +85,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topic_histories WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     return rows.map(row => this.mapToTopicHistory(row));
   }
@@ -98,7 +98,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topic_histories WHERE created_at >= ? ORDER BY created_at DESC',
       [cutoffDate]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     return rows.map(row => this.mapToTopicHistory(row));
   }
@@ -132,7 +132,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
     sql += ' ORDER BY created_at DESC';
 
-    const rows = await connection.query(sql, params) as TopicHistoryData[];
+    const rows = await connection.query(sql, params) as unknown as TopicHistoryData[];
     return rows.map(row => this.mapToTopicHistory(row));
   }
 
@@ -146,7 +146,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
        ORDER BY th.created_at DESC
        LIMIT 1`,
       [customerId]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -165,7 +165,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
        WHERE t.customer_id = ?
        ORDER BY th.created_at DESC`,
       [customerId]
-    ) as TopicHistoryData[];
+    ) as unknown as TopicHistoryData[];
 
     return rows.map(row => this.mapToTopicHistory(row));
   }
@@ -173,7 +173,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
   async findAll(): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query('SELECT * FROM topic_histories ORDER BY created_at DESC') as TopicHistoryData[];
+    const rows = await connection.query('SELECT * FROM topic_histories ORDER BY created_at DESC') as unknown as TopicHistoryData[];
     return rows.map(row => this.mapToTopicHistory(row));
   }
 
@@ -200,7 +200,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
   async count(): Promise<number> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query('SELECT COUNT(*) as count FROM topic_histories') as { count: number }[];
+    const rows = await connection.query('SELECT COUNT(*) as count FROM topic_histories') as unknown as { count: number }[];
     return rows[0]?.count || 0;
   }
 

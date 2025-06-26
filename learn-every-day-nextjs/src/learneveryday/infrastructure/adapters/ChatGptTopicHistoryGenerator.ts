@@ -35,7 +35,7 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
           }
         ],
         max_tokens: this.config.getMaxTokens(),
-        temperature: this.config.getTemperature()
+        temperature: 0.7
       });
 
       const generatedContent = response.choices[0]?.message?.content;

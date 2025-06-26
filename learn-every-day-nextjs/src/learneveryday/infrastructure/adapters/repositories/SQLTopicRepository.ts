@@ -48,7 +48,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topics WHERE id = ?',
       [id]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -60,7 +60,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
   async findAll(): Promise<Topic[]> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query('SELECT * FROM topics') as TopicData[];
+    const rows = await connection.query('SELECT * FROM topics') as unknown as TopicData[];
     return rows.map(row => this.mapToTopic(row));
   }
 
@@ -70,7 +70,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topics WHERE customer_id = ?',
       [customerId]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     return rows.map(row => this.mapToTopic(row));
   }
@@ -81,7 +81,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topics WHERE subject LIKE ?',
       [`%${subject}%`]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     return rows.map(row => this.mapToTopic(row));
   }
@@ -92,7 +92,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topics WHERE date_created BETWEEN ? AND ?',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     return rows.map(row => this.mapToTopic(row));
   }
@@ -105,7 +105,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM topics WHERE date_created >= ?',
       [cutoffDate]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     return rows.map(row => this.mapToTopic(row));
   }
@@ -123,7 +123,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
        ORDER BY th.created_at ASC
        LIMIT ?`,
       [cutoffDate, limit]
-    ) as TopicData[];
+    ) as unknown as TopicData[];
 
     return rows.map(row => this.mapToTopic(row));
   }
@@ -134,7 +134,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       'SELECT COUNT(*) as count FROM topics WHERE customer_id = ? AND subject = ?',
       [customerId, subject]
-    ) as { count: number }[];
+    ) as unknown as { count: number }[];
 
     return (rows[0]?.count || 0) > 0;
   }
@@ -166,7 +166,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
       }
     }
 
-    const rows = await connection.query(sql, params) as TopicData[];
+    const rows = await connection.query(sql, params) as unknown as TopicData[];
     return rows.map(row => this.mapToTopic(row));
   }
 

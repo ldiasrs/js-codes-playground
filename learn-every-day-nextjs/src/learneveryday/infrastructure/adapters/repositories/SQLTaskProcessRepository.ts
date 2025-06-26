@@ -63,7 +63,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE id = ?',
       [id]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     if (rows.length === 0) {
       return undefined;
@@ -78,7 +78,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE entity_id = ? ORDER BY created_at DESC',
       [entityId]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -89,7 +89,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE customer_id = ? ORDER BY created_at DESC',
       [customerId]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -100,7 +100,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE type = ? ORDER BY created_at DESC',
       [type]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -111,7 +111,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE status = ? ORDER BY created_at DESC',
       [status]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -122,7 +122,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE entity_id = ? AND type = ? ORDER BY created_at DESC',
       [entityId, type]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -142,7 +142,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to IS NOT NULL AND status = ? ORDER BY scheduled_to ASC',
       ['pending']
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -157,7 +157,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE status = ? AND type = ? ORDER BY created_at ASC LIMIT ?',
       [status, type, limit]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -211,14 +211,14 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
 
     sql += ' ORDER BY created_at DESC';
 
-    const rows = await connection.query(sql, params) as TaskProcessData[];
+    const rows = await connection.query(sql, params) as unknown as TaskProcessData[];
     return rows.map(row => this.mapToTaskProcess(row));
   }
 
   async findAll(): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query('SELECT * FROM task_processes ORDER BY created_at DESC') as TaskProcessData[];
+    const rows = await connection.query('SELECT * FROM task_processes ORDER BY created_at DESC') as unknown as TaskProcessData[];
     return rows.map(row => this.mapToTaskProcess(row));
   }
 
@@ -307,7 +307,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to BETWEEN ? AND ? ORDER BY scheduled_to ASC',
       [dateStart, dateEnd]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -318,7 +318,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to BETWEEN ? AND ? ORDER BY scheduled_to ASC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
@@ -329,7 +329,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const rows = await connection.query(
       'SELECT * FROM task_processes WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as TaskProcessData[];
+    ) as unknown as TaskProcessData[];
 
     return rows.map(row => this.mapToTaskProcess(row));
   }
