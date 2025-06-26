@@ -37,7 +37,7 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Input
         type="email"
         label="Email Address"
@@ -51,8 +51,8 @@ export const LoginForm: React.FC = () => {
       />
 
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800 text-sm">{successMessage}</p>
+        <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+          <p className="text-primary text-sm font-medium">{successMessage}</p>
         </div>
       )}
 
@@ -65,12 +65,12 @@ export const LoginForm: React.FC = () => {
         Continue
       </Button>
 
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
+      <div className="text-center pt-4">
+        <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
           <button
             type="button"
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 underline underline-offset-2"
             onClick={() => router.push('/auth/register')}
           >
             Register here

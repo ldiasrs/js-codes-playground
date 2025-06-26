@@ -17,7 +17,7 @@ export const Card: React.FC<CardProps> = ({
     lg: 'p-8',
   };
 
-  const baseClasses = 'bg-white rounded-lg shadow-md border border-gray-200';
+  const baseClasses = 'bg-card text-card-foreground rounded-lg shadow-lg border border-border backdrop-blur-sm';
   const classes = `${baseClasses} ${paddingClasses[padding]} ${className}`;
 
   return (

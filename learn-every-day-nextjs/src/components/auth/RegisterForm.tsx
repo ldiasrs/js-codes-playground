@@ -125,7 +125,7 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Input
         type="text"
         label="Full Name"
@@ -139,20 +139,20 @@ export const RegisterForm: React.FC = () => {
       />
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Identification Type
         </label>
         <select
           value={formData.govIdentificationType}
           onChange={(e) => handleInputChange('govIdentificationType', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+          className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:bg-muted disabled:text-muted-foreground transition-colors duration-200"
           disabled={isLoading}
         >
           <option value="CPF">CPF (Brazilian ID)</option>
           <option value="OTHER">Other</option>
         </select>
         {errors.govIdentificationType && (
-          <p className="text-red-600 text-sm">{errors.govIdentificationType}</p>
+          <p className="text-destructive text-sm">{errors.govIdentificationType}</p>
         )}
       </div>
 
@@ -193,14 +193,14 @@ export const RegisterForm: React.FC = () => {
       />
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800 text-sm">{error}</p>
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <p className="text-destructive text-sm font-medium">{error}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800 text-sm">{successMessage}</p>
+        <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+          <p className="text-primary text-sm font-medium">{successMessage}</p>
         </div>
       )}
 
@@ -213,12 +213,12 @@ export const RegisterForm: React.FC = () => {
         Create Account
       </Button>
 
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
+      <div className="text-center pt-4">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
           <button
             type="button"
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 underline underline-offset-2"
             onClick={() => router.push('/auth/login')}
           >
             Sign in here
