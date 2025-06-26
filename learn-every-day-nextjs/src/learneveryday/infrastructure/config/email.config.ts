@@ -1,6 +1,4 @@
 import dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
 
 dotenv.config();
 
@@ -20,46 +18,47 @@ interface ConfigFile {
     secure?: boolean;
     username?: string;
     password?: string;
+    user?: string;
+    pass?: string;
     from?: string;
   };
 }
 
 /**
- * Loads email configuration from global-config.prod.json (email section) if available,
- * otherwise falls back to environment variables.
+ * Loads email configuration from APP_GLOBAL_CONFIG environment variable (email section) if available,
+ * otherwise falls back to individual environment variables.
  *
  * Precedence:
- *   1. global-config.prod.json > email
- *   2. Environment variables
+ *   1. APP_GLOBAL_CONFIG > email
+ *   2. Individual environment variables
  */
 export class EmailConfiguration {
   private static instance: EmailConfiguration;
   private config: EmailConfig;
 
   private constructor() {
-    let configFromFile: ConfigFile = {};
+    let configFromEnv: ConfigFile = {};
     try {
-      const configPath = path.join(__dirname, '../../config/global-config.prod.json');
-      if (fs.existsSync(configPath)) {
-        const file = fs.readFileSync(configPath, 'utf-8');
-        const parsed = JSON.parse(file) as ConfigFile;
+      const globalConfig = process.env.APP_GLOBAL_CONFIG;
+      if (globalConfig) {
+        const parsed = JSON.parse(globalConfig) as ConfigFile;
         if (parsed.email) {
-          configFromFile = parsed;
+          configFromEnv = parsed;
         }
       }
     } catch {
-      // Ignore file errors, fallback to env
+      // Ignore JSON parsing errors, fallback to individual env vars
     }
 
-    const host = configFromFile.email?.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
-    const port = configFromFile.email?.port || parseInt(process.env.EMAIL_PORT || '587');
-    const secure = configFromFile.email?.secure || (process.env.EMAIL_SECURE === 'true');
-    const username = configFromFile.email?.username || process.env.EMAIL_USERNAME;
-    const password = configFromFile.email?.password || process.env.EMAIL_PASSWORD;
-    const from = configFromFile.email?.from || process.env.EMAIL_FROM;
+    const host = configFromEnv.email?.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
+    const port = configFromEnv.email?.port || parseInt(process.env.EMAIL_PORT || '587');
+    const secure = configFromEnv.email?.secure || (process.env.EMAIL_SECURE === 'true');
+    const username = configFromEnv.email?.username || configFromEnv.email?.user || process.env.EMAIL_USERNAME;
+    const password = configFromEnv.email?.password || configFromEnv.email?.pass || process.env.EMAIL_PASSWORD;
+    const from = configFromEnv.email?.from || process.env.EMAIL_FROM;
 
     if (!username || !password) {
-      throw new Error('EMAIL_USERNAME and EMAIL_PASSWORD environment variables or email.username and email.password in global-config.prod.json are required');
+      throw new Error('EMAIL_USERNAME and EMAIL_PASSWORD environment variables or email.username/email.user and email.password/email.pass in APP_GLOBAL_CONFIG are required');
     }
 
     this.config = {

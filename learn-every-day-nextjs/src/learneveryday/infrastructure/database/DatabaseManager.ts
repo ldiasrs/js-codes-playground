@@ -203,6 +203,19 @@ export class DatabaseManager {
           )
         `;
       
+      case 'authentication_attempts':
+        return `
+          CREATE TABLE IF NOT EXISTS authentication_attempts (
+            id TEXT PRIMARY KEY,
+            customer_id TEXT NOT NULL,
+            encrypted_verification_code TEXT NOT NULL,
+            attempt_date TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            is_used BOOLEAN NOT NULL DEFAULT 0,
+            FOREIGN KEY (customer_id) REFERENCES customers(id)
+          )
+        `;
+      
       default:
         throw new Error(`Unknown table name: ${tableName}`);
     }

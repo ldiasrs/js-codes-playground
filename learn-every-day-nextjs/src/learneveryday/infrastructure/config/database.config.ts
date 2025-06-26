@@ -1,6 +1,4 @@
 import dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
 
 dotenv.config();
 
@@ -43,11 +41,11 @@ interface ConfigFile {
 }
 
 /**
- * Loads database configuration from global-config.prod.json (database section) if available,
+ * Loads database configuration from APP_GLOBAL_CONFIG environment variable (database section) if available,
  * otherwise falls back to environment variables.
  *
  * Precedence:
- *   1. global-config.prod.json > database
+ *   1. APP_GLOBAL_CONFIG > database
  *   2. Environment variables
  */
 export class DatabaseConfiguration {
@@ -55,25 +53,24 @@ export class DatabaseConfiguration {
   private config: DatabaseConfig;
 
   private constructor() {
-    let configFromFile: ConfigFile = {};
+    let configFromEnv: ConfigFile = {};
     try {
-      const configPath = path.join(__dirname, '../../../../config/global-config.prod.json');
-      if (fs.existsSync(configPath)) {
-        const file = fs.readFileSync(configPath, 'utf-8');
-        const parsed = JSON.parse(file) as ConfigFile;
+      const globalConfig = process.env.APP_GLOBAL_CONFIG;
+      if (globalConfig) {
+        const parsed = JSON.parse(globalConfig) as ConfigFile;
         if (parsed.database) {
-          configFromFile = parsed;
+          configFromEnv = parsed;
         }
       }
-    } catch (error) {
-      // Ignore file errors, fallback to env
+    } catch {
+      // Ignore JSON parsing errors, fallback to individual env vars
     }
 
-    const type = (configFromFile.database?.type || process.env.DATABASE_TYPE || 'sqlite') as DatabaseType;
+    const type = (configFromEnv.database?.type || process.env.DATABASE_TYPE || 'sqlite') as DatabaseType;
 
     if (type === 'sqlite') {
-      const dataDir = configFromFile.database?.sqlite?.dataDir || process.env.SQLITE_DATA_DIR || './data/local';
-      const database = configFromFile.database?.sqlite?.database || process.env.SQLITE_DATABASE || 'learneveryday.db';
+      const dataDir = configFromEnv.database?.sqlite?.dataDir || process.env.SQLITE_DATA_DIR || './data/local';
+      const database = configFromEnv.database?.sqlite?.database || process.env.SQLITE_DATABASE || 'learneveryday.db';
       
       this.config = {
         type: 'sqlite',
@@ -83,15 +80,15 @@ export class DatabaseConfiguration {
         }
       };
     } else if (type === 'postgres') {
-      const host = configFromFile.database?.postgres?.host || process.env.POSTGRES_HOST || 'localhost';
-      const port = configFromFile.database?.postgres?.port || parseInt(process.env.POSTGRES_PORT || '5432');
-      const database = configFromFile.database?.postgres?.database || process.env.POSTGRES_DATABASE || 'learneveryday';
-      const username = configFromFile.database?.postgres?.username || process.env.POSTGRES_USERNAME;
-      const password = configFromFile.database?.postgres?.password || process.env.POSTGRES_PASSWORD;
-      const ssl = configFromFile.database?.postgres?.ssl || (process.env.POSTGRES_SSL === 'true');
+      const host = configFromEnv.database?.postgres?.host || process.env.POSTGRES_HOST || 'localhost';
+      const port = configFromEnv.database?.postgres?.port || parseInt(process.env.POSTGRES_PORT || '5432');
+      const database = configFromEnv.database?.postgres?.database || process.env.POSTGRES_DATABASE || 'learneveryday';
+      const username = configFromEnv.database?.postgres?.username || process.env.POSTGRES_USERNAME;
+      const password = configFromEnv.database?.postgres?.password || process.env.POSTGRES_PASSWORD;
+      const ssl = configFromEnv.database?.postgres?.ssl || (process.env.POSTGRES_SSL === 'true');
 
       if (!username || !password) {
-        throw new Error('POSTGRES_USERNAME and POSTGRES_PASSWORD environment variables or postgres.username and postgres.password in global-config.prod.json are required for PostgreSQL');
+        throw new Error('POSTGRES_USERNAME and POSTGRES_PASSWORD environment variables or postgres.username and postgres.password in APP_GLOBAL_CONFIG are required for PostgreSQL');
       }
 
       this.config = {

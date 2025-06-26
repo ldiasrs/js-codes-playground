@@ -1,6 +1,4 @@
 import dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
 
 dotenv.config();
 
@@ -19,11 +17,11 @@ interface ConfigFile {
 }
 
 /**
- * Loads OpenAI configuration from global-config.prod.json (openai section) if available,
+ * Loads OpenAI configuration from APP_GLOBAL_CONFIG environment variable (openai section) if available,
  * otherwise falls back to environment variables.
  *
  * Precedence:
- *   1. global-config.prod.json > openai
+ *   1. APP_GLOBAL_CONFIG > openai
  *   2. Environment variables
  */
 export class OpenAIConfiguration {
@@ -31,26 +29,25 @@ export class OpenAIConfiguration {
   private config: OpenAIConfig;
 
   private constructor() {
-    let configFromFile: ConfigFile = {};
+    let configFromEnv: ConfigFile = {};
     try {
-      const configPath = path.join(__dirname, '../../../../config/global-config.prod.json');
-      if (fs.existsSync(configPath)) {
-        const file = fs.readFileSync(configPath, 'utf-8');
-        const parsed = JSON.parse(file) as ConfigFile;
+      const globalConfig = process.env.APP_GLOBAL_CONFIG;
+      if (globalConfig) {
+        const parsed = JSON.parse(globalConfig) as ConfigFile;
         if (parsed.openai) {
-          configFromFile = parsed;
+          configFromEnv = parsed;
         }
       }
     } catch {
-      // Ignore file errors, fallback to env
+      // Ignore JSON parsing errors, fallback to individual env vars
     }
 
-    const apiKey = configFromFile.openai?.apiKey || process.env.OPENAI_API_KEY;
-    const model = configFromFile.openai?.model || process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
-    const maxTokens = configFromFile.openai?.maxTokens || parseInt(process.env.OPENAI_MAX_TOKENS || '2000');
+    const apiKey = configFromEnv.openai?.apiKey || process.env.OPENAI_API_KEY;
+    const model = configFromEnv.openai?.model || process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+    const maxTokens = configFromEnv.openai?.maxTokens || parseInt(process.env.OPENAI_MAX_TOKENS || '2000');
 
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable or openai.apiKey in global-config.prod.json is required');
+      throw new Error('OPENAI_API_KEY environment variable or openai.apiKey in APP_GLOBAL_CONFIG is required');
     }
 
     this.config = {
