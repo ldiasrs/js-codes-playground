@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AuthState, UserData } from '../services/auth/types';
-import { MockAuthService } from '../services/auth/MockAuthService';
+import { RealAuthService } from '../services/auth/RealAuthService';
 
-const authService = new MockAuthService();
+const authService = new RealAuthService();
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({

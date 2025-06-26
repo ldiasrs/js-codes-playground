@@ -1,3 +1,3 @@
 export { AuthService } from './auth/AuthService';
-export { MockAuthService } from './auth/MockAuthService';
+export { RealAuthService } from './auth/RealAuthService';
 export type { LoginRequest, LoginResponse, VerifyCodeRequest, VerifyCodeResponse, UserData, AuthState } from './auth/types'; 

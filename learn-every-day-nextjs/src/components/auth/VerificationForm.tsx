@@ -12,7 +12,8 @@ export const VerificationForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const { verifyCode, isLoading } = useAuth();
+  const [isResending, setIsResending] = useState(false);
+  const { verifyCode, login, isLoading } = useAuth();
   const router = useRouter();
 
   // Get email from sessionStorage on component mount
@@ -58,8 +59,23 @@ export const VerificationForm: React.FC = () => {
 
   const handleResendCode = async () => {
     setError('');
-    // In a real implementation, this would call the login service again
-    setSuccessMessage('Verification code resent to your email');
+    setSuccessMessage('');
+    setIsResending(true);
+
+    try {
+      const result = await login(email);
+      
+      if (result.success) {
+        setSuccessMessage('Verification code resent to your email');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      setError('Failed to resend verification code. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
   };
 
   if (!email) {
@@ -115,9 +131,9 @@ export const VerificationForm: React.FC = () => {
             type="button"
             className="text-blue-600 hover:text-blue-700 font-medium"
             onClick={handleResendCode}
-            disabled={isLoading}
+            disabled={isLoading || isResending}
           >
-            Resend
+            {isResending ? 'Resending...' : 'Resend'}
           </button>
         </p>
         <p className="text-sm text-gray-600">
