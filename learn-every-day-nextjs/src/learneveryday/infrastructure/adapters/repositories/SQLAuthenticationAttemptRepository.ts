@@ -25,12 +25,12 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
     // Encrypt the verification code before saving
-    const encryptedVerificationCode = this.encryptionService.encrypt(authenticationAttempt.encryptedVerificationCode);
+   // const encryptedVerificationCode = this.encryptionService.encrypt(authenticationAttempt.encryptedVerificationCode);
     
     const attemptData: AuthenticationAttemptData = {
       id: authenticationAttempt.id || '',
       customer_id: authenticationAttempt.customerId,
-      encrypted_verification_code: encryptedVerificationCode,
+      encrypted_verification_code: authenticationAttempt.encryptedVerificationCode,
       attempt_date: authenticationAttempt.attemptDate.toISOString(),
       expires_at: authenticationAttempt.expiresAt.toISOString(),
       is_used: authenticationAttempt.isUsed
@@ -146,11 +146,11 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
 
   private mapToAuthenticationAttempt(data: AuthenticationAttemptData): AuthenticationAttempt {
     // Decrypt the verification code when mapping from database
-    const decryptedVerificationCode = this.encryptionService.decrypt(data.encrypted_verification_code);
+    //const decryptedVerificationCode = this.encryptionService.decrypt(data.encrypted_verification_code);
     
     return new AuthenticationAttempt(
       data.customer_id,
-      decryptedVerificationCode,
+      data.encrypted_verification_code,
       new Date(data.attempt_date),
       new Date(data.expires_at),
       data.is_used,
