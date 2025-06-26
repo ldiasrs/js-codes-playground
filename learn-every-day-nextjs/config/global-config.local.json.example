@@ -1,0 +1,32 @@
+{
+  "database": {
+    "type": "sqlite",
+    "sqlite": {
+      "database": "learneveryday.db",
+      "dataDir": "./data/local"
+    }
+  },
+  "email": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "secure": false,
+    "user": "your-email@gmail.com",
+    "pass": "your-app-password",
+    "from": "your-email@gmail.com"
+  },
+  "openai": {
+    "apiKey": "your-openai-api-key",
+    "model": "gpt-3.5-turbo",
+    "maxTokens": 2000
+  },
+  "logging": {
+    "level": "info",
+    "type": "console"
+  },
+  "encryption": {
+    "key": "generate-a-32-character-key-here",
+    "algorithm": "aes-256-gcm",
+    "ivLength": 16
+  }
+} 
+
