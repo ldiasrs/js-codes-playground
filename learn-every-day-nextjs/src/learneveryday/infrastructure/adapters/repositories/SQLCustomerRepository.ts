@@ -85,6 +85,21 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     return rows.map(row => this.mapToCustomer(row));
   }
 
+  async findByEmail(email: string): Promise<Customer | undefined> {
+    const connection = await this.dbManager.getConnection('customers');
+    
+    const rows = await connection.query(
+      'SELECT * FROM customers WHERE email = ?',
+      [email]
+    ) as unknown as CustomerData[];
+
+    if (rows.length === 0) {
+      return undefined;
+    }
+
+    return this.mapToCustomer(rows[0]);
+  }
+
   async findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined> {
     const connection = await this.dbManager.getConnection('customers');
     

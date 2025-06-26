@@ -17,6 +17,7 @@ export interface CustomerRepositoryPort {
   findById(id: string): Promise<Customer | undefined>;
   findAll(): Promise<Customer[]>;
   findByCustomerName(customerName: string): Promise<Customer[]>;
+  findByEmail(email: string): Promise<Customer | undefined>;
   findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined>;
   findByDateRange(dateFrom: Date, dateTo: Date): Promise<Customer[]>;
   search(criteria: CustomerSearchCriteria): Promise<Customer[]>;
