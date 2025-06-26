@@ -71,3 +71,4 @@ tmp/
 temp/
 
 learn-every-day-nextjs/config/prod-db.md
+learn-every-day-nextjs/config/global-config.local.json
