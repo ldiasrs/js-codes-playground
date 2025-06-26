@@ -7,14 +7,18 @@ import { SQLCustomerRepository } from '../adapters/repositories/SQLCustomerRepos
 import { SQLTopicRepository } from '../adapters/repositories/SQLTopicRepository';
 import { SQLTopicHistoryRepository } from '../adapters/repositories/SQLTopicHistoryRepository';
 import { SQLTaskProcessRepository } from '../adapters/repositories/SQLTaskProcessRepository';
+import { SQLAuthenticationAttemptRepository } from '../adapters/repositories/SQLAuthenticationAttemptRepository';
 
 // Ports
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
+import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
 
 // Use Cases
 import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
 import { UpdateCustomerFeature } from '../../domain/customer/usecase/UpdateCustomerFeature';
 import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
+import { AuthCustomerFeature } from '../../domain/customer/usecase/AuthCustomerFeature';
+import { VerifyCustomerFeature } from '../../domain/customer/usecase/VerifyCustomerFeature';
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
@@ -32,6 +36,8 @@ import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessE
 import { CreateCustomerCommand, CreateCustomerCommandData } from '../../application/commands/customer/CreateCustomerCommand';
 import { UpdateCustomerCommand, UpdateCustomerCommandData } from '../../application/commands/customer/UpdateCustomerCommand';
 import { DeleteCustomerCommand, DeleteCustomerCommandData } from '../../application/commands/customer/DeleteCustomerCommand';
+import { AuthCustomerCommand, AuthCustomerCommandData } from '../../application/commands/customer/AuthCustomerCommand';
+import { VerifyCustomerCommand, VerifyCustomerCommandData } from '../../application/commands/customer/VerifyCustomerCommand';
 import { AddTopicCommand, AddTopicCommandData } from '../../application/commands/topic/AddTopicCommand';
 import { DeleteTopicCommand, DeleteTopicCommandData } from '../../application/commands/topic/DeleteTopicCommand';
 import { GenerateTopicHistoryCommand, GenerateTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
@@ -61,10 +67,12 @@ export class NextJSContainer implements Container {
     this.registerSingleton('TopicRepository', () => new SQLTopicRepository());
     this.registerSingleton('TopicHistoryRepository', () => new SQLTopicHistoryRepository());
     this.registerSingleton('TaskProcessRepository', () => new SQLTaskProcessRepository());
+    this.registerSingleton('AuthenticationAttemptRepository', () => new SQLAuthenticationAttemptRepository());
 
     // Register ports
     this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv());
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
+    this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
     // Register shared services
     this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromEnv());
@@ -84,6 +92,19 @@ export class NextJSContainer implements Container {
     this.registerSingleton('DeleteCustomerFeature', () => new DeleteCustomerFeature(
       this.get('CustomerRepository'),
       this.get('TopicRepository')
+    ));
+
+    this.registerSingleton('AuthCustomerFeature', () => new AuthCustomerFeature(
+      this.get('CustomerRepository'),
+      this.get('VerificationCodeSender'),
+      this.get('AuthenticationAttemptRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('VerifyCustomerFeature', () => new VerifyCustomerFeature(
+      this.get('CustomerRepository'),
+      this.get('AuthenticationAttemptRepository'),
+      this.get('Logger')
     ));
 
     this.registerSingleton('AddTopicFeature', () => new AddTopicFeature(
@@ -160,6 +181,16 @@ export class NextJSContainer implements Container {
     this.registerCommandFactory('DeleteCustomerCommand', (data: unknown) => new DeleteCustomerCommand(
       data as DeleteCustomerCommandData,
       this.get('DeleteCustomerFeature')
+    ));
+
+    this.registerCommandFactory('AuthCustomerCommand', (data: unknown) => new AuthCustomerCommand(
+      data as AuthCustomerCommandData,
+      this.get('AuthCustomerFeature')
+    ));
+
+    this.registerCommandFactory('VerifyCustomerCommand', (data: unknown) => new VerifyCustomerCommand(
+      data as VerifyCustomerCommandData,
+      this.get('VerifyCustomerFeature')
     ));
 
     this.registerCommandFactory('AddTopicCommand', (data: unknown) => new AddTopicCommand(

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test-database": "node scripts/test-database.js"
+    "test-database": "node scripts/test-database.js",
+    "create-auth-table": "node scripts/create-authentication-attempts-table.js"
   },
   "dependencies": {
     "@types/commander": "^2.12.0",

@@ -1,6 +1,8 @@
 import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { SendVerificationCodePort } from '../ports/SendVerificationCodePort';
+import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
+import { AuthenticationAttempt } from '../entities/AuthenticationAttempt';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 
 export interface AuthCustomerFeatureData {
@@ -18,6 +20,7 @@ export class AuthCustomerFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
     private readonly sendVerificationCodePort: SendVerificationCodePort,
+    private readonly authenticationAttemptRepository: AuthenticationAttemptRepositoryPort,
     private readonly logger: LoggerPort
   ) {}
 
@@ -57,6 +60,14 @@ export class AuthCustomerFeature {
         customerName: customer.customerName,
         verificationCode
       });
+
+      // Step 5: Save authentication attempt with encrypted verification code
+      const authenticationAttempt = AuthenticationAttempt.createForCustomer(
+        customer.id!,
+        verificationCode // This will be encrypted by the repository layer
+      );
+      
+      await this.authenticationAttemptRepository.save(authenticationAttempt);
 
       this.logger.info(`Verification code sent to customer ${customer.id}`, {
         customerId: customer.id,
