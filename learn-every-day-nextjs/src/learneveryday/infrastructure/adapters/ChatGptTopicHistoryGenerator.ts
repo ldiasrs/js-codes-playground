@@ -51,11 +51,12 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
 
       return generatedContent.trim();
     } catch (error) {
-      this.logger.error('Error generating topic history with ChatGPT', { 
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Error generating topic history with ChatGPT', error instanceof Error ? error : new Error(errorMessage), { 
         topicSubject: data.topicSubject, 
-        error: error instanceof Error ? error.message : String(error) 
+        error: errorMessage
       });
-      throw new Error(`Failed to generate topic history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to generate topic history: ${errorMessage}`);
     }
   }
 
