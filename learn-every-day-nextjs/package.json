@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:reset": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts reset",
-    "db:setup": "ts-node --project scripts/tsconfig.json scripts/setup-database.ts"
+    "db:setup": "ts-node --project scripts/tsconfig.json scripts/setup-database.ts setup"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
