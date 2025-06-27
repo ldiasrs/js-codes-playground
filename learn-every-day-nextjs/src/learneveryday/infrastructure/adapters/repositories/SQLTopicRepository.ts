@@ -188,6 +188,17 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     return rows[0]?.count || 0;
   }
 
+  async countByCustomerId(customerId: string): Promise<number> {
+    const connection = await this.dbManager.getConnection('topics');
+    
+    const rows = await connection.query(
+      'SELECT COUNT(*) as count FROM topics WHERE customer_id = ?',
+      [customerId]
+    ) as { count: number }[];
+    
+    return rows[0]?.count || 0;
+  }
+
   async getTopicsCreatedToday(): Promise<Topic[]> {
     const today = moment().startOf('day');
     const tomorrow = moment().endOf('day');

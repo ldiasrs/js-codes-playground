@@ -20,6 +20,7 @@ export interface TopicRepositoryPort {
   search(criteria: TopicSearchCriteria): Promise<Topic[]>;
   delete(id: string): Promise<boolean>;
   count(): Promise<number>;
+  countByCustomerId(customerId: string): Promise<number>;
   getTopicsCreatedToday(): Promise<Topic[]>;
   getTopicsCreatedThisWeek(): Promise<Topic[]>;
   getTopicsCreatedThisMonth(): Promise<Topic[]>;
