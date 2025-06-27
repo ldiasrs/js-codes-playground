@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
 import { VerifyCustomerCommand } from '../../../../learneveryday/application/commands/customer/VerifyCustomerCommand';
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const verifyCommand = container.createInstance('VerifyCustomerCommand', { 
       email, 
       verificationCode 

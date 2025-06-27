@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
 import { AuthCustomerCommand } from '../../../../learneveryday/application/commands/customer/AuthCustomerCommand';
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const authCommand = container.createInstance('AuthCustomerCommand', { email }) as AuthCustomerCommand;
     const result = await authCommand.execute();
 

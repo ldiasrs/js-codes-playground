@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
 import { CreateCustomerCommand, CreateCustomerCommandData } from '../../../../learneveryday/application/commands/customer/CreateCustomerCommand';
 
 export async function POST(request: NextRequest) {
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get container and create command
-    const container = ContainerBuilder.build();
+    // Get server container and create command
+    const container = ServerContainerBuilder.build();
     const createCustomerCommand = container.createInstance('CreateCustomerCommand', body) as CreateCustomerCommand;
     
     // Execute the command

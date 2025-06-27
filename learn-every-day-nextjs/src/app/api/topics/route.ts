@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../learneveryday/infrastructure/di/server-container';
 import { GetAllTopicsQuery } from '../../../learneveryday/application/queries/topic/GetAllTopicsQuery';
 import { AddTopicCommand } from '../../../learneveryday/application/commands/topic/AddTopicCommand';
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     //   );
     // }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const query = container.createInstance<GetAllTopicsQuery>('GetAllTopicsQuery', {
       customerId
     });
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const command = container.createInstance<AddTopicCommand>('AddTopicCommand', {
       customerId,
       subject: subject.trim()

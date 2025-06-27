@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
 import { SearchTopicsQuery } from '../../../../learneveryday/application/queries/topic/SearchTopicsQuery';
 
 export async function GET(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const searchQuery = container.createInstance<SearchTopicsQuery>('SearchTopicsQuery', {
       customerId,
       query: query.trim()

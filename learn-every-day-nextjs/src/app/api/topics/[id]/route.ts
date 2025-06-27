@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ContainerBuilder } from '../../../../learneveryday/infrastructure/di/nextjs-container';
+import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
 import { GetTopicByIdQuery } from '../../../../learneveryday/application/queries/topic/GetTopicByIdQuery';
 import { UpdateTopicCommand } from '../../../../learneveryday/application/commands/topic/UpdateTopicCommand';
 import { DeleteTopicCommand } from '../../../../learneveryday/application/commands/topic/DeleteTopicCommand';
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const query = container.createInstance<GetTopicByIdQuery>('GetTopicByIdQuery', {
       id
     });
@@ -75,7 +75,7 @@ export async function PUT(
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const command = container.createInstance<UpdateTopicCommand>('UpdateTopicCommand', {
       id,
       subject: subject.trim()
@@ -111,7 +111,7 @@ export async function DELETE(
       );
     }
 
-    const container = ContainerBuilder.build();
+    const container = ServerContainerBuilder.build();
     const command = container.createInstance<DeleteTopicCommand>('DeleteTopicCommand', {
       id
     });
