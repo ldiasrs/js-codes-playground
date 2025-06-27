@@ -79,7 +79,7 @@ export class InitialSchemaMigration extends BaseMigration {
 
 
     // Create authentication_attempts table
-    console.log('Creating authentication_attempts table with isUsedDefault: ');
+    console.log('Creating authentication_attempts table');
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS authentication_attempts (
         id TEXT PRIMARY KEY,
