@@ -8,19 +8,17 @@ export async function GET(request: NextRequest) {
     // Get customer ID from query parameters or headers
     const customerId = request.nextUrl.searchParams.get('customerId');
     
-    // if (!customerId) {
-    //   return NextResponse.json(
-    //     { success: false, message: 'Customer ID is required' },
-    //     { status: 400 }
-    //   );
-    // }
+    if (!customerId) {
+      return NextResponse.json(
+        { success: false, message: 'Customer ID is required' },
+        { status: 400 }
+      );
+    }
 
     const container = ServerContainerBuilder.build();
-    const query = container.createInstance<GetAllTopicsQuery>('GetAllTopicsQuery', {
-      customerId
-    });
+    const query = container.get<GetAllTopicsQuery>('GetAllTopicsQuery');
     
-    const topics = await query.execute();
+    const topics = await query.execute({ customerId });
 
     return NextResponse.json({
       success: true,

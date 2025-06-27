@@ -19,11 +19,9 @@ export async function GET(
     }
 
     const container = ServerContainerBuilder.build();
-    const query = container.createInstance<GetTopicByIdQuery>('GetTopicByIdQuery', {
-      id
-    });
+    const query = container.get<GetTopicByIdQuery>('GetTopicByIdQuery');
     
-    const topic = await query.execute();
+    const topic = await query.execute({ topicId: id });
 
     if (!topic) {
       return NextResponse.json(

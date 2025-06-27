@@ -1,11 +1,11 @@
-export interface Query<TResult> {
-  execute(): Promise<TResult>;
+export interface Query<TResult, TData = void> {
+  execute(data?: TData): Promise<TResult>;
 }
 
-export abstract class BaseQuery<TResult> implements Query<TResult> {
-  abstract execute(): Promise<TResult>;
+export abstract class BaseQuery<TResult, TData = void> implements Query<TResult, TData> {
+  abstract execute(data?: TData): Promise<TResult>;
 }
 
-export interface QueryHandler<TQuery extends Query<TResult>, TResult> {
-  handle(query: TQuery): Promise<TResult>;
+export interface QueryHandler<TQuery extends Query<TResult, TData>, TResult, TData = void> {
+  handle(query: TQuery, data?: TData): Promise<TResult>;
 } 

@@ -1,22 +1,24 @@
 import { BaseQuery } from '../Query';
-import { TopicRepositoryPort } from '../../../domain/topic/ports/TopicRepositoryPort';
 import { TopicDTO, TopicDTOMapper } from '../../dto/TopicDTO';
+import { GetAllTopicsFeature, GetAllTopicsFeatureData } from '../../../domain/topic/usecase/GetAllTopicsFeature';
 
 export interface GetAllTopicsQueryData {
   customerId: string;
 }
 
-export class GetAllTopicsQuery extends BaseQuery<TopicDTO[]> {
+export class GetAllTopicsQuery extends BaseQuery<TopicDTO[], GetAllTopicsQueryData> {
   constructor(
-    private readonly data: GetAllTopicsQueryData,
-    private readonly topicRepository: TopicRepositoryPort
+    private readonly getAllTopicsFeature: GetAllTopicsFeature
   ) {
     super();
   }
 
-  async execute(): Promise<TopicDTO[]> {
-    const { customerId } = this.data;
-    const topics = await this.topicRepository.findByCustomerId(customerId);
+  async execute(data: GetAllTopicsQueryData): Promise<TopicDTO[]> {
+    const featureData: GetAllTopicsFeatureData = {
+      customerId: data.customerId
+    };
+    
+    const topics = await this.getAllTopicsFeature.execute(featureData);
     return topics.map(topic => TopicDTOMapper.toDTO(topic));
   }
 } 

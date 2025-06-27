@@ -22,12 +22,14 @@ export async function GET(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const searchQuery = container.createInstance<SearchTopicsQuery>('SearchTopicsQuery', {
-      customerId,
-      query: query.trim()
-    });
+    const searchQuery = container.get<SearchTopicsQuery>('SearchTopicsQuery');
     
-    const topics = await searchQuery.execute();
+    const topics = await searchQuery.execute({
+      criteria: {
+        subject: query.trim(),
+        customerId
+      }
+    });
 
     return NextResponse.json({
       success: true,

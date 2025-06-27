@@ -12,12 +12,6 @@ export * from './application/commands/topic/UpdateTopicCommand';
 export * from './application/commands/topic/DeleteTopicCommand';
 
 // Application Queries
-export * from './application/queries/customer/GetCustomerByIdQuery';
-export * from './application/queries/customer/SearchCustomerQuery';
-export * from './application/queries/customer/GetAllCustomersQuery';
-export * from './application/queries/statistics/GetCustomerStatisticsQuery';
 export * from './application/queries/topic/GetTopicByIdQuery';
 export * from './application/queries/topic/GetAllTopicsQuery';
 export * from './application/queries/topic/SearchTopicsQuery';
-export * from './application/queries/topic-history/GetTopicHistoryQuery';
-export * from './application/queries/statistics/GetStatisticsQuery';

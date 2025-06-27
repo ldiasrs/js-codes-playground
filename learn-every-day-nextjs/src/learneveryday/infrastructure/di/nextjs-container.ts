@@ -22,6 +22,7 @@ import { VerifyCustomerFeature } from '../../domain/customer/usecase/VerifyCusto
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
 import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
+import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
@@ -43,7 +44,9 @@ import { GenerateTopicHistoryCommand, GenerateTopicHistoryCommandData } from '..
 import { GenerateAndEmailTopicHistoryCommand, GenerateAndEmailTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 
 // Queries
-import { GetAllTopicsQuery, GetAllTopicsQueryData } from '../../application/queries/topic/GetAllTopicsQuery';
+import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
+import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
+import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 
 export interface Container {
   get<T>(token: string): T;
@@ -125,6 +128,12 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('GetAllTopicsFeature', () => new GetAllTopicsFeature(
+      this.get('TopicRepository'),
+      this.get('CustomerRepository'),
       this.get('Logger')
     ));
 
@@ -219,8 +228,15 @@ export class NextJSContainer implements Container {
     ));
 
     // Register query factories
-    this.registerQueryFactory('GetAllTopicsQuery', (data: unknown) => new GetAllTopicsQuery(
-      data as GetAllTopicsQueryData,
+    this.registerSingleton('GetAllTopicsQuery', () => new GetAllTopicsQuery(
+      this.get('GetAllTopicsFeature')
+    ));
+
+    this.registerSingleton('GetTopicByIdQuery', () => new GetTopicByIdQuery(
+      this.get('TopicRepository')
+    ));
+
+    this.registerSingleton('SearchTopicsQuery', () => new SearchTopicsQuery(
       this.get('TopicRepository')
     ));
   }
