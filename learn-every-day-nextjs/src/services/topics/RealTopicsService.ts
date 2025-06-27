@@ -18,10 +18,13 @@ export class RealTopicsService implements TopicsService {
   /**
    * Retrieves all topics for a customer
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getAllTopics(request?: GetAllTopicsRequest): Promise<GetAllTopicsResponse> {
     try {
-      const response = await fetch('/api/topics', {
+      const url = request?.customerId 
+        ? `/api/topics?customerId=${encodeURIComponent(request.customerId)}`
+        : '/api/topics';
+        
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +205,11 @@ export class RealTopicsService implements TopicsService {
    */
   async searchTopics(request: SearchTopicsRequest): Promise<SearchTopicsResponse> {
     try {
-      const response = await fetch(`/api/topics/search?q=${encodeURIComponent(request.query)}`, {
+      const queryParams = new URLSearchParams();
+      queryParams.append('q', request.query);
+      queryParams.append('customerId', request.customerId);
+      
+      const response = await fetch(`/api/topics/search?${queryParams.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
