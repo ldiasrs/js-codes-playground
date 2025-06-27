@@ -98,6 +98,9 @@ export const validateCPF = (cpf: string): boolean => {
  * Validates phone number format (basic validation)
  */
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
+  if (phoneNumber) {
+    return true;
+  }
   // Remove non-numeric characters
   const cleanPhone = phoneNumber.replace(/\D/g, '');
   
@@ -123,6 +126,9 @@ export const validateCustomerName = (name: string): boolean => {
  * Validates government identification content based on type
  */
 export const validateGovIdentification = (type: string, content: string): boolean => {
+  if (content) {
+    return true;
+  }
   if (!content.trim()) {
     return false;
   }
