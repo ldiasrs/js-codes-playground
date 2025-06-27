@@ -15,7 +15,6 @@ import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerifica
 
 // Use Cases
 import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
-import { UpdateCustomerFeature } from '../../domain/customer/usecase/UpdateCustomerFeature';
 import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
 import { AuthCustomerFeature } from '../../domain/customer/usecase/AuthCustomerFeature';
 import { VerifyCustomerFeature } from '../../domain/customer/usecase/VerifyCustomerFeature';
@@ -33,7 +32,6 @@ import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/use
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
-import { UpdateCustomerCommand } from '../../application/commands/customer/UpdateCustomerCommand';
 import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
 import { AuthCustomerCommand } from '../../application/commands/customer/AuthCustomerCommand';
 import { VerifyCustomerCommand } from '../../application/commands/customer/VerifyCustomerCommand';
@@ -41,7 +39,8 @@ import { AddTopicCommand } from '../../application/commands/topic/AddTopicComman
 import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
 import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
-import { GenerateAndEmailTopicHistoryCommand } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
+import { ExecuteTaskProcessCommand } from '../../application/commands/taskprocess/ExecuteTaskProcessCommand';
+import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
 // Queries
 import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
@@ -87,11 +86,6 @@ export class NextJSContainer implements Container {
       this.get('CustomerRepository'),
       this.get('TopicRepository'),
       this.get('Logger')
-    ));
-
-    this.registerSingleton('UpdateCustomerFeature', () => new UpdateCustomerFeature(
-      this.get('CustomerRepository'),
-      this.get('TopicRepository')
     ));
 
     this.registerSingleton('DeleteCustomerFeature', () => new DeleteCustomerFeature(
@@ -179,10 +173,6 @@ export class NextJSContainer implements Container {
       this.get('CreateCustomerFeature')
     ));
 
-    this.registerSingleton('UpdateCustomerCommand', () => new UpdateCustomerCommand(
-      this.get('UpdateCustomerFeature')
-    ));
-
     this.registerSingleton('DeleteCustomerCommand', () => new DeleteCustomerCommand(
       this.get('DeleteCustomerFeature')
     ));
@@ -213,8 +203,17 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository')
     ));
 
-    this.registerSingleton('GenerateAndEmailTopicHistoryCommand', () => new GenerateAndEmailTopicHistoryCommand(
-      this.get('GenerateAndEmailTopicHistoryFeature')
+    this.registerSingleton('ExecuteTaskProcessCommand', () => new ExecuteTaskProcessCommand(
+      this.get('TaskProcessRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('ProcessTopicHistoryWorkflowCommand', () => new ProcessTopicHistoryWorkflowCommand(
+      this.get('ExecuteTaskProcessCommand'),
+      this.get('ReGenerateTopicHistoryTaskRunner'),
+      this.get('GenerateTopicHistoryTaskRunner'),
+      this.get('SendTopicHistoryTaskRunner'),
+      this.get('Logger')
     ));
 
     // Register query factories

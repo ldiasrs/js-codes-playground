@@ -5,11 +5,15 @@ export * from './application/dto/GovIdentificationDTO';
 
 // Application Commands
 export * from './application/commands/customer/CreateCustomerCommand';
-export * from './application/commands/customer/UpdateCustomerCommand';
 export * from './application/commands/customer/DeleteCustomerCommand';
+export * from './application/commands/customer/AuthCustomerCommand';
+export * from './application/commands/customer/VerifyCustomerCommand';
 export * from './application/commands/topic/AddTopicCommand';
 export * from './application/commands/topic/UpdateTopicCommand';
 export * from './application/commands/topic/DeleteTopicCommand';
+export * from './application/commands/topic-history/GenerateTopicHistoryCommand';
+export * from './application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
+export * from './application/commands/taskprocess/ExecuteTaskProcessCommand';
 
 // Application Queries
 export * from './application/queries/topic/GetTopicByIdQuery';

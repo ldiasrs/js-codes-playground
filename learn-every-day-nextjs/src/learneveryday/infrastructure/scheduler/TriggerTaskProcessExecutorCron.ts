@@ -1,9 +1,5 @@
 import * as cron from 'node-cron';
-import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
-import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
-import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
-import { TaskProcess } from '../../domain/taskprocess/entities/TaskProcess';
+import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 
 export class TriggerTaskProcessExecutorCron {
@@ -11,10 +7,7 @@ export class TriggerTaskProcessExecutorCron {
   private isRunning = false;
 
   constructor(
-    private readonly tasksProcessExecutor: TasksProcessExecutor,
-    private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
-    private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
-    private readonly scheduleGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner,
+    private readonly processTopicHistoryWorkflowCommand: ProcessTopicHistoryWorkflowCommand,
     private readonly logger: LoggerPort
   ) {}
 
@@ -50,12 +43,9 @@ export class TriggerTaskProcessExecutorCron {
     }
   }
 
-
   /**
    * Executes the task processing workflow for all customers
-   * 1. Schedule topic history generation
-   * 2. Generate topic histories
-   * 3. Send topic histories
+   * Uses the ProcessTopicHistoryWorkflowCommand to handle the entire workflow
    */
   async executeTaskProcessing(): Promise<void> {
     if (this.isRunning) {
@@ -64,40 +54,9 @@ export class TriggerTaskProcessExecutorCron {
     }
 
     this.isRunning = true;
-    const startTime = new Date();
 
     try {
-      this.logger.info('🚀 Starting task processing workflow for all customers');
-
-      // Step 1: Schedule topic history generation
-      this.logger.info('📅 Step 1: Scheduling topic history generation...');
-      await this.tasksProcessExecutor.execute(
-        { processType: TaskProcess.REGENERATE_TOPIC_HISTORY, limit: 10 },
-        this.scheduleGenerateTopicHistoryTaskRunner
-      );
-      this.logger.info('✅ Topic history scheduling completed');
-
-      // Step 2: Generate topic histories
-      this.logger.info('📝 Step 2: Generating topic histories...');
-      await this.tasksProcessExecutor.execute(
-        { processType: TaskProcess.GENERATE_TOPIC_HISTORY, limit: 10 },
-        this.generateTopicHistoryTaskRunner
-      );
-
-      this.logger.info('✅ Topic history generation completed');
-
-      // Step 3: Send topic histories
-      this.logger.info('📧 Step 3: Sending topic histories...');
-      await this.tasksProcessExecutor.execute(
-        { processType: TaskProcess.SEND_TOPIC_HISTORY, limit: 10 },
-        this.sendTopicHistoryTaskRunner
-      );
-      this.logger.info('✅ Topic history sending completed');
-
-      const endTime = new Date();
-      const duration = endTime.getTime() - startTime.getTime();
-      this.logger.info(`🎉 Task processing workflow completed in ${duration}ms`, { duration });
-
+      await this.processTopicHistoryWorkflowCommand.execute({ limit: 10 });
     } catch (error) {
       const errorObj = error instanceof Error ? error : new Error(String(error));
       this.logger.error('❌ Error during task processing workflow:', errorObj);

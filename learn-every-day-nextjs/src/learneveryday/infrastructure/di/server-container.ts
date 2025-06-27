@@ -14,10 +14,7 @@ export class ServerContainer extends NextJSContainer {
   private initializeServerServices(): void {
     // Register server-side only services
     this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
-      this.get('TasksProcessExecutor'),
-      this.get('GenerateTopicHistoryTaskRunner'),
-      this.get('SendTopicHistoryTaskRunner'),
-      this.get('ReGenerateTopicHistoryTaskRunner'),
+      this.get('ProcessTopicHistoryWorkflowCommand'),
       this.get('Logger')
     ));
   }
