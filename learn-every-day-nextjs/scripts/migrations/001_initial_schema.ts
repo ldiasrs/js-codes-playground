@@ -76,10 +76,11 @@ export class InitialSchemaMigration extends BaseMigration {
         FOREIGN KEY (customer_id) REFERENCES customers(id)
       )
     `);
-    console.log('Creating authentication_attempts table');
+
 
     // Create authentication_attempts table
     const isUsedDefault = isPostgreSQL ? 'false' : '0';
+    console.log('Creating authentication_attempts table with isUsedDefault: ', isUsedDefault);
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS authentication_attempts (
         id TEXT PRIMARY KEY,
