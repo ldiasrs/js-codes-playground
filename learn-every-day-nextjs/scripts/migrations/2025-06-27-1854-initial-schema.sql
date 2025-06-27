@@ -70,11 +70,9 @@ CREATE TABLE IF NOT EXISTS authentication_attempts (
 -- MIGRATIONS TABLE (for tracking applied migrations)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS migrations (
-    version INTEGER PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    checksum VARCHAR(255) NOT NULL
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL UNIQUE,
+    date_executed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- =====================================================

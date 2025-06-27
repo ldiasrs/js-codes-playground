@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { DatabaseManager } from '../src/learneveryday/infrastructure/database/DatabaseManager';
+import { DatabaseManager, DatabaseConnection } from '../src/learneveryday/infrastructure/database/DatabaseManager';
 import { DatabaseConfiguration } from '../src/learneveryday/infrastructure/config/database.config';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,8 +8,10 @@ import * as path from 'path';
 /**
  * Simple Database Setup Script
  * 
- * This script executes the PostgreSQL schema file:
- * - PostgreSQL: executes postgresql-schema.sql
+ * This script executes all SQL migration files in the migrations directory:
+ * - Reads all .sql files from scripts/migrations
+ * - Executes them in alphabetical order
+ * - Tracks executed migrations in the migrations table
  */
 
 interface SetupResult {
@@ -28,7 +30,21 @@ class SimpleDatabaseSetup {
   }
 
   /**
-   * Main setup method - executes the PostgreSQL schema
+   * Gets the list of already executed migrations
+   */
+  private async getExecutedMigrations(connection: DatabaseConnection): Promise<string[]> {
+    try {
+      const result = await connection.query('SELECT filename FROM migrations ORDER BY date_executed');
+      return result.map((row: Record<string, unknown>) => row.filename as string);
+    } catch (error) {
+      console.error('🔄 Error on getExecutedMigrations', error);
+      return [];
+    }
+  }
+
+
+  /**
+   * Main setup method - executes all migration files in order
    */
   async executeSetup(): Promise<SetupResult> {
     const details: string[] = [];
@@ -50,21 +66,55 @@ class SimpleDatabaseSetup {
       details.push(`Username: ${postgresConfig.username}`);
 
       // Get a connection
-      const connection = await this.dbManager.getConnection('customers');
+      const connection = await this.dbManager.getConnection('migrations');
       
-      // Execute the PostgreSQL schema file
-      console.log('📋 Executing database schema...');
-      const schemaFile = 'postgresql-schema.sql';
-      const schemaPath = path.join(__dirname, 'sql', schemaFile);
+      // Read all migration files from the migrations directory
+      const migrationsDir = path.join(__dirname, 'migrations');
+      console.log('📁 Reading migration files from:', migrationsDir);
       
-      if (!fs.existsSync(schemaPath)) {
-        throw new Error(`Schema file not found: ${schemaPath}`);
+      if (!fs.existsSync(migrationsDir)) {
+        throw new Error(`Migrations directory not found: ${migrationsDir}`);
       }
       
-      const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-      await connection.query(schemaContent);
+      const migrationFiles = fs.readdirSync(migrationsDir)
+        .filter(file => file.endsWith('.sql'))
+        .sort(); // Sort files alphabetically to ensure consistent order
       
-      details.push(`✓ Executed schema: ${schemaFile}`);
+      if (migrationFiles.length === 0) {
+        throw new Error('No migration files found in migrations directory');
+      }
+      
+      details.push(`Found ${migrationFiles.length} migration files`);
+      
+      // Get already executed migrations
+      const executedMigrations = await this.getExecutedMigrations(connection);
+      details.push(`Found ${executedMigrations.length} already executed migrations`);
+      
+      // Execute each migration file in order
+      for (const migrationFile of migrationFiles) {
+        // Skip if already executed
+        if (executedMigrations.includes(migrationFile)) {
+          console.log(`⏭️  Skipping already executed migration: ${migrationFile}`);
+          details.push(`⏭️  Skipped migration: ${migrationFile} (already executed)`);
+          continue;
+        }
+        
+        console.log(`📋 Executing migration: ${migrationFile}`);
+        
+        const migrationPath = path.join(migrationsDir, migrationFile);
+        const migrationContent = fs.readFileSync(migrationPath, 'utf8');
+        
+        // Execute the migration
+        await connection.query(migrationContent);
+        
+        // Record the migration in the migrations table
+        await connection.query(
+          'INSERT INTO migrations (filename, date_executed) VALUES ($1, $2) ON CONFLICT (filename) DO NOTHING',
+          [migrationFile, new Date()]
+        );
+        
+        details.push(`✓ Executed migration: ${migrationFile}`);
+      }
 
       console.log('✅ Database setup completed successfully!');
       
@@ -108,10 +158,10 @@ class SimpleDatabaseSetup {
       for (const tableName of tables) {
         try {
           const connection = await this.dbManager.getConnection(tableName);
-          await connection.query(`DROP TABLE IF EXISTS ${tableName}`);
+          await connection.query(`DROP TABLE IF EXISTS ${tableName} CASCADE`);
           console.log(`✓ Dropped table '${tableName}'`);
-        } catch {
-          console.log(`Note: Could not drop table '${tableName}'`);
+        } catch (error) {
+          console.log(`Note: Could not drop table '${tableName}': ${error}`);
         }
       }
 
