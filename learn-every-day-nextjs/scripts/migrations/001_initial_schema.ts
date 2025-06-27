@@ -21,6 +21,7 @@ export class InitialSchemaMigration extends BaseMigration {
     const config = DatabaseConfiguration.getInstance();
     const isPostgreSQL = config.isPostgreSQL();
 
+    console.log('Creating customers table');
     // Create customers table
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS customers (
@@ -35,6 +36,7 @@ export class InitialSchemaMigration extends BaseMigration {
       )
     `);
 
+    console.log('Creating topics table');
     // Create topics table
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS topics (
@@ -46,6 +48,7 @@ export class InitialSchemaMigration extends BaseMigration {
       )
     `);
 
+    console.log('Creating topic_histories table');
     // Create topic_histories table
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS topic_histories (
@@ -57,6 +60,7 @@ export class InitialSchemaMigration extends BaseMigration {
       )
     `);
 
+    console.log('Creating task_processes table');
     // Create task_processes table
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS task_processes (
@@ -72,6 +76,7 @@ export class InitialSchemaMigration extends BaseMigration {
         FOREIGN KEY (customer_id) REFERENCES customers(id)
       )
     `);
+    console.log('Creating authentication_attempts table');
 
     // Create authentication_attempts table
     const isUsedDefault = isPostgreSQL ? 'false' : '0';
