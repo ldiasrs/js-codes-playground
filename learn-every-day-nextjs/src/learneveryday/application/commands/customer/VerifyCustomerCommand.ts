@@ -14,19 +14,18 @@ export interface VerifyCustomerCommandResult {
   token?: string;
 }
 
-export class VerifyCustomerCommand extends BaseCommand<VerifyCustomerCommandResult> {
+export class VerifyCustomerCommand extends BaseCommand<VerifyCustomerCommandResult, VerifyCustomerCommandData> {
   constructor(
-    private readonly data: VerifyCustomerCommandData,
     private readonly verifyCustomerFeature: VerifyCustomerFeature
   ) {
     super();
   }
 
-  async execute(): Promise<VerifyCustomerCommandResult> {
+  async execute(data: VerifyCustomerCommandData): Promise<VerifyCustomerCommandResult> {
     // Convert command data to feature data
     const featureData: VerifyCustomerFeatureData = {
-      email: this.data.email,
-      verificationCode: this.data.verificationCode
+      email: data.email,
+      verificationCode: data.verificationCode
     };
 
     // Execute the feature

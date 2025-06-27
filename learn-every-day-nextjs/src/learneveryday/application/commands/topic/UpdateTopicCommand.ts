@@ -7,19 +7,18 @@ export interface UpdateTopicCommandData {
   subject: string;
 }
 
-export class UpdateTopicCommand extends BaseCommand<TopicDTO> {
+export class UpdateTopicCommand extends BaseCommand<TopicDTO, UpdateTopicCommandData> {
   constructor(
-    private readonly data: UpdateTopicCommandData,
     private readonly updateTopicFeature: UpdateTopicFeature
   ) {
     super();
   }
 
-  async execute(): Promise<TopicDTO> {
+  async execute(data: UpdateTopicCommandData): Promise<TopicDTO> {
     // Convert command data to feature data
     const featureData: UpdateTopicFeatureData = {
-      id: this.data.id,
-      subject: this.data.subject
+      id: data.id,
+      subject: data.subject
     };
 
     // Execute the feature

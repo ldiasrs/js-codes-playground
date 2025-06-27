@@ -15,11 +15,11 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const verifyCommand = container.createInstance('VerifyCustomerCommand', { 
+    const verifyCommand = container.get<VerifyCustomerCommand>('VerifyCustomerCommand');
+    const result = await verifyCommand.execute({ 
       email, 
       verificationCode 
-    }) as VerifyCustomerCommand;
-    const result = await verifyCommand.execute();
+    });
 
     if (result.success && result.customer && result.token) {
       // Convert CustomerDTO to UserData format

@@ -74,12 +74,12 @@ export async function PUT(
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.createInstance<UpdateTopicCommand>('UpdateTopicCommand', {
+    const command = container.get<UpdateTopicCommand>('UpdateTopicCommand');
+    
+    const topic = await command.execute({
       id,
       subject: subject.trim()
     });
-    
-    const topic = await command.execute();
 
     return NextResponse.json({
       success: true,
@@ -110,11 +110,9 @@ export async function DELETE(
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.createInstance<DeleteTopicCommand>('DeleteTopicCommand', {
-      id
-    });
+    const command = container.get<DeleteTopicCommand>('DeleteTopicCommand');
     
-    await command.execute();
+    await command.execute({ id });
 
     return NextResponse.json({
       success: true,

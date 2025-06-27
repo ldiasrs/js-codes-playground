@@ -9,9 +9,8 @@ export interface GenerateTopicHistoryCommandData {
   topicId: string;
 }
 
-export class GenerateTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
+export class GenerateTopicHistoryCommand extends BaseCommand<TopicHistoryDTO, GenerateTopicHistoryCommandData> {
   constructor(
-    private readonly data: GenerateTopicHistoryCommandData,
     private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly topicRepository: TopicRepositoryPort
@@ -19,16 +18,16 @@ export class GenerateTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
     super();
   }
 
-  async execute(): Promise<TopicHistoryDTO> {
+  async execute(data: GenerateTopicHistoryCommandData): Promise<TopicHistoryDTO> {
     // Get the topic to find the customerId
-    const topic = await this.topicRepository.findById(this.data.topicId);
+    const topic = await this.topicRepository.findById(data.topicId);
     if (!topic) {
-      throw new Error(`Topic with ID ${this.data.topicId} not found`);
+      throw new Error(`Topic with ID ${data.topicId} not found`);
     }
 
     // Create a TaskProcess instance for the runner
     const taskProcess = new TaskProcess(
-      this.data.topicId,
+      data.topicId,
       topic.customerId,
       TaskProcess.GENERATE_TOPIC_HISTORY,
       'running'
@@ -38,13 +37,13 @@ export class GenerateTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
     await this.generateTopicHistoryTaskRunner.execute(taskProcess);
 
     // Get the latest generated topic history
-    const topicHistories = await this.topicHistoryRepository.findByTopicId(this.data.topicId);
+    const topicHistories = await this.topicHistoryRepository.findByTopicId(data.topicId);
     const latestTopicHistory = topicHistories.sort((a, b) => 
       b.createdAt.getTime() - a.createdAt.getTime()
     )[0];
 
     if (!latestTopicHistory) {
-      throw new Error(`Failed to generate topic history for topic ID ${this.data.topicId}`);
+      throw new Error(`Failed to generate topic history for topic ID ${data.topicId}`);
     }
 
     // Convert result to DTO

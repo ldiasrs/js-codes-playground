@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
 
     // Get server container and create command
     const container = ServerContainerBuilder.build();
-    const createCustomerCommand = container.createInstance('CreateCustomerCommand', body) as CreateCustomerCommand;
+    const createCustomerCommand = container.get<CreateCustomerCommand>('CreateCustomerCommand');
     
     // Execute the command
-    const customerDTO = await createCustomerCommand.execute();
+    const customerDTO = await createCustomerCommand.execute(body);
     
     return NextResponse.json(
       { 

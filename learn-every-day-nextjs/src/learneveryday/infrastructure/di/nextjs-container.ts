@@ -32,16 +32,16 @@ import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/S
 import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 
 // Commands
-import { CreateCustomerCommand, CreateCustomerCommandData } from '../../application/commands/customer/CreateCustomerCommand';
-import { UpdateCustomerCommand, UpdateCustomerCommandData } from '../../application/commands/customer/UpdateCustomerCommand';
-import { DeleteCustomerCommand, DeleteCustomerCommandData } from '../../application/commands/customer/DeleteCustomerCommand';
-import { AuthCustomerCommand, AuthCustomerCommandData } from '../../application/commands/customer/AuthCustomerCommand';
-import { VerifyCustomerCommand, VerifyCustomerCommandData } from '../../application/commands/customer/VerifyCustomerCommand';
-import { AddTopicCommand, AddTopicCommandData } from '../../application/commands/topic/AddTopicCommand';
-import { UpdateTopicCommand, UpdateTopicCommandData } from '../../application/commands/topic/UpdateTopicCommand';
-import { DeleteTopicCommand, DeleteTopicCommandData } from '../../application/commands/topic/DeleteTopicCommand';
-import { GenerateTopicHistoryCommand, GenerateTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
-import { GenerateAndEmailTopicHistoryCommand, GenerateAndEmailTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
+import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
+import { UpdateCustomerCommand } from '../../application/commands/customer/UpdateCustomerCommand';
+import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
+import { AuthCustomerCommand } from '../../application/commands/customer/AuthCustomerCommand';
+import { VerifyCustomerCommand } from '../../application/commands/customer/VerifyCustomerCommand';
+import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
+import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
+import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
+import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
+import { GenerateAndEmailTopicHistoryCommand } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
 
 // Queries
 import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
@@ -174,56 +174,46 @@ export class NextJSContainer implements Container {
       this.get('Logger')
     ));
 
-    // Register command factories
-    this.registerCommandFactory('CreateCustomerCommand', (data: unknown) => new CreateCustomerCommand(
-      data as CreateCustomerCommandData,
+    // Register commands
+    this.registerSingleton('CreateCustomerCommand', () => new CreateCustomerCommand(
       this.get('CreateCustomerFeature')
     ));
 
-    this.registerCommandFactory('UpdateCustomerCommand', (data: unknown) => new UpdateCustomerCommand(
-      data as UpdateCustomerCommandData,
+    this.registerSingleton('UpdateCustomerCommand', () => new UpdateCustomerCommand(
       this.get('UpdateCustomerFeature')
     ));
 
-    this.registerCommandFactory('DeleteCustomerCommand', (data: unknown) => new DeleteCustomerCommand(
-      data as DeleteCustomerCommandData,
+    this.registerSingleton('DeleteCustomerCommand', () => new DeleteCustomerCommand(
       this.get('DeleteCustomerFeature')
     ));
 
-    this.registerCommandFactory('AuthCustomerCommand', (data: unknown) => new AuthCustomerCommand(
-      data as AuthCustomerCommandData,
+    this.registerSingleton('AuthCustomerCommand', () => new AuthCustomerCommand(
       this.get('AuthCustomerFeature')
     ));
 
-    this.registerCommandFactory('VerifyCustomerCommand', (data: unknown) => new VerifyCustomerCommand(
-      data as VerifyCustomerCommandData,
+    this.registerSingleton('VerifyCustomerCommand', () => new VerifyCustomerCommand(
       this.get('VerifyCustomerFeature')
     ));
 
-    this.registerCommandFactory('AddTopicCommand', (data: unknown) => new AddTopicCommand(
-      data as AddTopicCommandData,
+    this.registerSingleton('AddTopicCommand', () => new AddTopicCommand(
       this.get('AddTopicFeature')
     ));
 
-    this.registerCommandFactory('UpdateTopicCommand', (data: unknown) => new UpdateTopicCommand(
-      data as UpdateTopicCommandData,
+    this.registerSingleton('UpdateTopicCommand', () => new UpdateTopicCommand(
       this.get('UpdateTopicFeature')
     ));
 
-    this.registerCommandFactory('DeleteTopicCommand', (data: unknown) => new DeleteTopicCommand(
-      data as DeleteTopicCommandData,
+    this.registerSingleton('DeleteTopicCommand', () => new DeleteTopicCommand(
       this.get('DeleteTopicFeature')
     ));
 
-    this.registerCommandFactory('GenerateTopicHistoryCommand', (data: unknown) => new GenerateTopicHistoryCommand(
-      data as GenerateTopicHistoryCommandData,
+    this.registerSingleton('GenerateTopicHistoryCommand', () => new GenerateTopicHistoryCommand(
       this.get('GenerateTopicHistoryTaskRunner'),
       this.get('TopicHistoryRepository'),
       this.get('TopicRepository')
     ));
 
-    this.registerCommandFactory('GenerateAndEmailTopicHistoryCommand', (data: unknown) => new GenerateAndEmailTopicHistoryCommand(
-      data as GenerateAndEmailTopicHistoryCommandData,
+    this.registerSingleton('GenerateAndEmailTopicHistoryCommand', () => new GenerateAndEmailTopicHistoryCommand(
       this.get('GenerateAndEmailTopicHistoryFeature')
     ));
 

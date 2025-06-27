@@ -13,22 +13,21 @@ export interface UpdateCustomerCommandData {
   phoneNumber?: string;
 }
 
-export class UpdateCustomerCommand extends BaseCommand<CustomerDTO> {
+export class UpdateCustomerCommand extends BaseCommand<CustomerDTO, UpdateCustomerCommandData> {
   constructor(
-    private readonly data: UpdateCustomerCommandData,
     private readonly updateCustomerFeature: UpdateCustomerFeature
   ) {
     super();
   }
 
-  async execute(): Promise<CustomerDTO> {
+  async execute(data: UpdateCustomerCommandData): Promise<CustomerDTO> {
     // Convert command data to feature data
     const featureData: UpdateCustomerFeatureData = {
-      id: this.data.id,
-      customerName: this.data.customerName,
-      govIdentification: this.data.govIdentification,
-      email: this.data.email,
-      phoneNumber: this.data.phoneNumber
+      id: data.id,
+      customerName: data.customerName,
+      govIdentification: data.govIdentification,
+      email: data.email,
+      phoneNumber: data.phoneNumber
     };
 
     // Execute the feature

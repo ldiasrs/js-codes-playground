@@ -13,18 +13,17 @@ export interface AuthCustomerCommandResult {
   verificationCode?: string;
 }
 
-export class AuthCustomerCommand extends BaseCommand<AuthCustomerCommandResult> {
+export class AuthCustomerCommand extends BaseCommand<AuthCustomerCommandResult, AuthCustomerCommandData> {
   constructor(
-    private readonly data: AuthCustomerCommandData,
     private readonly authCustomerFeature: AuthCustomerFeature
   ) {
     super();
   }
 
-  async execute(): Promise<AuthCustomerCommandResult> {
+  async execute(data: AuthCustomerCommandData): Promise<AuthCustomerCommandResult> {
     // Convert command data to feature data
     const featureData: AuthCustomerFeatureData = {
-      email: this.data.email
+      email: data.email
     };
 
     // Execute the feature

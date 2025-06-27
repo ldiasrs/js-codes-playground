@@ -5,18 +5,17 @@ export interface DeleteTopicCommandData {
   id: string;
 }
 
-export class DeleteTopicCommand extends BaseCommand<boolean> {
+export class DeleteTopicCommand extends BaseCommand<boolean, DeleteTopicCommandData> {
   constructor(
-    private readonly data: DeleteTopicCommandData,
     private readonly deleteTopicFeature: DeleteTopicFeature
   ) {
     super();
   }
 
-  async execute(): Promise<boolean> {
+  async execute(data: DeleteTopicCommandData): Promise<boolean> {
     // Convert command data to feature data
     const featureData: DeleteTopicFeatureData = {
-      id: this.data.id
+      id: data.id
     };
 
     // Execute the feature

@@ -53,12 +53,12 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.createInstance<AddTopicCommand>('AddTopicCommand', {
+    const command = container.get<AddTopicCommand>('AddTopicCommand');
+    
+    const topic = await command.execute({
       customerId,
       subject: subject.trim()
     });
-    
-    const topic = await command.execute();
 
     return NextResponse.json({
       success: true,

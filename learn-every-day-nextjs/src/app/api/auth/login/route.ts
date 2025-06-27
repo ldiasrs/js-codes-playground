@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const authCommand = container.createInstance('AuthCustomerCommand', { email }) as AuthCustomerCommand;
-    const result = await authCommand.execute();
+    const authCommand = container.get<AuthCustomerCommand>('AuthCustomerCommand');
+    const result = await authCommand.execute({ email });
 
     if (result.success) {
       return NextResponse.json({

@@ -12,21 +12,20 @@ export interface CreateCustomerCommandData {
   phoneNumber: string;
 }
 
-export class CreateCustomerCommand extends BaseCommand<CustomerDTO> {
+export class CreateCustomerCommand extends BaseCommand<CustomerDTO, CreateCustomerCommandData> {
   constructor(
-    private readonly data: CreateCustomerCommandData,
     private readonly createCustomerFeature: CreateCustomerFeature
   ) {
     super();
   }
 
-  async execute(): Promise<CustomerDTO> {
+  async execute(data: CreateCustomerCommandData): Promise<CustomerDTO> {
     // Convert command data to feature data
     const featureData: CreateCustomerFeatureData = {
-      customerName: this.data.customerName,
-      govIdentification: this.data.govIdentification,
-      email: this.data.email,
-      phoneNumber: this.data.phoneNumber
+      customerName: data.customerName,
+      govIdentification: data.govIdentification,
+      email: data.email,
+      phoneNumber: data.phoneNumber
     };
 
     // Execute the feature

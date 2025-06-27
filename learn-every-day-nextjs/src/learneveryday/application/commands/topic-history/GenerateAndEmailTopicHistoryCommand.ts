@@ -7,19 +7,18 @@ export interface GenerateAndEmailTopicHistoryCommandData {
   recipientEmail: string;
 }
 
-export class GenerateAndEmailTopicHistoryCommand extends BaseCommand<TopicHistoryDTO> {
+export class GenerateAndEmailTopicHistoryCommand extends BaseCommand<TopicHistoryDTO, GenerateAndEmailTopicHistoryCommandData> {
   constructor(
-    private readonly data: GenerateAndEmailTopicHistoryCommandData,
     private readonly generateAndEmailTopicHistoryFeature: GenerateAndEmailTopicHistoryFeature
   ) {
     super();
   }
 
-  async execute(): Promise<TopicHistoryDTO> {
+  async execute(data: GenerateAndEmailTopicHistoryCommandData): Promise<TopicHistoryDTO> {
     // Convert command data to feature data
     const featureData: GenerateAndEmailTopicHistoryFeatureData = {
-      topicId: this.data.topicId,
-      recipientEmail: this.data.recipientEmail
+      topicId: data.topicId,
+      recipientEmail: data.recipientEmail
     };
 
     // Execute the feature
