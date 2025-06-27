@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && next dev --turbopack",
-    "build": "next build",
+    "build": "next build && npm run db:setup",
     "start": "next start",
     "lint": "next lint",
     "db:setup": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts",
