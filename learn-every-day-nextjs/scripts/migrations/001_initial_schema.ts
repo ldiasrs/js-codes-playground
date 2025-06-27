@@ -79,8 +79,7 @@ export class InitialSchemaMigration extends BaseMigration {
 
 
     // Create authentication_attempts table
-    const isUsedDefault = isPostgreSQL ? 'false' : '0';
-    console.log('Creating authentication_attempts table with isUsedDefault: ', isUsedDefault);
+    console.log('Creating authentication_attempts table with isUsedDefault: ');
     await this.executeSQL(connection, `
       CREATE TABLE IF NOT EXISTS authentication_attempts (
         id TEXT PRIMARY KEY,
@@ -88,7 +87,7 @@ export class InitialSchemaMigration extends BaseMigration {
         encrypted_verification_code TEXT NOT NULL,
         attempt_date TEXT NOT NULL,
         expires_at TEXT NOT NULL,
-        is_used BOOLEAN NOT NULL DEFAULT ${isUsedDefault},
+        is_used BOOLEAN NOT NULL,
         FOREIGN KEY (customer_id) REFERENCES customers(id)
       )
     `);
