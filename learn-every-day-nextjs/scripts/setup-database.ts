@@ -2,14 +2,19 @@
 
 import { DatabaseManager } from '../src/learneveryday/infrastructure/database/DatabaseManager';
 import { DatabaseConfiguration } from '../src/learneveryday/infrastructure/config/database.config';
+import { MigrationManager } from './migrations/MigrationManager';
+import { MigrationRegistry } from './migrations/MigrationRegistry';
 import * as fs from 'fs';
-import { DatabaseConnection } from '../src/learneveryday/infrastructure/database/DatabaseManager';
 
 /**
- * Database Setup Script
+ * Versioned Database Setup Script v2
  * 
- * This script initializes the complete database structure for the Learn Every Day application.
- * It creates all necessary tables and indexes for both SQLite and PostgreSQL databases.
+ * This script provides a comprehensive database management system with:
+ * - Versioned migrations for schema changes
+ * - Data seeding capabilities
+ * - Migration rollback functionality
+ * - Database status monitoring
+ * - Manual data insertion utilities
  */
 
 interface SetupResult {
@@ -18,30 +23,48 @@ interface SetupResult {
   details?: string[];
 }
 
-class DatabaseSetup {
+interface MigrationStatus {
+  applied: Array<{
+    version: number;
+    name: string;
+    applied_at: string;
+  }>;
+  pending: Array<{
+    version: number;
+    name: string;
+  }>;
+  total: number;
+  appliedCount: number;
+  pendingCount: number;
+}
+
+class VersionedDatabaseSetup {
   private dbManager: DatabaseManager;
   private config: DatabaseConfiguration;
+  private migrationManager: MigrationManager;
 
   constructor() {
     this.config = DatabaseConfiguration.getInstance();
     this.dbManager = DatabaseManager.getInstance();
+    this.migrationManager = MigrationManager.getInstance();
   }
 
   /**
-   * Executes the complete database setup process
+   * Main setup method - runs migrations and optionally seeds data
    */
-  async executeSetup(): Promise<SetupResult> {
+  async executeSetup(options: {
+    seedData?: boolean;
+    skipMigrations?: boolean;
+  } = {}): Promise<SetupResult> {
     const details: string[] = [];
     
     try {
-
+      console.log('🚀 Starting versioned database setup...');
       
       // Get database configuration
       const dbType = this.config.getType();
       details.push(`Database type: ${dbType}`);
       
-      console.log('🚀 Starting database setup for type: ' + dbType);
-
       if (dbType === 'sqlite') {
         const sqliteConfig = this.config.getSQLiteConfig();
         details.push(`SQLite database: ${sqliteConfig.database}`);
@@ -57,55 +80,57 @@ class DatabaseSetup {
         details.push(`Username: ${postgresConfig.username}`);
       }
 
-      // Initialize all tables
-      const tables = [
-        'customers',
-        'topics', 
-        'topic_histories',
-        'task_processes',
-        'authentication_attempts'
-      ];
-
-      console.log('📋 Creating database tables...');
+      // Get a connection for migrations
+      const connection = await this.dbManager.getConnection('customers');
       
-      for (const tableName of tables) {
-        try {
-          const connection = await this.dbManager.getConnection(tableName);
-          details.push(`✓ Table '${tableName}' created/verified`);
-          
-          // Create indexes for better performance
-          await this.createIndexes(connection, tableName);
-          
-        } catch (error) {
-          details.push(`✗ Failed to create table '${tableName}': ${error}`);
-          throw error;
+      // Initialize migration system
+      console.log('📋 Initializing migration system...');
+      await this.migrationManager.initialize(connection);
+      details.push('✓ Migration system initialized');
+
+      // Validate migrations
+      console.log('🔍 Validating migrations...');
+      const validation = MigrationRegistry.validateMigrations();
+      if (!validation.valid) {
+        throw new Error(`Migration validation failed: ${validation.errors.join(', ')}`);
+      }
+      details.push('✓ Migrations validated');
+
+      // Execute migrations if not skipped
+      if (!options.skipMigrations) {
+        console.log('🔄 Executing migrations...');
+        const migrations = MigrationRegistry.getSortedMigrations();
+        const results = await this.migrationManager.executeMigrations(connection, migrations);
+        
+        const successCount = results.filter(r => r.success).length;
+        const failureCount = results.filter(r => !r.success).length;
+        
+        details.push(`✓ Executed ${successCount} migrations successfully`);
+        if (failureCount > 0) {
+          details.push(`✗ ${failureCount} migrations failed`);
+          const failedMigrations = results.filter(r => !r.success);
+          failedMigrations.forEach(fm => details.push(`  - ${fm.version}: ${fm.name} - ${fm.message}`));
         }
       }
 
-      // Create additional indexes for better query performance
-      console.log('🔍 Creating database indexes...');
-      await this.createAdditionalIndexes();
-      details.push('✓ Additional indexes created');
+      // Get final status
+      const status = await this.getMigrationStatus();
+      details.push(`📊 Final status: ${status.appliedCount}/${status.total} migrations applied`);
 
-      // Verify database structure
-      console.log('🔍 Verifying database structure...');
-      await this.verifyDatabaseStructure();
-      details.push('✓ Database structure verified');
-
-      console.log('✅ Database setup completed successfully!');
+      console.log('✅ Versioned database setup completed successfully!');
       
       return {
         success: true,
-        message: 'Database setup completed successfully',
+        message: 'Versioned database setup completed successfully',
         details
       };
 
     } catch (error) {
-      console.error('❌ Database setup failed:', error);
+      console.error('❌ Versioned database setup failed:', error);
       
       return {
         success: false,
-        message: `Database setup failed: ${error}`,
+        message: `Versioned database setup failed: ${error}`,
         details
       };
     } finally {
@@ -113,6 +138,74 @@ class DatabaseSetup {
       await this.dbManager.closeAll();
     }
   }
+
+  /**
+   * Gets current migration status
+   */
+  async getMigrationStatus(): Promise<MigrationStatus> {
+    const connection = await this.dbManager.getConnection('customers');
+    const migrations = MigrationRegistry.getSortedMigrations();
+    const status = await this.migrationManager.getMigrationStatus(connection, migrations);
+    
+    return {
+      applied: status.applied.map(m => ({
+        version: m.version,
+        name: m.name,
+        applied_at: m.applied_at
+      })),
+      pending: status.pending.map(m => ({
+        version: m.version,
+        name: m.name
+      })),
+      total: status.total,
+      appliedCount: status.appliedCount,
+      pendingCount: status.pendingCount
+    };
+  }
+
+  /**
+   * Rolls back migrations to a specific version
+   */
+  async rollbackMigrations(targetVersion?: number): Promise<SetupResult> {
+    const details: string[] = [];
+    
+    try {
+      console.log('🔄 Rolling back migrations...');
+      
+      const connection = await this.dbManager.getConnection('customers');
+      const migrations = MigrationRegistry.getSortedMigrations();
+      
+      const results = await this.migrationManager.rollbackMigrations(connection, migrations, targetVersion);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+      
+      details.push(`✓ Rolled back ${successCount} migrations successfully`);
+      if (failureCount > 0) {
+        details.push(`✗ ${failureCount} rollbacks failed`);
+        const failedRollbacks = results.filter(r => !r.success);
+        failedRollbacks.forEach(fr => details.push(`  - ${fr.version}: ${fr.name} - ${fr.message}`));
+      }
+
+      return {
+        success: failureCount === 0,
+        message: `Rollback completed: ${successCount} successful, ${failureCount} failed`,
+        details
+      };
+
+    } catch (error) {
+      console.error('❌ Migration rollback failed:', error);
+      
+      return {
+        success: false,
+        message: `Migration rollback failed: ${error}`,
+        details
+      };
+    } finally {
+      await this.dbManager.closeAll();
+    }
+  }
+
 
   /**
    * Ensures the data directory exists for SQLite
@@ -124,131 +217,7 @@ class DatabaseSetup {
   }
 
   /**
-   * Creates indexes for specific tables
-   */
-  private async createIndexes(connection: DatabaseConnection, tableName: string): Promise<void> {
-    const indexes = this.getTableIndexes(tableName);
-    
-    for (const index of indexes) {
-      try {
-        await connection.query(index);
-      } catch {
-        // Index might already exist, which is fine
-        console.log(`Index for ${tableName} might already exist: ${index}`);
-      }
-    }
-  }
-
-  /**
-   * Creates additional indexes for better query performance
-   */
-  private async createAdditionalIndexes(): Promise<void> {
-    const additionalIndexes = [
-      // Customer indexes
-      'CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email)',
-      'CREATE INDEX IF NOT EXISTS idx_customers_gov_id ON customers(gov_identification_content)',
-      'CREATE INDEX IF NOT EXISTS idx_customers_tier ON customers(tier)',
-      
-      // Topic indexes
-      'CREATE INDEX IF NOT EXISTS idx_topics_customer_id ON topics(customer_id)',
-      'CREATE INDEX IF NOT EXISTS idx_topics_date_created ON topics(date_created)',
-      
-      // Topic history indexes
-      'CREATE INDEX IF NOT EXISTS idx_topic_histories_topic_id ON topic_histories(topic_id)',
-      'CREATE INDEX IF NOT EXISTS idx_topic_histories_created_at ON topic_histories(created_at)',
-      
-      // Task process indexes
-      'CREATE INDEX IF NOT EXISTS idx_task_processes_customer_id ON task_processes(customer_id)',
-      'CREATE INDEX IF NOT EXISTS idx_task_processes_status ON task_processes(status)',
-      'CREATE INDEX IF NOT EXISTS idx_task_processes_scheduled_to ON task_processes(scheduled_to)',
-      
-      // Authentication attempt indexes
-      'CREATE INDEX IF NOT EXISTS idx_auth_attempts_customer_id ON authentication_attempts(customer_id)',
-      'CREATE INDEX IF NOT EXISTS idx_auth_attempts_expires_at ON authentication_attempts(expires_at)',
-      'CREATE INDEX IF NOT EXISTS idx_auth_attempts_is_used ON authentication_attempts(is_used)'
-    ];
-
-    for (const indexSQL of additionalIndexes) {
-      try {
-        // Use any table connection to execute the index
-        const connection = await this.dbManager.getConnection('customers');
-        await connection.query(indexSQL);
-      } catch {
-        console.log(`Index creation (might already exist): ${indexSQL}`);
-      }
-    }
-  }
-
-  /**
-   * Returns table-specific indexes
-   */
-  private getTableIndexes(tableName: string): string[] {
-    switch (tableName) {
-      case 'customers':
-        return [
-          'CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email)',
-          'CREATE INDEX IF NOT EXISTS idx_customers_gov_id ON customers(gov_identification_content)',
-          'CREATE INDEX IF NOT EXISTS idx_customers_tier ON customers(tier)'
-        ];
-      
-      case 'topics':
-        return [
-          'CREATE INDEX IF NOT EXISTS idx_topics_customer_id ON topics(customer_id)',
-          'CREATE INDEX IF NOT EXISTS idx_topics_date_created ON topics(date_created)'
-        ];
-      
-      case 'topic_histories':
-        return [
-          'CREATE INDEX IF NOT EXISTS idx_topic_histories_topic_id ON topic_histories(topic_id)',
-          'CREATE INDEX IF NOT EXISTS idx_topic_histories_created_at ON topic_histories(created_at)'
-        ];
-      
-      case 'task_processes':
-        return [
-          'CREATE INDEX IF NOT EXISTS idx_task_processes_customer_id ON task_processes(customer_id)',
-          'CREATE INDEX IF NOT EXISTS idx_task_processes_status ON task_processes(status)',
-          'CREATE INDEX IF NOT EXISTS idx_task_processes_scheduled_to ON task_processes(scheduled_to)'
-        ];
-      
-      case 'authentication_attempts':
-        return [
-          'CREATE INDEX IF NOT EXISTS idx_auth_attempts_customer_id ON authentication_attempts(customer_id)',
-          'CREATE INDEX IF NOT EXISTS idx_auth_attempts_expires_at ON authentication_attempts(expires_at)',
-          'CREATE INDEX IF NOT EXISTS idx_auth_attempts_is_used ON authentication_attempts(is_used)'
-        ];
-      
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Verifies the database structure by checking if all tables exist
-   */
-  private async verifyDatabaseStructure(): Promise<void> {
-    const expectedTables = [
-      'customers',
-      'topics',
-      'topic_histories', 
-      'task_processes',
-      'authentication_attempts'
-    ];
-
-    for (const tableName of expectedTables) {
-      const connection = await this.dbManager.getConnection(tableName);
-      
-      // Try to query the table to verify it exists
-      try {
-        await connection.query(`SELECT COUNT(*) as count FROM ${tableName}`);
-        console.log(`✓ Table '${tableName}' verified`);
-      } catch (error) {
-        throw new Error(`Table '${tableName}' verification failed: ${error}`);
-      }
-    }
-  }
-
-  /**
-   * Resets the database setup (for testing purposes)
+   * Resets the database completely (for testing purposes)
    */
   async resetDatabase(): Promise<SetupResult> {
     try {
@@ -259,7 +228,8 @@ class DatabaseSetup {
         'topic_histories',
         'task_processes', 
         'topics',
-        'customers'
+        'customers',
+        'migrations'
       ];
 
       // Drop tables in reverse order (respecting foreign key constraints)
@@ -276,6 +246,7 @@ class DatabaseSetup {
       // Reset the database manager instance
       DatabaseManager.resetInstance();
       DatabaseConfiguration.resetInstance();
+      MigrationManager.resetInstance();
 
       console.log('✅ Database reset completed');
       
@@ -299,42 +270,122 @@ class DatabaseSetup {
  * Main execution function
  */
 async function main(): Promise<void> {
-  const setup = new DatabaseSetup();
+  const setup = new VersionedDatabaseSetup();
   
   // Check command line arguments
   const args = process.argv.slice(2);
   const command = args[0];
+  const options = args.slice(1);
 
-  if (command === 'reset') {
-    console.log('🔄 Database reset mode');
-    const result = await setup.resetDatabase();
-    
-    if (result.success) {
-      console.log('✅ Reset completed successfully');
-      process.exit(0);
-    } else {
-      console.error('❌ Reset failed:', result.message);
-      process.exit(1);
-    }
-  } else {
-    console.log('🚀 Database setup mode');
-    const result = await setup.executeSetup();
-    
-    if (result.success) {
-      console.log('✅ Setup completed successfully');
-      if (result.details) {
-        console.log('\n📋 Setup details:');
-        result.details.forEach(detail => console.log(`  ${detail}`));
+  switch (command) {
+    case 'setup':
+      console.log('🚀 Database setup mode');
+      const seedData = options.includes('--seed');
+      const skipMigrations = options.includes('--skip-migrations');
+      const result = await setup.executeSetup({ seedData, skipMigrations });
+      
+      if (result.success) {
+        console.log('✅ Setup completed successfully');
+        if (result.details) {
+          console.log('\n📋 Setup details:');
+          result.details.forEach(detail => console.log(`  ${detail}`));
+        }
+        process.exit(0);
+      } else {
+        console.error('❌ Setup failed:', result.message);
+        if (result.details) {
+          console.log('\n📋 Setup details:');
+          result.details.forEach(detail => console.log(`  ${detail}`));
+        }
+        process.exit(1);
       }
-      process.exit(0);
-    } else {
-      console.error('❌ Setup failed:', result.message);
-      if (result.details) {
-        console.log('\n📋 Setup details:');
-        result.details.forEach(detail => console.log(`  ${detail}`));
+      break;
+
+    case 'status':
+      console.log('📊 Getting database status...');
+      const status = await setup.getMigrationStatus();
+      console.log(`\nMigration Status:`);
+      console.log(`  Applied: ${status.appliedCount}/${status.total}`);
+      console.log(`  Pending: ${status.pendingCount}`);
+      
+      if (status.applied.length > 0) {
+        console.log(`\nApplied Migrations:`);
+        status.applied.forEach(m => console.log(`  ${m.version}: ${m.name} (${m.applied_at})`));
       }
-      process.exit(1);
-    }
+      
+      if (status.pending.length > 0) {
+        console.log(`\nPending Migrations:`);
+        status.pending.forEach(m => console.log(`  ${m.version}: ${m.name}`));
+      }
+      break;
+
+    case 'rollback':
+      const targetVersion = options[0] ? parseInt(options[0]) : undefined;
+      console.log(`🔄 Rolling back migrations${targetVersion ? ` to version ${targetVersion}` : ''}...`);
+      const rollbackResult = await setup.rollbackMigrations(targetVersion);
+      
+      if (rollbackResult.success) {
+        console.log('✅ Rollback completed successfully');
+        if (rollbackResult.details) {
+          console.log('\n📋 Rollback details:');
+          rollbackResult.details.forEach(detail => console.log(`  ${detail}`));
+        }
+        process.exit(0);
+      } else {
+        console.error('❌ Rollback failed:', rollbackResult.message);
+        if (rollbackResult.details) {
+          console.log('\n📋 Rollback details:');
+          rollbackResult.details.forEach(detail => console.log(`  ${detail}`));
+        }
+        process.exit(1);
+      }
+      break;
+
+   
+
+
+    case 'reset':
+      console.log('🔄 Database reset mode');
+      const resetResult = await setup.resetDatabase();
+      
+      if (resetResult.success) {
+        console.log('✅ Reset completed successfully');
+        process.exit(0);
+      } else {
+        console.error('❌ Reset failed:', resetResult.message);
+        process.exit(1);
+      }
+      break;
+
+    default:
+      console.log(`
+🚀 Versioned Database Setup Script v2
+
+Usage:
+  npm run db:setup-v2 <command> [options]
+
+Commands:
+  setup                    Run database setup with migrations
+  status                   Show migration and database status
+  rollback [version]       Rollback migrations to specified version
+  seed                     Seed sample data
+  clear-data               Clear all seeded data
+  stats                    Show database statistics
+  reset                    Reset database completely
+
+Options for setup:
+  --seed                   Include sample data seeding
+  --skip-migrations        Skip running migrations
+
+Examples:
+  npm run db:setup-v2 setup
+  npm run db:setup-v2 setup --seed
+  npm run db:setup-v2 status
+  npm run db:setup-v2 rollback 1
+  npm run db:setup-v2 seed
+  npm run db:setup-v2 stats
+      `);
+      process.exit(0);
   }
 }
 
@@ -346,4 +397,4 @@ if (require.main === module) {
   });
 }
 
-export { DatabaseSetup }; 
+export { VersionedDatabaseSetup }; 
