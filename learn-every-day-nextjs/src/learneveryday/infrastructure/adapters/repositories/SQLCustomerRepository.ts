@@ -1,4 +1,4 @@
-import { Customer } from '../../../domain/customer/entities/Customer';
+import { Customer, CustomerTier } from '../../../domain/customer/entities/Customer';
 import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../../domain/customer/ports/CustomerRepositoryPort';
 import { GovIdentificationType } from '../../../domain/customer/entities/GovIdentification';
 import { DatabaseManager } from '../../database/DatabaseManager';
@@ -11,6 +11,7 @@ interface CustomerData {
   gov_identification_content: string;
   email: string;
   phone_number: string;
+  tier: string;
   date_created: string;
 }
 
@@ -31,13 +32,14 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
       gov_identification_content: customer.govIdentification.content,
       email: customer.email,
       phone_number: customer.phoneNumber,
+      tier: customer.tier,
       date_created: customer.dateCreated.toISOString()
     };
 
     await connection.query(
       `INSERT OR REPLACE INTO customers 
-       (id, customer_name, gov_identification_type, gov_identification_content, email, phone_number, date_created)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (id, customer_name, gov_identification_type, gov_identification_content, email, phone_number, tier, date_created)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         customerData.id,
         customerData.customer_name,
@@ -45,6 +47,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
         customerData.gov_identification_content,
         customerData.email,
         customerData.phone_number,
+        customerData.tier,
         customerData.date_created
       ]
     );
@@ -115,6 +118,17 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     return this.mapToCustomer(rows[0]);
   }
 
+  async findByTier(tier: string): Promise<Customer[]> {
+    const connection = await this.dbManager.getConnection('customers');
+    
+    const rows = await connection.query(
+      'SELECT * FROM customers WHERE tier = ?',
+      [tier]
+    ) as unknown as CustomerData[];
+
+    return rows.map(row => this.mapToCustomer(row));
+  }
+
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
@@ -146,6 +160,11 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
         sql += ' AND gov_identification_content LIKE ?';
         params.push(`%${criteria.govIdentification.content}%`);
       }
+    }
+
+    if (criteria.tier) {
+      sql += ' AND tier = ?';
+      params.push(criteria.tier);
     }
 
     if (criteria.dateFrom || criteria.dateTo) {
@@ -225,7 +244,8 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
       data.email,
       data.phone_number,
       data.id,
-      new Date(data.date_created)
+      new Date(data.date_created),
+      data.tier as CustomerTier
     );
   }
 } 

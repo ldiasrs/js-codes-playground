@@ -1,6 +1,7 @@
 import { BaseCommand } from '../Command';
 import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
 import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../domain/customer/usecase/CreateCustomerFeature';
+import { CustomerTier } from '../../../domain/customer/entities/Customer';
 
 export interface CreateCustomerCommandData {
   customerName: string;
@@ -10,28 +11,28 @@ export interface CreateCustomerCommandData {
   };
   email: string;
   phoneNumber: string;
+  tier?: CustomerTier;
 }
 
 export class CreateCustomerCommand extends BaseCommand<CustomerDTO, CreateCustomerCommandData> {
-  constructor(
-    private readonly createCustomerFeature: CreateCustomerFeature
-  ) {
+  constructor(private readonly createCustomerFeature: CreateCustomerFeature) {
     super();
   }
 
-  async execute(data: CreateCustomerCommandData): Promise<CustomerDTO> {
-    // Convert command data to feature data
+  async execute(data?: CreateCustomerCommandData): Promise<CustomerDTO> {
+    if (!data) {
+      throw new Error('CreateCustomerCommand requires data parameter');
+    }
+
     const featureData: CreateCustomerFeatureData = {
       customerName: data.customerName,
       govIdentification: data.govIdentification,
       email: data.email,
-      phoneNumber: data.phoneNumber
+      phoneNumber: data.phoneNumber,
+      tier: data.tier
     };
 
-    // Execute the feature
-    const result = await this.createCustomerFeature.execute(featureData);
-
-    // Convert result to DTO
-    return CustomerDTOMapper.toDTO(result);
+    const customer = await this.createCustomerFeature.execute(featureData);
+    return CustomerDTOMapper.toDTO(customer);
   }
 } 

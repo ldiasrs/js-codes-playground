@@ -25,11 +25,13 @@ Stores customer information and authentication data.
 | gov_identification_content | TEXT | NOT NULL | Government identification number |
 | email | TEXT | NOT NULL | Customer's email address |
 | phone_number | TEXT | NOT NULL | Customer's phone number |
+| tier | TEXT | NOT NULL, DEFAULT 'Basic' | Customer subscription tier (Basic, Standard, Premium) |
 | date_created | TEXT | NOT NULL | ISO timestamp of account creation |
 
 **Indexes:**
 - `idx_customers_email` - For email-based lookups
 - `idx_customers_gov_id` - For government ID lookups
+- `idx_customers_tier` - For tier-based lookups
 
 ### 2. topics
 

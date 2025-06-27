@@ -1,13 +1,17 @@
-import { Customer } from '../../domain/customer/entities/Customer';
-import { GovIdentificationDTO } from './GovIdentificationDTO';
+import { Customer, CustomerTier } from '../../domain/customer/entities/Customer';
+import { GovIdentificationType } from '../../domain/customer/entities/GovIdentification';
 
 export interface CustomerDTO {
   id: string;
   customerName: string;
-  govIdentification: GovIdentificationDTO;
+  govIdentification: {
+    type: string;
+    content: string;
+  };
   email: string;
   phoneNumber: string;
-  dateCreated: Date;
+  tier: string;
+  dateCreated: string;
 }
 
 export class CustomerDTOMapper {
@@ -21,7 +25,23 @@ export class CustomerDTOMapper {
       },
       email: customer.email,
       phoneNumber: customer.phoneNumber,
-      dateCreated: customer.dateCreated
+      tier: customer.tier,
+      dateCreated: customer.dateCreated.toISOString()
     };
+  }
+
+  static fromDTO(dto: CustomerDTO): Customer {
+    return new Customer(
+      dto.customerName,
+      {
+        type: dto.govIdentification.type as GovIdentificationType,
+        content: dto.govIdentification.content
+      },
+      dto.email,
+      dto.phoneNumber,
+      dto.id,
+      new Date(dto.dateCreated),
+      dto.tier as CustomerTier
+    );
   }
 } 

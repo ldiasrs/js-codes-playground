@@ -145,6 +145,7 @@ class DatabaseSetup {
       // Customer indexes
       'CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email)',
       'CREATE INDEX IF NOT EXISTS idx_customers_gov_id ON customers(gov_identification_content)',
+      'CREATE INDEX IF NOT EXISTS idx_customers_tier ON customers(tier)',
       
       // Topic indexes
       'CREATE INDEX IF NOT EXISTS idx_topics_customer_id ON topics(customer_id)',
@@ -184,7 +185,8 @@ class DatabaseSetup {
       case 'customers':
         return [
           'CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email)',
-          'CREATE INDEX IF NOT EXISTS idx_customers_gov_id ON customers(gov_identification_content)'
+          'CREATE INDEX IF NOT EXISTS idx_customers_gov_id ON customers(gov_identification_content)',
+          'CREATE INDEX IF NOT EXISTS idx_customers_tier ON customers(tier)'
         ];
       
       case 'topics':

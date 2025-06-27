@@ -6,6 +6,7 @@ export interface CustomerSearchCriteria {
     type: string;
     content: string;
   };
+  tier?: string;
   dateFrom?: Date;
   dateTo?: Date;
   hasRecentActivity?: boolean;
@@ -19,6 +20,7 @@ export interface CustomerRepositoryPort {
   findByCustomerName(customerName: string): Promise<Customer[]>;
   findByEmail(email: string): Promise<Customer | undefined>;
   findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined>;
+  findByTier(tier: string): Promise<Customer[]>;
   findByDateRange(dateFrom: Date, dateTo: Date): Promise<Customer[]>;
   search(criteria: CustomerSearchCriteria): Promise<Customer[]>;
   delete(id: string): Promise<boolean>;

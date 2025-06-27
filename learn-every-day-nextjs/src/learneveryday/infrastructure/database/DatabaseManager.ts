@@ -161,6 +161,7 @@ export class DatabaseManager {
             gov_identification_content TEXT NOT NULL,
             email TEXT NOT NULL,
             phone_number TEXT NOT NULL,
+            tier TEXT NOT NULL DEFAULT 'Basic',
             date_created TEXT NOT NULL
           )
         `;
