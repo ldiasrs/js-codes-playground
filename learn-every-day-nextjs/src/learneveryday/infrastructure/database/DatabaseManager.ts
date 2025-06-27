@@ -105,14 +105,10 @@ export class DatabaseManager {
       
       connection = new SQLiteConnection(dbPath);
       
-      // Initialize table if it doesn't exist
-      await this.initializeSQLiteTable(connection as SQLiteConnection, tableName);
     } else if (this.config.isPostgreSQL()) {
       const postgresConfig = this.config.getPostgreSQLConfig();
       connection = new PostgreSQLConnection(postgresConfig);
       
-      // Initialize table if it doesn't exist
-      await this.initializePostgreSQLTable(connection as PostgreSQLConnection, tableName);
     } else {
       throw new Error('Unsupported database type');
     }
@@ -130,91 +126,6 @@ export class DatabaseManager {
   private ensureDirectoryExists(dirPath: string): void {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
-    }
-  }
-
-  private async initializeSQLiteTable(connection: SQLiteConnection, tableName: string): Promise<void> {
-    const createTableSQL = this.getCreateTableSQL(tableName);
-    await connection.query(createTableSQL);
-  }
-
-  private async initializePostgreSQLTable(connection: PostgreSQLConnection, tableName: string): Promise<void> {
-    const createTableSQL = this.getCreateTableSQL(tableName);
-    await connection.query(createTableSQL);
-  }
-
-  private getCreateTableSQL(tableName: string): string {
-    const isPostgreSQL = this.config.isPostgreSQL();
-    
-    switch (tableName) {
-      case 'customers':
-        return `
-          CREATE TABLE IF NOT EXISTS customers (
-            id TEXT PRIMARY KEY,
-            customer_name TEXT NOT NULL,
-            gov_identification_type TEXT NOT NULL,
-            gov_identification_content TEXT NOT NULL,
-            email TEXT NOT NULL,
-            phone_number TEXT NOT NULL,
-            tier TEXT NOT NULL DEFAULT 'Basic',
-            date_created TEXT NOT NULL
-          )
-        `;
-      
-      case 'topics':
-        return `
-          CREATE TABLE IF NOT EXISTS topics (
-            id TEXT PRIMARY KEY,
-            customer_id TEXT NOT NULL,
-            subject TEXT NOT NULL,
-            date_created TEXT NOT NULL,
-            FOREIGN KEY (customer_id) REFERENCES customers(id)
-          )
-        `;
-      
-      case 'topic_histories':
-        return `
-          CREATE TABLE IF NOT EXISTS topic_histories (
-            id TEXT PRIMARY KEY,
-            topic_id TEXT NOT NULL,
-            content TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (topic_id) REFERENCES topics(id)
-          )
-        `;
-      
-      case 'task_processes':
-        return `
-          CREATE TABLE IF NOT EXISTS task_processes (
-            id TEXT PRIMARY KEY,
-            entity_id TEXT NOT NULL,
-            customer_id TEXT NOT NULL,
-            type TEXT NOT NULL,
-            status TEXT NOT NULL,
-            error_msg TEXT,
-            scheduled_to TEXT,
-            process_at TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (customer_id) REFERENCES customers(id)
-          )
-        `;
-      
-      case 'authentication_attempts':
-        const isUsedDefault = isPostgreSQL ? 'false' : '0';
-        return `
-          CREATE TABLE IF NOT EXISTS authentication_attempts (
-            id TEXT PRIMARY KEY,
-            customer_id TEXT NOT NULL,
-            encrypted_verification_code TEXT NOT NULL,
-            attempt_date TEXT NOT NULL,
-            expires_at TEXT NOT NULL,
-            is_used BOOLEAN NOT NULL DEFAULT ${isUsedDefault},
-            FOREIGN KEY (customer_id) REFERENCES customers(id)
-          )
-        `;
-      
-      default:
-        throw new Error(`Unknown table name: ${tableName}`);
     }
   }
 
