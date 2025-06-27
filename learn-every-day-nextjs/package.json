@@ -11,6 +11,7 @@
     "db:reset": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts reset"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "@types/commander": "^2.12.0",
     "@types/dinero.js": "^1.9.4",
     "@types/moment": "^2.11.29",
