@@ -1,7 +1,7 @@
 import { LoggerPort } from "@/learneveryday/domain";
-import { ConsoleLogger } from "../adapters/logs/ConsoleLogger";
-import { FileLogger } from "../adapters/logs/FileLogger";
-import { CompositeLogger } from "../adapters/logs/CompositeLogger";
+import { ConsoleLogger } from "../adapters/loggers/ConsoleLogger";
+import { FileLogger } from "../adapters/loggers/FileLogger";
+import { CompositeLogger } from "../adapters/loggers/CompositeLogger";
 
 
 export interface LoggerConfig {
