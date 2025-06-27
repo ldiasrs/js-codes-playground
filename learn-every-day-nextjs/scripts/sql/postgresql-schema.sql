@@ -109,25 +109,6 @@ CREATE INDEX IF NOT EXISTS idx_auth_attempts_expires_at ON authentication_attemp
 CREATE INDEX IF NOT EXISTS idx_auth_attempts_is_used ON authentication_attempts(is_used);
 CREATE INDEX IF NOT EXISTS idx_auth_attempts_attempt_date ON authentication_attempts(attempt_date);
 
--- =====================================================
--- CONSTRAINTS AND VALIDATIONS
--- =====================================================
-
--- Email validation constraint
-ALTER TABLE customers ADD CONSTRAINT chk_email_format 
-    CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
-
--- Phone number validation constraint
-ALTER TABLE customers ADD CONSTRAINT chk_phone_format 
-    CHECK (phone_number ~* '^\+?[1-9]\d{1,14}$');
-
--- Tier validation constraint
-ALTER TABLE customers ADD CONSTRAINT chk_tier_values 
-    CHECK (tier IN ('Basic', 'Standard', 'Premium'));
-
--- Status validation for task processes
-ALTER TABLE task_processes ADD CONSTRAINT chk_status_values 
-    CHECK (status IN ('pending', 'running', 'completed', 'failed', 'cancelled'));
 
 -- =====================================================
 -- SAMPLE DATA (Optional - for testing)
