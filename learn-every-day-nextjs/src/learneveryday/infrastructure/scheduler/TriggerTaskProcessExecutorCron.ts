@@ -13,9 +13,9 @@ export class TriggerTaskProcessExecutorCron {
 
   /**
    * Starts the cron job that runs every hour
-   * @param cronExpression Optional cron expression (default: '0/1 * * * *' - every 1 minute)
+   * @param cronExpression Optional cron expression (default: '0/30 * * * *' - every 30 minutes)
    */
-  start(cronExpression: string = '*/1 * * * *'): void {
+  start(cronExpression: string = '0/30 * * * *'): void {
     if (this.cronJob) {
       this.logger.warn('Cron job is already running');
       return;
