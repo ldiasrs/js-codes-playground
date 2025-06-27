@@ -1,8 +1,8 @@
 import sqlite3 from 'sqlite3';
-import { Pool } from 'pg';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DatabaseConfiguration } from '../config/database.config';
+import { createPool, VercelPool } from '@vercel/postgres';
 
 export interface DatabaseConnection {
   query(sql: string, params?: unknown[]): Promise<Record<string, unknown>[]>;
@@ -42,7 +42,7 @@ export class SQLiteConnection implements DatabaseConnection {
 }
 
 export class PostgreSQLConnection implements DatabaseConnection {
-  private pool: Pool;
+  private pool: VercelPool;
 
   constructor(config: {
     host: string;
@@ -52,31 +52,24 @@ export class PostgreSQLConnection implements DatabaseConnection {
     password: string;
     ssl?: boolean;
   }) {
-    this.pool = new Pool({
-      host: config.host,
-      port: config.port,
-      database: config.database,
-      user: config.username,
-      password: config.password,
-      ssl: config.ssl ? { rejectUnauthorized: false } : false,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-    });
+    const connectionString =
+      process.env.POSTGRES_URL ||
+      process.env.POSTGRES_PRISMA_URL ||
+      process.env.DATABASE_URL ||
+      `postgres://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}${config.ssl ? '?sslmode=require' : ''}`;
+    this.pool = createPool({ connectionString });
   }
 
   async query(sql: string, params: unknown[] = []): Promise<Record<string, unknown>[]> {
-    const client = await this.pool.connect();
-    try {
-      const result = await client.query(sql, params);
-      return result.rows;
-    } finally {
-      client.release();
-    }
+    const result = await this.pool.query(sql, params);
+    return result.rows;
   }
 
   async close(): Promise<void> {
-    await this.pool.end();
+    // Vercel's pool does not require explicit close, but for compatibility:
+    if (typeof (this.pool as unknown as { end?: () => Promise<void> }).end === 'function') {
+      await (this.pool as unknown as { end: () => Promise<void> }).end();
+    }
   }
 }
 
