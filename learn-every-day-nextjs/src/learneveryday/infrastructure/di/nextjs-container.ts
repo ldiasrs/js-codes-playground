@@ -23,6 +23,7 @@ import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeatur
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
 import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
+import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
 // Runners
@@ -138,6 +139,15 @@ export class NextJSContainer implements Container {
       this.get('SendTopicHistoryByEmailPort')
     ));
 
+    this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessTopicHistoryWorkflowFeature(
+      this.get('CustomerRepository'),
+      this.get('TaskProcessRepository'),
+      this.get('ReGenerateTopicHistoryTaskRunner'),
+      this.get('GenerateTopicHistoryTaskRunner'),
+      this.get('SendTopicHistoryTaskRunner'),
+      this.get('Logger')
+    ));
+
     this.registerSingleton('TasksProcessExecutor', () => new TasksProcessExecutor(
       this.get('TaskProcessRepository'),
       this.get('Logger')
@@ -209,11 +219,7 @@ export class NextJSContainer implements Container {
     ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowCommand', () => new ProcessTopicHistoryWorkflowCommand(
-      this.get('ExecuteTaskProcessCommand'),
-      this.get('ReGenerateTopicHistoryTaskRunner'),
-      this.get('GenerateTopicHistoryTaskRunner'),
-      this.get('SendTopicHistoryTaskRunner'),
-      this.get('Logger')
+      this.get('ProcessTopicHistoryWorkflowFeature')
     ));
 
     // Register query factories
