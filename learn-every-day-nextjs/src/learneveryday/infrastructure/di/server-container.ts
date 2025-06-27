@@ -20,6 +20,13 @@ export class ServerContainer extends NextJSContainer {
   }
 
   private startCronScheduler(): void {
+    // Skip cron scheduler in serverless environments (Vercel)
+    if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
+      const logger = this.get<LoggerPort>('Logger');
+      logger.info('🚀 Skipping cron scheduler in serverless environment - using Vercel cron jobs instead');
+      return;
+    }
+
     try {
       this.cronScheduler = this.get<TriggerTaskProcessExecutorCron>('TriggerTaskProcessExecutorCron');
       
