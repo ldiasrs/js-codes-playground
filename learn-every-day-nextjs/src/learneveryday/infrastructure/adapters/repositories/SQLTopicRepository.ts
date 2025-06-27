@@ -28,9 +28,13 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     };
 
     await connection.query(
-      `INSERT OR REPLACE INTO topics 
+      `INSERT INTO topics 
        (id, customer_id, subject, date_created)
-       VALUES (?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         customer_id = EXCLUDED.customer_id,
+         subject = EXCLUDED.subject,
+         date_created = EXCLUDED.date_created`,
       [
         topicData.id,
         topicData.customer_id,

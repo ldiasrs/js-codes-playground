@@ -8,9 +8,8 @@ import * as path from 'path';
 /**
  * Simple Database Setup Script
  * 
- * This script checks the database type and executes the appropriate schema file:
+ * This script executes the PostgreSQL schema file:
  * - PostgreSQL: executes postgresql-schema.sql
- * - SQLite: executes sqlite-schema.sql
  */
 
 interface SetupResult {
@@ -29,39 +28,33 @@ class SimpleDatabaseSetup {
   }
 
   /**
-   * Main setup method - executes the appropriate schema based on database type
+   * Main setup method - executes the PostgreSQL schema
    */
   async executeSetup(): Promise<SetupResult> {
     const details: string[] = [];
     
     try {
-      console.log('🚀 Starting simple database setup...');
+      console.log('🚀 Starting PostgreSQL database setup...');
       
       // Get database configuration
       const dbType = this.config.getType();
       details.push(`Database type: ${dbType}`);
       
-      if (dbType === 'sqlite') {
-        const sqliteConfig = this.config.getSQLiteConfig();
-        details.push(`SQLite database: ${sqliteConfig.database}`);
-        details.push(`Data directory: ${sqliteConfig.dataDir}`);
-        
-        // Ensure data directory exists
-        this.ensureDirectoryExists(sqliteConfig.dataDir);
-        details.push('✓ Data directory created/verified');
-      } else if (dbType === 'postgres') {
-        const postgresConfig = this.config.getPostgreSQLConfig();
-        details.push(`PostgreSQL host: ${postgresConfig.host}:${postgresConfig.port}`);
-        details.push(`Database: ${postgresConfig.database}`);
-        details.push(`Username: ${postgresConfig.username}`);
+      if (dbType !== 'postgres') {
+        throw new Error('Only PostgreSQL is supported');
       }
+
+      const postgresConfig = this.config.getPostgreSQLConfig();
+      details.push(`PostgreSQL host: ${postgresConfig.host}:${postgresConfig.port}`);
+      details.push(`Database: ${postgresConfig.database}`);
+      details.push(`Username: ${postgresConfig.username}`);
 
       // Get a connection
       const connection = await this.dbManager.getConnection('customers');
       
-      // Execute the appropriate schema file
+      // Execute the PostgreSQL schema file
       console.log('📋 Executing database schema...');
-      const schemaFile = dbType === 'postgres' ? 'postgresql-schema.sql' : 'sqlite-schema.sql';
+      const schemaFile = 'postgresql-schema.sql';
       const schemaPath = path.join(__dirname, 'sql', schemaFile);
       
       if (!fs.existsSync(schemaPath)) {
@@ -92,15 +85,6 @@ class SimpleDatabaseSetup {
     } finally {
       // Close all database connections
       await this.dbManager.closeAll();
-    }
-  }
-
-  /**
-   * Ensures the data directory exists for SQLite
-   */
-  private ensureDirectoryExists(dirPath: string): void {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
     }
   }
 

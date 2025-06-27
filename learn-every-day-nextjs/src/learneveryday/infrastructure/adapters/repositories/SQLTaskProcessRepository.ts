@@ -38,9 +38,18 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     };
 
     await connection.query(
-      `INSERT OR REPLACE INTO task_processes 
+      `INSERT INTO task_processes 
        (id, entity_id, customer_id, type, status, error_msg, scheduled_to, process_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         entity_id = EXCLUDED.entity_id,
+         customer_id = EXCLUDED.customer_id,
+         type = EXCLUDED.type,
+         status = EXCLUDED.status,
+         error_msg = EXCLUDED.error_msg,
+         scheduled_to = EXCLUDED.scheduled_to,
+         process_at = EXCLUDED.process_at,
+         created_at = EXCLUDED.created_at`,
       [
         taskProcessData.id,
         taskProcessData.entity_id,

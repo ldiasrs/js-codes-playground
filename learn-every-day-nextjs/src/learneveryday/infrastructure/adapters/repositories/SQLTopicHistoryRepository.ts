@@ -28,9 +28,13 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     };
 
     await connection.query(
-      `INSERT OR REPLACE INTO topic_histories 
+      `INSERT INTO topic_histories 
        (id, topic_id, content, created_at)
-       VALUES (?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         topic_id = EXCLUDED.topic_id,
+         content = EXCLUDED.content,
+         created_at = EXCLUDED.created_at`,
       [
         topicHistoryData.id,
         topicHistoryData.topic_id,

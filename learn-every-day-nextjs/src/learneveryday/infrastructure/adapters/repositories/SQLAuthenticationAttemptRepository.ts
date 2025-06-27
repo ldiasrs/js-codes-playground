@@ -37,9 +37,15 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     };
 
     await connection.query(
-      `INSERT OR REPLACE INTO authentication_attempts 
+      `INSERT INTO authentication_attempts 
        (id, customer_id, encrypted_verification_code, attempt_date, expires_at, is_used)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         customer_id = EXCLUDED.customer_id,
+         encrypted_verification_code = EXCLUDED.encrypted_verification_code,
+         attempt_date = EXCLUDED.attempt_date,
+         expires_at = EXCLUDED.expires_at,
+         is_used = EXCLUDED.is_used`,
       [
         attemptData.id,
         attemptData.customer_id,
@@ -111,14 +117,12 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
   async deleteExpired(): Promise<number> {
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
-    await connection.query(
+    const result = await connection.query(
       'DELETE FROM authentication_attempts WHERE expires_at <= ?',
       [new Date().toISOString()]
-    );
+    ) as { rowCount: number }[];
 
-    // SQLite doesn't return affected rows count in a standard way
-    // We'll return 0 as a placeholder
-    return 0;
+    return result[0]?.rowCount || 0;
   }
 
   async update(authenticationAttempt: AuthenticationAttempt): Promise<AuthenticationAttempt> {

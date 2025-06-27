@@ -37,9 +37,17 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     };
 
     await connection.query(
-      `INSERT OR REPLACE INTO customers 
+      `INSERT INTO customers 
        (id, customer_name, gov_identification_type, gov_identification_content, email, phone_number, tier, date_created)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         customer_name = EXCLUDED.customer_name,
+         gov_identification_type = EXCLUDED.gov_identification_type,
+         gov_identification_content = EXCLUDED.gov_identification_content,
+         email = EXCLUDED.email,
+         phone_number = EXCLUDED.phone_number,
+         tier = EXCLUDED.tier,
+         date_created = EXCLUDED.date_created`,
       [
         customerData.id,
         customerData.customer_name,
@@ -185,12 +193,12 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
   async delete(id: string): Promise<boolean> {
     const connection = await this.dbManager.getConnection('customers');
     
-    await connection.query(
+    const result = await connection.query(
       'DELETE FROM customers WHERE id = ?',
       [id]
-    );
+    ) as { rowCount: number }[];
 
-    return true; // SQLite doesn't return affected rows count in a standard way
+    return (result[0]?.rowCount || 0) > 0;
   }
 
   async count(): Promise<number> {
