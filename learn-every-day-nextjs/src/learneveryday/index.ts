@@ -8,6 +8,7 @@ export * from './application/commands/customer/CreateCustomerCommand';
 export * from './application/commands/customer/UpdateCustomerCommand';
 export * from './application/commands/customer/DeleteCustomerCommand';
 export * from './application/commands/topic/AddTopicCommand';
+export * from './application/commands/topic/UpdateTopicCommand';
 export * from './application/commands/topic/DeleteTopicCommand';
 
 // Application Queries
@@ -16,9 +17,7 @@ export * from './application/queries/customer/SearchCustomerQuery';
 export * from './application/queries/customer/GetAllCustomersQuery';
 export * from './application/queries/statistics/GetCustomerStatisticsQuery';
 export * from './application/queries/topic/GetTopicByIdQuery';
+export * from './application/queries/topic/GetAllTopicsQuery';
 export * from './application/queries/topic/SearchTopicsQuery';
 export * from './application/queries/topic-history/GetTopicHistoryQuery';
 export * from './application/queries/statistics/GetStatisticsQuery';
-
-// Scheduler
-export * from './scheduler';

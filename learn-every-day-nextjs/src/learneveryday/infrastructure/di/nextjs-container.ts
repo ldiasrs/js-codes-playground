@@ -20,6 +20,7 @@ import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCusto
 import { AuthCustomerFeature } from '../../domain/customer/usecase/AuthCustomerFeature';
 import { VerifyCustomerFeature } from '../../domain/customer/usecase/VerifyCustomerFeature';
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
+import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
@@ -39,9 +40,13 @@ import { DeleteCustomerCommand, DeleteCustomerCommandData } from '../../applicat
 import { AuthCustomerCommand, AuthCustomerCommandData } from '../../application/commands/customer/AuthCustomerCommand';
 import { VerifyCustomerCommand, VerifyCustomerCommandData } from '../../application/commands/customer/VerifyCustomerCommand';
 import { AddTopicCommand, AddTopicCommandData } from '../../application/commands/topic/AddTopicCommand';
+import { UpdateTopicCommand, UpdateTopicCommandData } from '../../application/commands/topic/UpdateTopicCommand';
 import { DeleteTopicCommand, DeleteTopicCommandData } from '../../application/commands/topic/DeleteTopicCommand';
 import { GenerateTopicHistoryCommand, GenerateTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
 import { GenerateAndEmailTopicHistoryCommand, GenerateAndEmailTopicHistoryCommandData } from '../../application/commands/topic-history/GenerateAndEmailTopicHistoryCommand';
+
+// Queries
+import { GetAllTopicsQuery, GetAllTopicsQueryData } from '../../application/queries/topic/GetAllTopicsQuery';
 
 export interface Container {
   get<T>(token: string): T;
@@ -111,6 +116,11 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('CustomerRepository'),
       this.get('TaskProcessRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('UpdateTopicFeature', () => new UpdateTopicFeature(
+      this.get('TopicRepository'),
       this.get('Logger')
     ));
 
@@ -198,6 +208,11 @@ export class NextJSContainer implements Container {
       this.get('AddTopicFeature')
     ));
 
+    this.registerCommandFactory('UpdateTopicCommand', (data: unknown) => new UpdateTopicCommand(
+      data as UpdateTopicCommandData,
+      this.get('UpdateTopicFeature')
+    ));
+
     this.registerCommandFactory('DeleteTopicCommand', (data: unknown) => new DeleteTopicCommand(
       data as DeleteTopicCommandData,
       this.get('DeleteTopicFeature')
@@ -214,6 +229,12 @@ export class NextJSContainer implements Container {
       data as GenerateAndEmailTopicHistoryCommandData,
       this.get('GenerateAndEmailTopicHistoryFeature')
     ));
+
+    // Register query factories
+    this.registerQueryFactory('GetAllTopicsQuery', (data: unknown) => new GetAllTopicsQuery(
+      data as GetAllTopicsQueryData,
+      this.get('TopicRepository')
+    ));
   }
 
   private registerSingleton<T>(token: string, factory: () => T): void {
@@ -221,6 +242,10 @@ export class NextJSContainer implements Container {
   }
 
   private registerCommandFactory<T>(token: string, factory: (data: unknown) => T): void {
+    this.commandFactories.set(token, factory);
+  }
+
+  private registerQueryFactory<T>(token: string, factory: (data: unknown) => T): void {
     this.commandFactories.set(token, factory);
   }
 
