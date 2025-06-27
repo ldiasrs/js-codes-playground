@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && next dev --turbopack",
     "build-dev": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && npm run build",
-    "build": "next build && npm run db:setup",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:reset": "ts-node --project scripts/tsconfig.json scripts/setup-database.ts reset",
