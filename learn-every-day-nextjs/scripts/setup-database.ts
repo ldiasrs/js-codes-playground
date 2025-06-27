@@ -34,12 +34,14 @@ class DatabaseSetup {
     const details: string[] = [];
     
     try {
-      console.log('🚀 Starting database setup...');
+
       
       // Get database configuration
       const dbType = this.config.getType();
       details.push(`Database type: ${dbType}`);
       
+      console.log('🚀 Starting database setup for type: ' + dbType);
+
       if (dbType === 'sqlite') {
         const sqliteConfig = this.config.getSQLiteConfig();
         details.push(`SQLite database: ${sqliteConfig.database}`);
