@@ -1,21 +1,23 @@
 import { GenerateTopicHistoryPort } from '../../domain/topic-history/ports/GenerateTopicHistoryPort';
 import { ChatGptTopicHistoryGenerator } from '../adapters/ChatGptTopicHistoryGenerator';
+import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 
 export class TopicHistoryGeneratorFactory {
   /**
    * Creates a ChatGPT-based topic history generator
-   * @param apiKey Optional API key. If not provided, will use environment variable
+   * @param logger The logger instance
    * @returns GenerateTopicHistoryPort implementation
    */
-  static createChatGptGenerator(apiKey?: string): GenerateTopicHistoryPort {
-    return new ChatGptTopicHistoryGenerator(apiKey);
+  static createChatGptGenerator(logger: LoggerPort): GenerateTopicHistoryPort {
+    return new ChatGptTopicHistoryGenerator(logger);
   }
 
   /**
    * Creates a ChatGPT-based topic history generator using environment variables
+   * @param logger The logger instance
    * @returns GenerateTopicHistoryPort implementation
    */
-  static createChatGptGeneratorFromEnv(): GenerateTopicHistoryPort {
-    return new ChatGptTopicHistoryGenerator();
+  static createChatGptGeneratorFromEnv(logger: LoggerPort): GenerateTopicHistoryPort {
+    return new ChatGptTopicHistoryGenerator(logger);
   }
 } 

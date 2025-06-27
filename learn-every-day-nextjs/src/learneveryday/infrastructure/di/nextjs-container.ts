@@ -30,9 +30,6 @@ import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/useca
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 
-// Schedulers
-import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
-
 // Commands
 import { CreateCustomerCommand, CreateCustomerCommandData } from '../../application/commands/customer/CreateCustomerCommand';
 import { UpdateCustomerCommand, UpdateCustomerCommandData } from '../../application/commands/customer/UpdateCustomerCommand';
@@ -63,7 +60,7 @@ export class NextJSContainer implements Container {
     this.initializeServices();
   }
 
-  private initializeServices(): void {
+  protected initializeServices(): void {
     // Initialize database manager
     DatabaseManager.getInstance();
 
@@ -75,7 +72,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('AuthenticationAttemptRepository', () => new SQLAuthenticationAttemptRepository());
 
     // Register ports
-    this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv());
+    this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv(this.get('Logger')));
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
@@ -168,15 +165,6 @@ export class NextJSContainer implements Container {
       this.get('Logger')
     ));
 
-    // Register schedulers
-    this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
-      this.get('TasksProcessExecutor'),
-      this.get('GenerateTopicHistoryTaskRunner'),
-      this.get('SendTopicHistoryTaskRunner'),
-      this.get('ReGenerateTopicHistoryTaskRunner'),
-      this.get('Logger')
-    ));
-
     // Register command factories
     this.registerCommandFactory('CreateCustomerCommand', (data: unknown) => new CreateCustomerCommand(
       data as CreateCustomerCommandData,
@@ -237,15 +225,15 @@ export class NextJSContainer implements Container {
     ));
   }
 
-  private registerSingleton<T>(token: string, factory: () => T): void {
+  protected registerSingleton<T>(token: string, factory: () => T): void {
     this.factories.set(token, factory);
   }
 
-  private registerCommandFactory<T>(token: string, factory: (data: unknown) => T): void {
+  protected registerCommandFactory<T>(token: string, factory: (data: unknown) => T): void {
     this.commandFactories.set(token, factory);
   }
 
-  private registerQueryFactory<T>(token: string, factory: (data: unknown) => T): void {
+  protected registerQueryFactory<T>(token: string, factory: (data: unknown) => T): void {
     this.commandFactories.set(token, factory);
   }
 

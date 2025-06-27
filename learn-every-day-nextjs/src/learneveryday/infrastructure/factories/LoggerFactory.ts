@@ -10,7 +10,7 @@ export interface LoggerConfig {
   maxFiles?: number;
   includeConsole?: boolean;
   includeFile?: boolean;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export class LoggerFactory {
@@ -29,8 +29,6 @@ export class LoggerFactory {
       case 'file':
         return new FileLogger(
           config.logDir || './logs',
-          config.maxFileSize || 10 * 1024 * 1024, // 10MB
-          config.maxFiles || 5,
           context
         );
 
@@ -44,13 +42,11 @@ export class LoggerFactory {
         if (config.includeFile !== false) {
           loggers.push(new FileLogger(
             config.logDir || './logs',
-            config.maxFileSize || 10 * 1024 * 1024,
-            config.maxFiles || 5,
             context
           ));
         }
 
-        return new CompositeLogger(loggers, context);
+        return new CompositeLogger(loggers);
 
       default:
         throw new Error(`Unknown logger type: ${config.type}`);
@@ -62,7 +58,7 @@ export class LoggerFactory {
    * @param context Optional context
    * @returns A console logger
    */
-  static createDevelopmentLogger(context?: Record<string, any>): LoggerPort {
+  static createDevelopmentLogger(context?: Record<string, unknown>): LoggerPort {
     return this.createLogger({
       type: 'console',
       context
@@ -75,7 +71,7 @@ export class LoggerFactory {
    * @param context Optional context
    * @returns A file logger
    */
-  static createProductionLogger(logDir: string = './logs', context?: Record<string, any>): LoggerPort {
+  static createProductionLogger(logDir: string = './logs', context?: Record<string, unknown>): LoggerPort {
     return this.createLogger({
       type: 'file',
       logDir,
@@ -89,7 +85,7 @@ export class LoggerFactory {
    * @param context Optional context
    * @returns A composite logger
    */
-  static createComprehensiveLogger(logDir: string = './logs', context?: Record<string, any>): LoggerPort {
+  static createComprehensiveLogger(logDir: string = './logs', context?: Record<string, unknown>): LoggerPort {
     return this.createLogger({
       type: 'composite',
       logDir,
