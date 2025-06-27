@@ -3,16 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
+import { useTopics } from '../../hooks/useTopics';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { ContainerBuilder } from '../../learneveryday/infrastructure/di/nextjs-container';
-import { GetAllTopicsQuery, GetAllTopicsQueryData } from '../../learneveryday/application/queries/topic/GetAllTopicsQuery';
-import { AddTopicCommand, AddTopicCommandData } from '../../learneveryday/application/commands/topic/AddTopicCommand';
-import { UpdateTopicCommand, UpdateTopicCommandData } from '../../learneveryday/application/commands/topic/UpdateTopicCommand';
-import { DeleteTopicCommand, DeleteTopicCommandData } from '../../learneveryday/application/commands/topic/DeleteTopicCommand';
-import { TopicDTO } from '../../learneveryday/application/dto/TopicDTO';
+import type { TopicData } from '../../services/topics/types';
 
 interface TopicFormData {
   subject: string;
@@ -20,12 +16,19 @@ interface TopicFormData {
 
 export default function TopicsPage() {
   const { isAuthenticated, user, isLoading: authLoading, logout } = useAuth();
+  const { 
+    topics, 
+    loading, 
+    error, 
+    getAllTopics, 
+    createTopic, 
+    updateTopic, 
+    deleteTopic,
+    clearError 
+  } = useTopics();
   const router = useRouter();
-  const [topics, setTopics] = useState<TopicDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTopic, setEditingTopic] = useState<TopicDTO | null>(null);
+  const [editingTopic, setEditingTopic] = useState<TopicData | null>(null);
   const [formData, setFormData] = useState<TopicFormData>({ subject: '' });
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,22 +45,8 @@ export default function TopicsPage() {
   }, [isAuthenticated, user]);
 
   const loadTopics = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const container = ContainerBuilder.build();
-      const query = container.createInstance<GetAllTopicsQuery>('GetAllTopicsQuery', {
-        customerId: user!.id
-      } as GetAllTopicsQueryData);
-      
-      const result = await query.execute();
-      setTopics(result);
-    } catch (err) {
-      console.error('Error loading topics:', err);
-      setError('Failed to load topics. Please try again.');
-    } finally {
-      setLoading(false);
+    if (user) {
+      await getAllTopics({ customerId: user.id });
     }
   };
 
@@ -68,26 +57,23 @@ export default function TopicsPage() {
 
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.subject.trim()) return;
+    if (!formData.subject.trim() || !user) return;
 
     try {
       setSubmitting(true);
-      setError('');
+      clearError();
       
-      const container = ContainerBuilder.build();
-      const command = container.createInstance<AddTopicCommand>('AddTopicCommand', {
-        customerId: user!.id,
+      const result = await createTopic({
+        customerId: user.id,
         subject: formData.subject.trim()
-      } as AddTopicCommandData);
+      });
       
-      await command.execute();
-      
-      setFormData({ subject: '' });
-      setShowCreateForm(false);
-      await loadTopics();
+      if (result) {
+        setFormData({ subject: '' });
+        setShowCreateForm(false);
+      }
     } catch (err) {
       console.error('Error creating topic:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create topic. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -99,22 +85,19 @@ export default function TopicsPage() {
 
     try {
       setSubmitting(true);
-      setError('');
+      clearError();
       
-      const container = ContainerBuilder.build();
-      const command = container.createInstance<UpdateTopicCommand>('UpdateTopicCommand', {
+      const result = await updateTopic({
         id: editingTopic.id,
         subject: formData.subject.trim()
-      } as UpdateTopicCommandData);
+      });
       
-      await command.execute();
-      
-      setFormData({ subject: '' });
-      setEditingTopic(null);
-      await loadTopics();
+      if (result) {
+        setFormData({ subject: '' });
+        setEditingTopic(null);
+      }
     } catch (err) {
       console.error('Error updating topic:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update topic. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -127,24 +110,17 @@ export default function TopicsPage() {
 
     try {
       setSubmitting(true);
-      setError('');
+      clearError();
       
-      const container = ContainerBuilder.build();
-      const command = container.createInstance<DeleteTopicCommand>('DeleteTopicCommand', {
-        id: topicId
-      } as DeleteTopicCommandData);
-      
-      await command.execute();
-      await loadTopics();
+      await deleteTopic({ id: topicId });
     } catch (err) {
       console.error('Error deleting topic:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete topic. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const startEdit = (topic: TopicDTO) => {
+  const startEdit = (topic: TopicData) => {
     setEditingTopic(topic);
     setFormData({ subject: topic.subject });
   };
