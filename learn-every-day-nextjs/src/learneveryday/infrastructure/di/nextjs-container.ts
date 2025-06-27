@@ -80,7 +80,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
     // Register shared services
-    this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromEnv());
+    this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromConfig());
 
     // Register use cases
     this.registerSingleton('CreateCustomerFeature', () => new CreateCustomerFeature(

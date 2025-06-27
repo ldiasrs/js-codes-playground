@@ -2,6 +2,7 @@ import { LoggerPort } from "@/learneveryday/domain";
 import { ConsoleLogger } from "../adapters/loggers/ConsoleLogger";
 import { FileLogger } from "../adapters/loggers/FileLogger";
 import { CompositeLogger } from "../adapters/loggers/CompositeLogger";
+import { loggerConfig } from "../config/logger.config";
 
 
 export interface LoggerConfig {
@@ -24,9 +25,6 @@ export class LoggerFactory {
     const context = config.context || {};
 
     switch (config.type) {
-      case 'console':
-        return new ConsoleLogger(context);
-
       case 'file':
         return new FileLogger(
           config.logDir || './logs',
@@ -48,76 +46,17 @@ export class LoggerFactory {
         }
 
         return new CompositeLogger(loggers);
-
+      case 'console':
       default:
-        throw new Error(`Unknown logger type: ${config.type}`);
+          return new ConsoleLogger(context);
     }
   }
 
   /**
-   * Creates a development logger (console only)
-   * @param context Optional context
-   * @returns A console logger
+   * Creates a logger based on the default configuration
+   * @returns A logger instance
    */
-  static createDevelopmentLogger(context?: Record<string, unknown>): LoggerPort {
-    return this.createLogger({
-      type: 'console',
-      context
-    });
-  }
-
-  /**
-   * Creates a production logger (file only)
-   * @param logDir Log directory
-   * @param context Optional context
-   * @returns A file logger
-   */
-  static createProductionLogger(logDir: string = './logs', context?: Record<string, unknown>): LoggerPort {
-    return this.createLogger({
-      type: 'file',
-      logDir,
-      context
-    });
-  }
-
-  /**
-   * Creates a comprehensive logger (console + file)
-   * @param logDir Log directory
-   * @param context Optional context
-   * @returns A composite logger
-   */
-  static createComprehensiveLogger(logDir: string = './logs', context?: Record<string, unknown>): LoggerPort {
-    return this.createLogger({
-      type: 'composite',
-      logDir,
-      includeConsole: true,
-      includeFile: true,
-      context
-    });
-  }
-
-  /**
-   * Creates a logger based on environment variables
-   * @returns A logger instance based on NODE_ENV
-   */
-  static createLoggerFromEnv(): LoggerPort {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    const logDir = process.env.LOG_DIR || './logs';
-    const context = {
-      environment: nodeEnv,
-      service: 'learneveryday'
-    };
-
-    switch (nodeEnv) {
-      case 'production':
-        return this.createProductionLogger(logDir, context);
-      
-      case 'test':
-        return this.createDevelopmentLogger(context);
-      
-      case 'development':
-      default:
-        return this.createComprehensiveLogger(logDir, context);
-    }
+  static createLoggerFromConfig(): LoggerPort {
+    return this.createLogger(loggerConfig);
   }
 } 
