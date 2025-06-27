@@ -6,7 +6,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useTopics } from '../../hooks/useTopics';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { AuthGuard } from '../../components/auth/AuthGuard';
 import type { TopicData } from '../../services/topics/types';
@@ -14,6 +13,49 @@ import type { TopicData } from '../../services/topics/types';
 interface TopicFormData {
   subject: string;
 }
+
+const PROMPT_EXAMPLES = [
+  {
+    category: "Health & Wellness",
+    examples: [
+      "Create a comprehensive guide to maintaining a healthy mind through daily meditation practices, stress management techniques, and cognitive exercises that improve focus and mental clarity.",
+      "Design a 30-day meal planning system that promotes gut health, includes anti-inflammatory foods, and provides balanced nutrition for optimal physical and mental performance.",
+      "Develop a morning routine that combines physical exercise, mindfulness practices, and productivity habits to start each day with energy and purpose."
+    ]
+  },
+  {
+    category: "Culinary Arts",
+    examples: [
+      "Create a collection of quick and nutritious dinner recipes that can be prepared in under 30 minutes using seasonal ingredients and basic cooking techniques.",
+      "Design a meal prep system for busy professionals that includes shopping lists, batch cooking strategies, and storage solutions for a week's worth of healthy meals.",
+      "Develop a guide to international cuisines, exploring the history, key ingredients, and cooking methods of traditional dishes from different cultures."
+    ]
+  },
+  {
+    category: "History & Culture",
+    examples: [
+      "Explore the rise and fall of ancient civilizations, examining their technological achievements, social structures, and lasting impact on modern society.",
+      "Create a timeline of major historical events that shaped the modern world, including key figures, political movements, and technological breakthroughs.",
+      "Investigate the cultural exchange between different regions throughout history, focusing on trade routes, migration patterns, and the spread of ideas and innovations."
+    ]
+  },
+  {
+    category: "Personal Development",
+    examples: [
+      "Design a personal finance system that includes budgeting strategies, investment basics, and long-term wealth building principles for financial independence.",
+      "Create a habit formation framework that helps build positive routines, break bad habits, and maintain consistency in personal and professional goals.",
+      "Develop effective communication skills for different contexts, including public speaking, conflict resolution, and building meaningful relationships."
+    ]
+  },
+  {
+    category: "Technology & Innovation",
+    examples: [
+      "Explore the fundamentals of artificial intelligence and machine learning, including their applications, ethical considerations, and future implications.",
+      "Create a guide to sustainable technology practices, covering renewable energy, green computing, and eco-friendly digital habits.",
+      "Investigate the history of computing and the internet, tracing the evolution from early computers to modern cloud computing and the Internet of Things."
+    ]
+  }
+];
 
 export default function TopicsPage() {
   const { user, logout } = useAuth();
@@ -32,6 +74,7 @@ export default function TopicsPage() {
   const [editingTopic, setEditingTopic] = useState<TopicData | null>(null);
   const [formData, setFormData] = useState<TopicFormData>({ subject: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -135,6 +178,10 @@ export default function TopicsPage() {
     });
   };
 
+  const handleExampleClick = (example: string) => {
+    setFormData({ subject: example });
+  };
+
   return (
     <AuthGuard requireAuth={true} redirectTo="/lending">
       <div className="min-h-screen bg-background">
@@ -197,15 +244,61 @@ export default function TopicsPage() {
             <Card className="mb-8 p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">Create New Topic</h3>
               <form onSubmit={handleCreateTopic} className="space-y-4">
-                <Input
-                  type="text"
-                  label="Topic Subject"
-                  placeholder="Enter topic subject"
-                  value={formData.subject}
-                  onChange={(value) => setFormData({ subject: value })}
-                  required
-                  disabled={submitting}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Learning Prompt
+                  </label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-vertical min-h-[120px]"
+                    placeholder="Describe what you want to learn in detail. Be specific about your goals, interests, and the depth of knowledge you're seeking..."
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ subject: e.target.value })}
+                    required
+                    disabled={submitting}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Write a detailed prompt describing what you want to learn. The more specific you are, the better your learning experience will be.
+                  </p>
+                </div>
+                
+                {/* Examples Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-foreground">Need inspiration? Check out these examples:</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowExamples(!showExamples)}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      {showExamples ? 'Hide Examples' : 'Show Examples'}
+                    </Button>
+                  </div>
+                  
+                  {showExamples && (
+                    <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+                      {PROMPT_EXAMPLES.map((category, categoryIndex) => (
+                        <div key={categoryIndex} className="space-y-2">
+                          <h5 className="text-sm font-semibold text-foreground">{category.category}</h5>
+                          <div className="space-y-2">
+                            {category.examples.map((example, exampleIndex) => (
+                              <button
+                                key={exampleIndex}
+                                type="button"
+                                onClick={() => handleExampleClick(example)}
+                                className="block w-full text-left p-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors duration-200 border border-transparent hover:border-border"
+                              >
+                                {example}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex space-x-3">
                   <Button
                     type="submit"
@@ -232,15 +325,19 @@ export default function TopicsPage() {
             <Card className="mb-8 p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">Edit Topic</h3>
               <form onSubmit={handleUpdateTopic} className="space-y-4">
-                <Input
-                  type="text"
-                  label="Topic Subject"
-                  placeholder="Enter topic subject"
-                  value={formData.subject}
-                  onChange={(value) => setFormData({ subject: value })}
-                  required
-                  disabled={submitting}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Learning Prompt
+                  </label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-vertical min-h-[120px]"
+                    placeholder="Describe what you want to learn in detail..."
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ subject: e.target.value })}
+                    required
+                    disabled={submitting}
+                  />
+                </div>
                 <div className="flex space-x-3">
                   <Button
                     type="submit"
@@ -294,7 +391,7 @@ export default function TopicsPage() {
               {topics.map((topic) => (
                 <Card key={topic.id} className="p-6 hover:shadow-lg transition-shadow duration-200">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-foreground line-clamp-2">
+                    <h3 className="text-lg font-semibold text-foreground line-clamp-3">
                       {topic.subject}
                     </h3>
                     <div className="flex space-x-2">
