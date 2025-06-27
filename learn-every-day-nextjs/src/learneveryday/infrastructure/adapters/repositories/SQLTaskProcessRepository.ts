@@ -40,7 +40,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     await connection.query(
       `INSERT INTO task_processes 
        (id, entity_id, customer_id, type, status, error_msg, scheduled_to, process_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT(id) DO UPDATE SET
          entity_id = EXCLUDED.entity_id,
          customer_id = EXCLUDED.customer_id,
@@ -70,7 +70,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE id = ?',
+      'SELECT * FROM task_processes WHERE id = $1',
       [id]
     ) as unknown as TaskProcessData[];
 
@@ -85,7 +85,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE entity_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE entity_id = $1 ORDER BY created_at DESC',
       [entityId]
     ) as unknown as TaskProcessData[];
 
@@ -96,7 +96,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE customer_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE customer_id = $1 ORDER BY created_at DESC',
       [customerId]
     ) as unknown as TaskProcessData[];
 
@@ -107,7 +107,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE type = ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE type = $1 ORDER BY created_at DESC',
       [type]
     ) as unknown as TaskProcessData[];
 
@@ -118,7 +118,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE status = ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE status = $1 ORDER BY created_at DESC',
       [status]
     ) as unknown as TaskProcessData[];
 
@@ -129,7 +129,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE entity_id = ? AND type = ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE entity_id = $1 AND type = $2 ORDER BY created_at DESC',
       [entityId, type]
     ) as unknown as TaskProcessData[];
 
@@ -149,7 +149,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     
     // Find tasks that have a scheduled_to date but are still pending
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE scheduled_to IS NOT NULL AND status = ? ORDER BY scheduled_to ASC',
+      'SELECT * FROM task_processes WHERE scheduled_to IS NOT NULL AND status = $1 ORDER BY scheduled_to ASC',
       ['pending']
     ) as unknown as TaskProcessData[];
 
@@ -164,7 +164,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE status = ? AND type = ? ORDER BY created_at ASC LIMIT ?',
+      'SELECT * FROM task_processes WHERE status = $1 AND type = $2 ORDER BY created_at ASC LIMIT $3',
       [status, type, limit]
     ) as unknown as TaskProcessData[];
 
@@ -178,43 +178,43 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const params: unknown[] = [];
 
     if (criteria.entityId) {
-      sql += ' AND entity_id = ?';
+      sql += ' AND entity_id = $' + (params.length + 1);
       params.push(criteria.entityId);
     }
 
     if (criteria.customerId) {
-      sql += ' AND customer_id = ?';
+      sql += ' AND customer_id = $' + (params.length + 1);
       params.push(criteria.customerId);
     }
 
     if (criteria.type) {
-      sql += ' AND type = ?';
+      sql += ' AND type = $' + (params.length + 1);
       params.push(criteria.type);
     }
 
     if (criteria.status) {
-      sql += ' AND status = ?';
+      sql += ' AND status = $' + (params.length + 1);
       params.push(criteria.status);
     }
 
     if (criteria.dateFrom || criteria.dateTo) {
       if (criteria.dateFrom) {
-        sql += ' AND created_at >= ?';
+        sql += ' AND created_at >= $' + (params.length + 1);
         params.push(criteria.dateFrom.toISOString());
       }
       if (criteria.dateTo) {
-        sql += ' AND created_at <= ?';
+        sql += ' AND created_at <= $' + (params.length + 1);
         params.push(criteria.dateTo.toISOString());
       }
     }
 
     if (criteria.scheduledTo) {
-      sql += ' AND scheduled_to = ?';
+      sql += ' AND scheduled_to = $' + (params.length + 1);
       params.push(criteria.scheduledTo.toISOString());
     }
 
     if (criteria.processAt) {
-      sql += ' AND process_at = ?';
+      sql += ' AND process_at = $' + (params.length + 1);
       params.push(criteria.processAt.toISOString());
     }
 
@@ -234,30 +234,38 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
   async delete(id: string): Promise<boolean> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    await connection.query(
-      'DELETE FROM task_processes WHERE id = ?',
+    const result = await connection.query(
+      'DELETE FROM task_processes WHERE id = $1',
       [id]
-    );
+    ) as { rowCount: number }[];
 
-    return true;
+    return result[0]?.rowCount === 1;
   }
 
   async deleteByEntityId(entityId: string): Promise<void> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    await connection.query(
-      'DELETE FROM task_processes WHERE entity_id = ?',
+    const result = await connection.query(
+      'DELETE FROM task_processes WHERE entity_id = $1',
       [entityId]
-    );
+    ) as { rowCount: number }[];
+
+    if (result[0]?.rowCount === 0) {
+      throw new Error(`No task processes found with entity_id: ${entityId}`);
+    }
   }
 
   async deleteByCustomerId(customerId: string): Promise<void> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    await connection.query(
-      'DELETE FROM task_processes WHERE customer_id = ?',
+    const result = await connection.query(
+      'DELETE FROM task_processes WHERE customer_id = $1',
       [customerId]
-    );
+    ) as { rowCount: number }[];
+
+    if (result[0]?.rowCount === 0) {
+      throw new Error(`No task processes found with customer_id: ${customerId}`);
+    }
   }
 
   async count(): Promise<number> {
@@ -271,7 +279,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT COUNT(*) as count FROM task_processes WHERE status = ?',
+      'SELECT COUNT(*) as count FROM task_processes WHERE status = $1',
       [status]
     ) as { count: number }[];
     
@@ -282,7 +290,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT COUNT(*) as count FROM task_processes WHERE type = ?',
+      'SELECT COUNT(*) as count FROM task_processes WHERE type = $1',
       [type]
     ) as { count: number }[];
     
@@ -314,7 +322,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const dateEnd = moment(date).endOf('day').toISOString();
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE scheduled_to BETWEEN ? AND ? ORDER BY scheduled_to ASC',
+      'SELECT * FROM task_processes WHERE scheduled_to BETWEEN $1 AND $2 ORDER BY scheduled_to ASC',
       [dateStart, dateEnd]
     ) as unknown as TaskProcessData[];
 
@@ -325,7 +333,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE scheduled_to BETWEEN ? AND ? ORDER BY scheduled_to ASC',
+      'SELECT * FROM task_processes WHERE scheduled_to BETWEEN $1 AND $2 ORDER BY scheduled_to ASC',
       [dateFrom.toISOString(), dateTo.toISOString()]
     ) as unknown as TaskProcessData[];
 
@@ -336,7 +344,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC',
+      'SELECT * FROM task_processes WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
     ) as unknown as TaskProcessData[];
 

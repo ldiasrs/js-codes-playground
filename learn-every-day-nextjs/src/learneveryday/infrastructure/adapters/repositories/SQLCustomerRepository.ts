@@ -39,7 +39,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     await connection.query(
       `INSERT INTO customers 
        (id, customer_name, gov_identification_type, gov_identification_content, email, phone_number, tier, date_created)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT(id) DO UPDATE SET
          customer_name = EXCLUDED.customer_name,
          gov_identification_type = EXCLUDED.gov_identification_type,
@@ -67,7 +67,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE id = ?',
+      'SELECT * FROM customers WHERE id = $1',
       [id]
     ) as unknown as CustomerData[];
 
@@ -89,7 +89,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE customer_name LIKE ?',
+      'SELECT * FROM customers WHERE customer_name LIKE $1',
       [`%${customerName}%`]
     ) as unknown as CustomerData[];
 
@@ -100,7 +100,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE email = ?',
+      'SELECT * FROM customers WHERE email = $1',
       [email]
     ) as unknown as CustomerData[];
 
@@ -115,7 +115,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE gov_identification_type = ? AND gov_identification_content = ?',
+      'SELECT * FROM customers WHERE gov_identification_type = $1 AND gov_identification_content = $2',
       [govIdentification.type, govIdentification.content]
     ) as unknown as CustomerData[];
 
@@ -130,7 +130,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE tier = ?',
+      'SELECT * FROM customers WHERE tier = $1',
       [tier]
     ) as unknown as CustomerData[];
 
@@ -141,7 +141,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const rows = await connection.query(
-      'SELECT * FROM customers WHERE date_created BETWEEN ? AND ?',
+      'SELECT * FROM customers WHERE date_created BETWEEN $1 AND $2',
       [dateFrom.toISOString(), dateTo.toISOString()]
     ) as unknown as CustomerData[];
 
@@ -155,33 +155,33 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const params: unknown[] = [];
 
     if (criteria.customerName) {
-      sql += ' AND customer_name LIKE ?';
+      sql += ' AND customer_name LIKE $' + (params.length + 1);
       params.push(`%${criteria.customerName}%`);
     }
 
     if (criteria.govIdentification) {
       if (criteria.govIdentification.type) {
-        sql += ' AND gov_identification_type = ?';
+        sql += ' AND gov_identification_type = $' + (params.length + 1);
         params.push(criteria.govIdentification.type);
       }
       if (criteria.govIdentification.content) {
-        sql += ' AND gov_identification_content LIKE ?';
+        sql += ' AND gov_identification_content LIKE $' + (params.length + 1);
         params.push(`%${criteria.govIdentification.content}%`);
       }
     }
 
     if (criteria.tier) {
-      sql += ' AND tier = ?';
+      sql += ' AND tier = $' + (params.length + 1);
       params.push(criteria.tier);
     }
 
     if (criteria.dateFrom || criteria.dateTo) {
       if (criteria.dateFrom) {
-        sql += ' AND date_created >= ?';
+        sql += ' AND date_created >= $' + (params.length + 1);
         params.push(criteria.dateFrom.toISOString());
       }
       if (criteria.dateTo) {
-        sql += ' AND date_created <= ?';
+        sql += ' AND date_created <= $' + (params.length + 1);
         params.push(criteria.dateTo.toISOString());
       }
     }
@@ -194,7 +194,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const connection = await this.dbManager.getConnection('customers');
     
     const result = await connection.query(
-      'DELETE FROM customers WHERE id = ?',
+      'DELETE FROM customers WHERE id = $1',
       [id]
     ) as { rowCount: number }[];
 
@@ -235,7 +235,7 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const rows = await connection.query(
       `SELECT DISTINCT c.* FROM customers c
        INNER JOIN topics t ON c.id = t.customer_id
-       WHERE t.date_created >= ?`,
+       WHERE t.date_created >= $1`,
       [cutoffDate]
     ) as unknown as CustomerData[];
 

@@ -39,7 +39,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     await connection.query(
       `INSERT INTO authentication_attempts 
        (id, customer_id, encrypted_verification_code, attempt_date, expires_at, is_used)
-       VALUES (?, ?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT(id) DO UPDATE SET
          customer_id = EXCLUDED.customer_id,
          encrypted_verification_code = EXCLUDED.encrypted_verification_code,
@@ -63,7 +63,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
     const rows = await connection.query(
-      'SELECT * FROM authentication_attempts WHERE id = ?',
+      'SELECT * FROM authentication_attempts WHERE id = $1',
       [id]
     ) as unknown as AuthenticationAttemptData[];
 
@@ -79,7 +79,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     
     const rows = await connection.query(
       `SELECT * FROM authentication_attempts 
-       WHERE customer_id = ? AND is_used = 0 AND expires_at > ?
+       WHERE customer_id = $1 AND is_used = false AND expires_at > $2
        ORDER BY attempt_date DESC 
        LIMIT 1`,
       [customerId, new Date().toISOString()]
@@ -96,7 +96,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
     const rows = await connection.query(
-      'SELECT * FROM authentication_attempts WHERE customer_id = ? ORDER BY attempt_date DESC',
+      'SELECT * FROM authentication_attempts WHERE customer_id = $1 ORDER BY attempt_date DESC',
       [customerId]
     ) as unknown as AuthenticationAttemptData[];
 
@@ -107,7 +107,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
     const rows = await connection.query(
-      'SELECT * FROM authentication_attempts WHERE expires_at <= ?',
+      'SELECT * FROM authentication_attempts WHERE expires_at <= $1',
       [new Date().toISOString()]
     ) as unknown as AuthenticationAttemptData[];
 
@@ -118,7 +118,7 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
     const result = await connection.query(
-      'DELETE FROM authentication_attempts WHERE expires_at <= ?',
+      'DELETE FROM authentication_attempts WHERE expires_at <= $1',
       [new Date().toISOString()]
     ) as { rowCount: number }[];
 
@@ -133,8 +133,8 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     
     await connection.query(
       `UPDATE authentication_attempts 
-       SET customer_id = ?, encrypted_verification_code = ?, attempt_date = ?, expires_at = ?, is_used = ?
-       WHERE id = ?`,
+       SET customer_id = $1, encrypted_verification_code = $2, attempt_date = $3, expires_at = $4, is_used = $5
+       WHERE id = $6`,
       [
         authenticationAttempt.customerId,
         encryptedVerificationCode,

@@ -30,7 +30,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     await connection.query(
       `INSERT INTO topics 
        (id, customer_id, subject, date_created)
-       VALUES (?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT(id) DO UPDATE SET
          customer_id = EXCLUDED.customer_id,
          subject = EXCLUDED.subject,
@@ -50,7 +50,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT * FROM topics WHERE id = ?',
+      'SELECT * FROM topics WHERE id = $1',
       [id]
     ) as unknown as TopicData[];
 
@@ -72,7 +72,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT * FROM topics WHERE customer_id = ?',
+      'SELECT * FROM topics WHERE customer_id = $1',
       [customerId]
     ) as unknown as TopicData[];
 
@@ -83,7 +83,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT * FROM topics WHERE subject LIKE ?',
+      'SELECT * FROM topics WHERE subject LIKE $1',
       [`%${subject}%`]
     ) as unknown as TopicData[];
 
@@ -94,7 +94,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT * FROM topics WHERE date_created BETWEEN ? AND ?',
+      'SELECT * FROM topics WHERE date_created BETWEEN $1 AND $2',
       [dateFrom.toISOString(), dateTo.toISOString()]
     ) as unknown as TopicData[];
 
@@ -107,7 +107,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const cutoffDate = moment().subtract(hours, 'hours').toISOString();
     
     const rows = await connection.query(
-      'SELECT * FROM topics WHERE date_created >= ?',
+      'SELECT * FROM topics WHERE date_created >= $1',
       [cutoffDate]
     ) as unknown as TopicData[];
 
@@ -123,9 +123,9 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const rows = await connection.query(
       `SELECT t.* FROM topics t
        LEFT JOIN topic_histories th ON t.id = th.topic_id
-       WHERE th.created_at IS NULL OR th.created_at < ?
+       WHERE th.created_at IS NULL OR th.created_at < $1
        ORDER BY th.created_at ASC
-       LIMIT ?`,
+       LIMIT $2`,
       [cutoffDate, limit]
     ) as unknown as TopicData[];
 
@@ -136,7 +136,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT COUNT(*) as count FROM topics WHERE customer_id = ? AND subject = ?',
+      'SELECT COUNT(*) as count FROM topics WHERE customer_id = $1 AND subject = $2',
       [customerId, subject]
     ) as unknown as { count: number }[];
 
@@ -150,22 +150,22 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const params: unknown[] = [];
 
     if (criteria.customerId) {
-      sql += ' AND customer_id = ?';
+      sql += ' AND customer_id = $' + (params.length + 1);
       params.push(criteria.customerId);
     }
 
     if (criteria.subject) {
-      sql += ' AND subject LIKE ?';
+      sql += ' AND subject LIKE $' + (params.length + 1);
       params.push(`%${criteria.subject}%`);
     }
 
     if (criteria.dateFrom || criteria.dateTo) {
       if (criteria.dateFrom) {
-        sql += ' AND date_created >= ?';
+        sql += ' AND date_created >= $' + (params.length + 1);
         params.push(criteria.dateFrom.toISOString());
       }
       if (criteria.dateTo) {
-        sql += ' AND date_created <= ?';
+        sql += ' AND date_created <= $' + (params.length + 1);
         params.push(criteria.dateTo.toISOString());
       }
     }
@@ -177,12 +177,12 @@ export class SQLTopicRepository implements TopicRepositoryPort {
   async delete(id: string): Promise<boolean> {
     const connection = await this.dbManager.getConnection('topics');
     
-    await connection.query(
-      'DELETE FROM topics WHERE id = ?',
+    const result = await connection.query(
+      'DELETE FROM topics WHERE id = $1',
       [id]
-    );
+    ) as { rowCount: number }[];
 
-    return true;
+    return result[0].rowCount > 0;
   }
 
   async count(): Promise<number> {
@@ -196,7 +196,7 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const connection = await this.dbManager.getConnection('topics');
     
     const rows = await connection.query(
-      'SELECT COUNT(*) as count FROM topics WHERE customer_id = ?',
+      'SELECT COUNT(*) as count FROM topics WHERE customer_id = $1',
       [customerId]
     ) as { count: number }[];
     

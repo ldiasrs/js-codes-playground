@@ -30,7 +30,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     await connection.query(
       `INSERT INTO topic_histories 
        (id, topic_id, content, created_at)
-       VALUES (?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT(id) DO UPDATE SET
          topic_id = EXCLUDED.topic_id,
          content = EXCLUDED.content,
@@ -50,7 +50,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const connection = await this.dbManager.getConnection('topic_histories');
     
     const rows = await connection.query(
-      'SELECT * FROM topic_histories WHERE id = ?',
+      'SELECT * FROM topic_histories WHERE id = $1',
       [id]
     ) as unknown as TopicHistoryData[];
 
@@ -65,7 +65,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const connection = await this.dbManager.getConnection('topic_histories');
     
     const rows = await connection.query(
-      'SELECT * FROM topic_histories WHERE topic_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM topic_histories WHERE topic_id = $1 ORDER BY created_at DESC',
       [topicId]
     ) as unknown as TopicHistoryData[];
 
@@ -76,7 +76,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const connection = await this.dbManager.getConnection('topic_histories');
     
     const rows = await connection.query(
-      'SELECT * FROM topic_histories WHERE content LIKE ? ORDER BY created_at DESC',
+      'SELECT * FROM topic_histories WHERE content LIKE $1 ORDER BY created_at DESC',
       [`%${content}%`]
     ) as unknown as TopicHistoryData[];
 
@@ -87,7 +87,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const connection = await this.dbManager.getConnection('topic_histories');
     
     const rows = await connection.query(
-      'SELECT * FROM topic_histories WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC',
+      'SELECT * FROM topic_histories WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
     ) as unknown as TopicHistoryData[];
 
@@ -100,7 +100,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const cutoffDate = moment().subtract(hours, 'hours').toISOString();
     
     const rows = await connection.query(
-      'SELECT * FROM topic_histories WHERE created_at >= ? ORDER BY created_at DESC',
+      'SELECT * FROM topic_histories WHERE created_at >= $1 ORDER BY created_at DESC',
       [cutoffDate]
     ) as unknown as TopicHistoryData[];
 
@@ -114,22 +114,22 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const params: unknown[] = [];
 
     if (criteria.topicId) {
-      sql += ' AND topic_id = ?';
+      sql += ' AND topic_id = $' + (params.length + 1);
       params.push(criteria.topicId);
     }
 
     if (criteria.content) {
-      sql += ' AND content LIKE ?';
+      sql += ' AND content LIKE $' + (params.length + 1);
       params.push(`%${criteria.content}%`);
     }
 
     if (criteria.dateFrom || criteria.dateTo) {
       if (criteria.dateFrom) {
-        sql += ' AND created_at >= ?';
+        sql += ' AND created_at >= $' + (params.length + 1);
         params.push(criteria.dateFrom.toISOString());
       }
       if (criteria.dateTo) {
-        sql += ' AND created_at <= ?';
+        sql += ' AND created_at <= $' + (params.length + 1);
         params.push(criteria.dateTo.toISOString());
       }
     }
@@ -146,7 +146,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       `SELECT th.* FROM topic_histories th
        INNER JOIN topics t ON th.topic_id = t.id
-       WHERE t.customer_id = ?
+       WHERE t.customer_id = $1
        ORDER BY th.created_at DESC
        LIMIT 1`,
       [customerId]
@@ -166,7 +166,7 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const rows = await connection.query(
       `SELECT th.* FROM topic_histories th
        INNER JOIN topics t ON th.topic_id = t.id
-       WHERE t.customer_id = ?
+       WHERE t.customer_id = $1
        ORDER BY th.created_at DESC`,
       [customerId]
     ) as unknown as TopicHistoryData[];
@@ -184,21 +184,25 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
   async delete(id: string): Promise<boolean> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    await connection.query(
-      'DELETE FROM topic_histories WHERE id = ?',
+    const result = await connection.query(
+      'DELETE FROM topic_histories WHERE id = $1',
       [id]
-    );
+    ) as { rowCount: number }[];
 
-    return true;
+    return result[0].rowCount > 0;
   }
 
   async deleteByTopicId(topicId: string): Promise<void> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    await connection.query(
-      'DELETE FROM topic_histories WHERE topic_id = ?',
+    const result = await connection.query(
+      'DELETE FROM topic_histories WHERE topic_id = $1',
       [topicId]
-    );
+    ) as { rowCount: number }[];
+
+    if (result[0].rowCount === 0) {
+      throw new Error(`No topic history found with topic_id: ${topicId}`);
+    }
   }
 
   async count(): Promise<number> {
