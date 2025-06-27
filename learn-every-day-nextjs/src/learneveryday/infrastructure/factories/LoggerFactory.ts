@@ -23,33 +23,7 @@ export class LoggerFactory {
    */
   static createLogger(config: LoggerConfig): LoggerPort {
     const context = config.context || {};
-
-    switch (config.type) {
-      case 'file':
-        return new FileLogger(
-          config.logDir || './logs',
-          context
-        );
-
-      case 'composite':
-        const loggers: LoggerPort[] = [];
-        
-        if (config.includeConsole !== false) {
-          loggers.push(new ConsoleLogger(context));
-        }
-        
-        if (config.includeFile !== false) {
-          loggers.push(new FileLogger(
-            config.logDir || './logs',
-            context
-          ));
-        }
-
-        return new CompositeLogger(loggers);
-      case 'console':
-      default:
-          return new ConsoleLogger(context);
-    }
+    return new ConsoleLogger(context);
   }
 
   /**
