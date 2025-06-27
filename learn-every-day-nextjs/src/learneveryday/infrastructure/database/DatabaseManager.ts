@@ -144,6 +144,8 @@ export class DatabaseManager {
   }
 
   private getCreateTableSQL(tableName: string): string {
+    const isPostgreSQL = this.config.isPostgreSQL();
+    
     switch (tableName) {
       case 'customers':
         return `
@@ -198,6 +200,7 @@ export class DatabaseManager {
         `;
       
       case 'authentication_attempts':
+        const isUsedDefault = isPostgreSQL ? 'false' : '0';
         return `
           CREATE TABLE IF NOT EXISTS authentication_attempts (
             id TEXT PRIMARY KEY,
@@ -205,7 +208,7 @@ export class DatabaseManager {
             encrypted_verification_code TEXT NOT NULL,
             attempt_date TEXT NOT NULL,
             expires_at TEXT NOT NULL,
-            is_used BOOLEAN NOT NULL DEFAULT 0,
+            is_used BOOLEAN NOT NULL DEFAULT ${isUsedDefault},
             FOREIGN KEY (customer_id) REFERENCES customers(id)
           )
         `;
