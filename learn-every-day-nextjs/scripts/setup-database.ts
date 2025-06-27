@@ -2,19 +2,15 @@
 
 import { DatabaseManager } from '../src/learneveryday/infrastructure/database/DatabaseManager';
 import { DatabaseConfiguration } from '../src/learneveryday/infrastructure/config/database.config';
-import { MigrationManager } from './migrations/MigrationManager';
-import { MigrationRegistry } from './migrations/MigrationRegistry';
 import * as fs from 'fs';
+import * as path from 'path';
 
 /**
- * Versioned Database Setup Script v2
+ * Simple Database Setup Script
  * 
- * This script provides a comprehensive database management system with:
- * - Versioned migrations for schema changes
- * - Data seeding capabilities
- * - Migration rollback functionality
- * - Database status monitoring
- * - Manual data insertion utilities
+ * This script checks the database type and executes the appropriate schema file:
+ * - PostgreSQL: executes postgresql-schema.sql
+ * - SQLite: executes sqlite-schema.sql
  */
 
 interface SetupResult {
@@ -23,43 +19,23 @@ interface SetupResult {
   details?: string[];
 }
 
-interface MigrationStatus {
-  applied: Array<{
-    version: number;
-    name: string;
-    applied_at: string;
-  }>;
-  pending: Array<{
-    version: number;
-    name: string;
-  }>;
-  total: number;
-  appliedCount: number;
-  pendingCount: number;
-}
-
-class VersionedDatabaseSetup {
+class SimpleDatabaseSetup {
   private dbManager: DatabaseManager;
   private config: DatabaseConfiguration;
-  private migrationManager: MigrationManager;
 
   constructor() {
     this.config = DatabaseConfiguration.getInstance();
     this.dbManager = DatabaseManager.getInstance();
-    this.migrationManager = MigrationManager.getInstance();
   }
 
   /**
-   * Main setup method - runs migrations and optionally seeds data
+   * Main setup method - executes the appropriate schema based on database type
    */
-  async executeSetup(options: {
-    seedData?: boolean;
-    skipMigrations?: boolean;
-  } = {}): Promise<SetupResult> {
+  async executeSetup(): Promise<SetupResult> {
     const details: string[] = [];
     
     try {
-      console.log('🚀 Starting versioned database setup...');
+      console.log('🚀 Starting simple database setup...');
       
       // Get database configuration
       const dbType = this.config.getType();
@@ -80,57 +56,37 @@ class VersionedDatabaseSetup {
         details.push(`Username: ${postgresConfig.username}`);
       }
 
-      // Get a connection for migrations
+      // Get a connection
       const connection = await this.dbManager.getConnection('customers');
       
-      // Initialize migration system
-      console.log('📋 Initializing migration system...');
-      await this.migrationManager.initialize(connection);
-      details.push('✓ Migration system initialized');
-
-      // Validate migrations
-      console.log('🔍 Validating migrations...');
-      const validation = MigrationRegistry.validateMigrations();
-      if (!validation.valid) {
-        throw new Error(`Migration validation failed: ${validation.errors.join(', ')}`);
+      // Execute the appropriate schema file
+      console.log('📋 Executing database schema...');
+      const schemaFile = dbType === 'postgres' ? 'postgresql-schema.sql' : 'sqlite-schema.sql';
+      const schemaPath = path.join(__dirname, 'sql', schemaFile);
+      
+      if (!fs.existsSync(schemaPath)) {
+        throw new Error(`Schema file not found: ${schemaPath}`);
       }
-      details.push('✓ Migrations validated');
+      
+      const schemaContent = fs.readFileSync(schemaPath, 'utf8');
+      await connection.query(schemaContent);
+      
+      details.push(`✓ Executed schema: ${schemaFile}`);
 
-      // Execute migrations if not skipped
-      if (!options.skipMigrations) {
-        console.log('🔄 Executing migrations...');
-        const migrations = MigrationRegistry.getSortedMigrations();
-        const results = await this.migrationManager.executeMigrations(connection, migrations);
-        
-        const successCount = results.filter(r => r.success).length;
-        const failureCount = results.filter(r => !r.success).length;
-        
-        details.push(`✓ Executed ${successCount} migrations successfully`);
-        if (failureCount > 0) {
-          details.push(`✗ ${failureCount} migrations failed`);
-          const failedMigrations = results.filter(r => !r.success);
-          failedMigrations.forEach(fm => details.push(`  - ${fm.version}: ${fm.name} - ${fm.message}`));
-        }
-      }
-
-      // Get final status
-      const status = await this.getMigrationStatus();
-      details.push(`📊 Final status: ${status.appliedCount}/${status.total} migrations applied`);
-
-      console.log('✅ Versioned database setup completed successfully!');
+      console.log('✅ Database setup completed successfully!');
       
       return {
         success: true,
-        message: 'Versioned database setup completed successfully',
+        message: 'Database setup completed successfully',
         details
       };
 
     } catch (error) {
-      console.error('❌ Versioned database setup failed:', error);
+      console.error('❌ Database setup failed:', error);
       
       return {
         success: false,
-        message: `Versioned database setup failed: ${error}`,
+        message: `Database setup failed: ${error}`,
         details
       };
     } finally {
@@ -138,74 +94,6 @@ class VersionedDatabaseSetup {
       await this.dbManager.closeAll();
     }
   }
-
-  /**
-   * Gets current migration status
-   */
-  async getMigrationStatus(): Promise<MigrationStatus> {
-    const connection = await this.dbManager.getConnection('customers');
-    const migrations = MigrationRegistry.getSortedMigrations();
-    const status = await this.migrationManager.getMigrationStatus(connection, migrations);
-    
-    return {
-      applied: status.applied.map(m => ({
-        version: m.version,
-        name: m.name,
-        applied_at: m.applied_at
-      })),
-      pending: status.pending.map(m => ({
-        version: m.version,
-        name: m.name
-      })),
-      total: status.total,
-      appliedCount: status.appliedCount,
-      pendingCount: status.pendingCount
-    };
-  }
-
-  /**
-   * Rolls back migrations to a specific version
-   */
-  async rollbackMigrations(targetVersion?: number): Promise<SetupResult> {
-    const details: string[] = [];
-    
-    try {
-      console.log('🔄 Rolling back migrations...');
-      
-      const connection = await this.dbManager.getConnection('customers');
-      const migrations = MigrationRegistry.getSortedMigrations();
-      
-      const results = await this.migrationManager.rollbackMigrations(connection, migrations, targetVersion);
-      
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.filter(r => !r.success).length;
-      
-      details.push(`✓ Rolled back ${successCount} migrations successfully`);
-      if (failureCount > 0) {
-        details.push(`✗ ${failureCount} rollbacks failed`);
-        const failedRollbacks = results.filter(r => !r.success);
-        failedRollbacks.forEach(fr => details.push(`  - ${fr.version}: ${fr.name} - ${fr.message}`));
-      }
-
-      return {
-        success: failureCount === 0,
-        message: `Rollback completed: ${successCount} successful, ${failureCount} failed`,
-        details
-      };
-
-    } catch (error) {
-      console.error('❌ Migration rollback failed:', error);
-      
-      return {
-        success: false,
-        message: `Migration rollback failed: ${error}`,
-        details
-      };
-    } finally {
-      await this.dbManager.closeAll();
-    }
-  }
-
 
   /**
    * Ensures the data directory exists for SQLite
@@ -246,7 +134,6 @@ class VersionedDatabaseSetup {
       // Reset the database manager instance
       DatabaseManager.resetInstance();
       DatabaseConfiguration.resetInstance();
-      MigrationManager.resetInstance();
 
       console.log('✅ Database reset completed');
       
@@ -270,19 +157,16 @@ class VersionedDatabaseSetup {
  * Main execution function
  */
 async function main(): Promise<void> {
-  const setup = new VersionedDatabaseSetup();
+  const setup = new SimpleDatabaseSetup();
   
   // Check command line arguments
   const args = process.argv.slice(2);
   const command = args[0];
-  const options = args.slice(1);
 
   switch (command) {
     case 'setup':
       console.log('🚀 Database setup mode');
-      const seedData = options.includes('--seed');
-      const skipMigrations = options.includes('--skip-migrations');
-      const result = await setup.executeSetup({ seedData, skipMigrations });
+      const result = await setup.executeSetup();
       
       if (result.success) {
         console.log('✅ Setup completed successfully');
@@ -301,49 +185,6 @@ async function main(): Promise<void> {
       }
       break;
 
-    case 'status':
-      console.log('📊 Getting database status...');
-      const status = await setup.getMigrationStatus();
-      console.log(`\nMigration Status:`);
-      console.log(`  Applied: ${status.appliedCount}/${status.total}`);
-      console.log(`  Pending: ${status.pendingCount}`);
-      
-      if (status.applied.length > 0) {
-        console.log(`\nApplied Migrations:`);
-        status.applied.forEach(m => console.log(`  ${m.version}: ${m.name} (${m.applied_at})`));
-      }
-      
-      if (status.pending.length > 0) {
-        console.log(`\nPending Migrations:`);
-        status.pending.forEach(m => console.log(`  ${m.version}: ${m.name}`));
-      }
-      break;
-
-    case 'rollback':
-      const targetVersion = options[0] ? parseInt(options[0]) : undefined;
-      console.log(`🔄 Rolling back migrations${targetVersion ? ` to version ${targetVersion}` : ''}...`);
-      const rollbackResult = await setup.rollbackMigrations(targetVersion);
-      
-      if (rollbackResult.success) {
-        console.log('✅ Rollback completed successfully');
-        if (rollbackResult.details) {
-          console.log('\n📋 Rollback details:');
-          rollbackResult.details.forEach(detail => console.log(`  ${detail}`));
-        }
-        process.exit(0);
-      } else {
-        console.error('❌ Rollback failed:', rollbackResult.message);
-        if (rollbackResult.details) {
-          console.log('\n📋 Rollback details:');
-          rollbackResult.details.forEach(detail => console.log(`  ${detail}`));
-        }
-        process.exit(1);
-      }
-      break;
-
-   
-
-
     case 'reset':
       console.log('🔄 Database reset mode');
       const resetResult = await setup.resetDatabase();
@@ -359,31 +200,18 @@ async function main(): Promise<void> {
 
     default:
       console.log(`
-🚀 Versioned Database Setup Script v2
+🚀 Simple Database Setup Script
 
 Usage:
-  npm run db:setup-v2 <command> [options]
+  npm run db:setup <command>
 
 Commands:
-  setup                    Run database setup with migrations
-  status                   Show migration and database status
-  rollback [version]       Rollback migrations to specified version
-  seed                     Seed sample data
-  clear-data               Clear all seeded data
-  stats                    Show database statistics
+  setup                    Run database setup with appropriate schema
   reset                    Reset database completely
 
-Options for setup:
-  --seed                   Include sample data seeding
-  --skip-migrations        Skip running migrations
-
 Examples:
-  npm run db:setup-v2 setup
-  npm run db:setup-v2 setup --seed
-  npm run db:setup-v2 status
-  npm run db:setup-v2 rollback 1
-  npm run db:setup-v2 seed
-  npm run db:setup-v2 stats
+  npm run db:setup setup
+  npm run db:setup reset
       `);
       process.exit(0);
   }
@@ -397,4 +225,4 @@ if (require.main === module) {
   });
 }
 
-export { VersionedDatabaseSetup }; 
+export { SimpleDatabaseSetup }; 
