@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         id: result.customer.id,
         email: result.customer.email,
         name: result.customer.customerName,
-        createdAt: result.customer.dateCreated.toISOString(),
+        createdAt: result.customer.dateCreated
       };
 
       return NextResponse.json({
