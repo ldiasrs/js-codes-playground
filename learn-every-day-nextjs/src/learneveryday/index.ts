@@ -11,7 +11,6 @@ export * from './application/commands/customer/VerifyCustomerCommand';
 export * from './application/commands/topic/AddTopicCommand';
 export * from './application/commands/topic/UpdateTopicCommand';
 export * from './application/commands/topic/DeleteTopicCommand';
-export * from './application/commands/topic-history/GenerateTopicHistoryCommand';
 export * from './application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 export * from './application/commands/taskprocess/ExecuteTaskProcessCommand';
 
