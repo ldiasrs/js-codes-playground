@@ -6,376 +6,258 @@ import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort'
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 
-// Mock repositories
-const mockTopicRepository: jest.Mocked<TopicRepositoryPort> = {
-  findByCustomerId: jest.fn(),
-  save: jest.fn(),
-  findById: jest.fn(),
-  findAll: jest.fn(),
-  findBySubject: jest.fn(),
-  findByDateRange: jest.fn(),
-  findWithRecentActivity: jest.fn(),
-  findTopicsWithOldestHistories: jest.fn(),
-  existsByCustomerIdAndSubject: jest.fn(),
-  search: jest.fn(),
-  delete: jest.fn(),
-  count: jest.fn(),
-  getTopicsCreatedToday: jest.fn(),
-  getTopicsCreatedThisWeek: jest.fn(),
-  getTopicsCreatedThisMonth: jest.fn(),
-};
-
-const mockTopicHistoryRepository: jest.Mocked<TopicHistoryRepositoryPort> = {
-  findByTopicId: jest.fn(),
-  save: jest.fn(),
-  findById: jest.fn(),
-  findAll: jest.fn(),
-  findByContent: jest.fn(),
-  findByDateRange: jest.fn(),
-  findWithRecentActivity: jest.fn(),
-  search: jest.fn(),
-  findLastTopicHistoryByCustomerId: jest.fn(),
-  findByCustomerId: jest.fn(),
-  delete: jest.fn(),
-  deleteByTopicId: jest.fn(),
-  count: jest.fn(),
-  getTopicHistoryCreatedToday: jest.fn(),
-  getTopicHistoryCreatedThisWeek: jest.fn(),
-  getTopicHistoryCreatedThisMonth: jest.fn(),
-};
-
-const mockTaskProcessRepository: jest.Mocked<TaskProcessRepositoryPort> = {
-  search: jest.fn(),
-  save: jest.fn(),
-  findById: jest.fn(),
-  findAll: jest.fn(),
-  findByEntityId: jest.fn(),
-  findByCustomerId: jest.fn(),
-  findByType: jest.fn(),
-  findByStatus: jest.fn(),
-  findByEntityIdAndType: jest.fn(),
-  findPendingTasks: jest.fn(),
-  findRunningTasks: jest.fn(),
-  findScheduledTasks: jest.fn(),
-  findFailedTasks: jest.fn(),
-  findPendingTaskProcessByStatusAndType: jest.fn(),
-  delete: jest.fn(),
-  deleteByEntityId: jest.fn(),
-  deleteByCustomerId: jest.fn(),
-  count: jest.fn(),
-  countByStatus: jest.fn(),
-  countByType: jest.fn(),
-  getTasksCreatedToday: jest.fn(),
-  getTasksCreatedThisWeek: jest.fn(),
-  getTasksCreatedThisMonth: jest.fn(),
-  getTasksScheduledForDate: jest.fn(),
-  getTasksScheduledForDateRange: jest.fn(),
-};
-
-const mockLogger: jest.Mocked<LoggerPort> = {
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  log: jest.fn(),
-  child: jest.fn(),
-};
-
 describe('ReGenerateTopicHistoryTaskRunner', () => {
   let taskRunner: ReGenerateTopicHistoryTaskRunner;
-  let mockTaskProcess: TaskProcess;
+  let mockTopicRepository: jest.Mocked<TopicRepositoryPort>;
+  let mockTopicHistoryRepository: jest.Mocked<TopicHistoryRepositoryPort>;
+  let mockTaskProcessRepository: jest.Mocked<TaskProcessRepositoryPort>;
+  let mockLogger: jest.Mocked<LoggerPort>;
+  
+  const customerId = 'customer-123';
+  const topicId1 = 'topic-1';
+  const topicId2 = 'topic-2';
+  const topicId3 = 'topic-3';
 
   beforeEach(() => {
     jest.clearAllMocks();
     
+    mockTopicRepository = {
+      findByCustomerId: jest.fn(),
+      save: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      findBySubject: jest.fn(),
+      findByDateRange: jest.fn(),
+      findWithRecentActivity: jest.fn(),
+      findTopicsWithOldestHistories: jest.fn(),
+      existsByCustomerIdAndSubject: jest.fn(),
+      search: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+      getTopicsCreatedToday: jest.fn(),
+      getTopicsCreatedThisWeek: jest.fn(),
+      getTopicsCreatedThisMonth: jest.fn(),
+      countByCustomerId: jest.fn(),
+    } as jest.Mocked<TopicRepositoryPort>;
+
+    mockTopicHistoryRepository = {
+      findByTopicId: jest.fn(),
+      save: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      findByContent: jest.fn(),
+      findByDateRange: jest.fn(),
+      findWithRecentActivity: jest.fn(),
+      search: jest.fn(),
+      findLastTopicHistoryByCustomerId: jest.fn(),
+      delete: jest.fn(),
+      deleteByTopicId: jest.fn(),
+      count: jest.fn(),
+      getTopicHistoryCreatedToday: jest.fn(),
+      getTopicHistoryCreatedThisWeek: jest.fn(),
+      getTopicHistoryCreatedThisMonth: jest.fn(),
+    } as jest.Mocked<TopicHistoryRepositoryPort>;
+
+    mockTaskProcessRepository = {
+      save: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      findByEntityId: jest.fn(),
+      findByCustomerId: jest.fn(),
+      findByType: jest.fn(),
+      findByStatus: jest.fn(),
+      findByEntityIdAndType: jest.fn(),
+      findPendingTasks: jest.fn(),
+      findRunningTasks: jest.fn(),
+      findScheduledTasks: jest.fn(),
+      findFailedTasks: jest.fn(),
+      findPendingTaskProcessByStatusAndType: jest.fn(),
+      searchProcessedTasks: jest.fn(),
+      delete: jest.fn(),
+      deleteByEntityId: jest.fn(),
+      deleteByCustomerId: jest.fn(),
+      count: jest.fn(),
+      countByStatus: jest.fn(),
+      countByType: jest.fn(),
+      getTasksCreatedToday: jest.fn(),
+      getTasksCreatedThisWeek: jest.fn(),
+      getTasksCreatedThisMonth: jest.fn(),
+      getTasksScheduledForDate: jest.fn(),
+      getTasksScheduledForDateRange: jest.fn(),
+    } as jest.Mocked<TaskProcessRepositoryPort>;
+
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      log: jest.fn(),
+      child: jest.fn(),
+    } as jest.Mocked<LoggerPort>;
+
     taskRunner = new ReGenerateTopicHistoryTaskRunner(
       mockTopicRepository,
       mockTopicHistoryRepository,
       mockTaskProcessRepository,
       mockLogger
     );
-
-    mockTaskProcess = new TaskProcess(
-      'topic-1',
-      'customer-1',
-      TaskProcess.REGENERATE_TOPIC_HISTORY,
-      'pending',
-      'task-1',
-      undefined,
-      new Date()
-    );
   });
 
-  describe('Configuração de parâmetros', () => {
-    test('deve permitir configurar máximo 1 tópico por 24h', () => {
+  describe('execute', () => {
+    const baseTaskProcess = new TaskProcess(
+      topicId1,
+      customerId,
+      TaskProcess.REGENERATE_TOPIC_HISTORY,
+      'pending'
+    );
+
+    const mockTopics: Topic[] = [
+      new Topic(customerId, 'Topic 1', topicId1),
+      new Topic(customerId, 'Topic 2', topicId2),
+      new Topic(customerId, 'Topic 3', topicId3),
+    ];
+
+    const createMockTask = (
+      type: string,
+      status: string,
+      createdAt: Date = new Date()
+    ): TaskProcess => {
+      return new TaskProcess(
+        topicId1,
+        customerId,
+        type as TaskProcess['type'],
+        status as TaskProcess['status'],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        createdAt
+      );
+    };
+
+    it('should schedule new tasks when customer has less than maxTopicsPer24h completed tasks', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
+      taskRunner.setConfig(config);
+
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', new Date()),
+        createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', new Date()),
+      ];
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
+      mockTopicHistoryRepository.findByTopicId
+        .mockResolvedValueOnce([{ id: 'history-1', topicId: topicId1, content: 'content', createdAt: new Date() }]) // 1 history
+        .mockResolvedValueOnce([]) // 0 histories
+        .mockResolvedValueOnce([{ id: 'history-2', topicId: topicId3, content: 'content', createdAt: new Date() }]); // 1 history
+
+      // Act
+      await taskRunner.execute(baseTaskProcess);
+
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: TaskProcess.GENERATE_TOPIC_HISTORY,
+          status: 'pending',
+          entityId: topicId2,
+          scheduledTo: expect.any(Date),
+        })
+      );
+    });
+
+    it('should not schedule new tasks when customer has reached maxTopicsPer24h limit', async () => {
+      // Arrange
       const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 1 };
       taskRunner.setConfig(config);
-      
-      // Verificar se a configuração foi aplicada (teste indireto através do comportamento)
-      expect(taskRunner).toBeDefined();
+
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+      ];
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+
+      // Act
+      await taskRunner.execute(baseTaskProcess);
+
+      // Assert
+      expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('already has 2 processed tasks, which meets the maximum limit of 1 topics per 24h')
+      );
     });
 
-    test('deve permitir configurar máximo 3 tópicos por 24h', () => {
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 3 };
+    it('should prioritize topics with fewer histories when scheduling tasks', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
       taskRunner.setConfig(config);
-      
-      // Verificar se a configuração foi aplicada (teste indireto através do comportamento)
-      expect(taskRunner).toBeDefined();
-    });
-  });
 
-  describe('Validação de customer sem tópicos', () => {
-    test('deve lançar erro quando customer não tem tópicos', async () => {
-      mockTopicRepository.findByCustomerId.mockResolvedValue([]);
-
-      await expect(taskRunner.execute(mockTaskProcess)).rejects.toThrow(
-        'Customer with ID customer-1 has no topics'
-      );
-    });
-  });
-
-  describe('Processamento de tópico com menor número de histories', () => {
-    beforeEach(() => {
-      const topics = [
-        new Topic('customer-1', 'Topic 1', 'topic-1'),
-        new Topic('customer-1', 'Topic 2', 'topic-2'),
-        new Topic('customer-1', 'Topic 3', 'topic-3'),
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
       ];
 
-      mockTopicRepository.findByCustomerId.mockResolvedValue(topics);
-      mockTaskProcessRepository.search.mockResolvedValue([]); // Nenhuma task completada nas últimas 24h
-    });
-
-    test('deve processar apenas 1 tópico por customer quando há múltiplos tópicos', async () => {
-      // Configurar mock para retornar diferentes quantidades de histories
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
+      
+      // Topic 1: 3 histories, Topic 2: 0 histories, Topic 3: 1 history
       mockTopicHistoryRepository.findByTopicId
-        .mockResolvedValueOnce([{}, {}, {}]) // topic-1: 3 histories
-        .mockResolvedValueOnce([{}]) // topic-2: 1 history (menor)
-        .mockResolvedValueOnce([{}, {}]); // topic-3: 2 histories
+        .mockResolvedValueOnce([
+          { id: 'h1', topicId: topicId1, content: 'content', createdAt: new Date() },
+          { id: 'h2', topicId: topicId1, content: 'content', createdAt: new Date() },
+          { id: 'h3', topicId: topicId1, content: 'content', createdAt: new Date() },
+        ])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { id: 'h4', topicId: topicId3, content: 'content', createdAt: new Date() },
+        ]);
 
-      await taskRunner.execute(mockTaskProcess);
+      // Act
+      await taskRunner.execute(baseTaskProcess);
 
-      // Verificar se apenas uma task foi criada
+      // Assert
       expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
       
-      // Verificar se foi criada para o tópico com menor número de histories (topic-2)
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.entityId).toBe('topic-2');
-      expect(savedTask.type).toBe(TaskProcess.GENERATE_TOPIC_HISTORY);
+      // Should schedule task for topic with 0 histories (topicId2)
+      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
+      expect(savedTask.entityId).toBe(topicId2);
     });
 
-    test('deve sempre processar o tópico com menor número de topic histories', async () => {
-      // Configurar mock para retornar diferentes quantidades de histories
-      mockTopicHistoryRepository.findByTopicId
-        .mockResolvedValueOnce([{}, {}, {}, {}]) // topic-1: 4 histories
-        .mockResolvedValueOnce([]) // topic-2: 0 histories (menor)
-        .mockResolvedValueOnce([{}, {}]); // topic-3: 2 histories
+    it('should handle empty search results gracefully', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 1 };
+      taskRunner.setConfig(config);
 
-      await taskRunner.execute(mockTaskProcess);
-
-      // Verificar se foi criada para o tópico com menor número de histories (topic-2)
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.entityId).toBe('topic-2');
-    });
-
-    test('deve usar o primeiro tópico quando todos têm a mesma quantidade de histories', async () => {
-      // Configurar mock para retornar a mesma quantidade de histories
-      mockTopicHistoryRepository.findByTopicId
-        .mockResolvedValueOnce([{}]) // topic-1: 1 history
-        .mockResolvedValueOnce([{}]) // topic-2: 1 history
-        .mockResolvedValueOnce([{}]); // topic-3: 1 history
-
-      await taskRunner.execute(mockTaskProcess);
-
-      // Verificar se foi criada para o primeiro tópico
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.entityId).toBe('topic-1');
-    });
-  });
-
-  describe('Adiamento quando há geração nas últimas 24h', () => {
-    beforeEach(() => {
-      const topics = [
-        new Topic('customer-1', 'Topic 1', 'topic-1'),
-      ];
-      mockTopicRepository.findByCustomerId.mockResolvedValue(topics);
-    });
-
-    test('deve adiar geração quando há 1 task completada nas últimas 24h (config: max 1)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 1 });
-
-      const completedTask = new TaskProcess(
-        'topic-1',
-        'customer-1',
-        TaskProcess.GENERATE_TOPIC_HISTORY,
-        'completed',
-        'completed-task-1',
-        undefined,
-        new Date()
-      );
-
-      mockTaskProcessRepository.search.mockResolvedValue([completedTask]);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      // Verificar se foi criada uma task de verificação para 24h depois
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.REGENERATE_TOPIC_HISTORY);
-      expect(savedTask.status).toBe('pending');
-      
-      // Verificar se a data agendada é aproximadamente 24h depois
-      const expectedDate = new Date(completedTask.createdAt!);
-      expectedDate.setHours(expectedDate.getHours() + 24);
-      
-      const savedDate = new Date(savedTask.scheduledTo!);
-      const timeDiff = Math.abs(savedDate.getTime() - expectedDate.getTime());
-      expect(timeDiff).toBeLessThan(1000); // Diferença menor que 1 segundo
-    });
-
-    test('deve adiar geração quando há 3 tasks completadas nas últimas 24h (config: max 3)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 3 });
-
-      const completedTasks = [
-        new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date(Date.now() - 1000)),
-        new TaskProcess('topic-2', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-2', undefined, new Date(Date.now() - 500)),
-        new TaskProcess('topic-3', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-3', undefined, new Date()), // Mais recente
-      ];
-
-      mockTaskProcessRepository.search.mockResolvedValue(completedTasks);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      // Verificar se foi criada uma task de verificação
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.REGENERATE_TOPIC_HISTORY);
-      
-      // Verificar se a data agendada é 24h depois da task mais recente
-      const expectedDate = new Date(completedTasks[2].createdAt!);
-      expectedDate.setHours(expectedDate.getHours() + 24);
-      
-      const savedDate = new Date(savedTask.scheduledTo!);
-      const timeDiff = Math.abs(savedDate.getTime() - expectedDate.getTime());
-      expect(timeDiff).toBeLessThan(1000);
-    });
-
-    test('deve processar normalmente quando há menos tasks que o máximo permitido', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 3 });
-
-      const completedTasks = [
-        new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date()),
-        new TaskProcess('topic-2', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-2', undefined, new Date()),
-      ];
-
-      mockTaskProcessRepository.search.mockResolvedValue(completedTasks);
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue([]);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
       mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
 
-      await taskRunner.execute(mockTaskProcess);
+      // Act
+      await taskRunner.execute(baseTaskProcess);
 
-      // Verificar se foi criada uma task de geração (não de verificação)
+      // Assert
       expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.GENERATE_TOPIC_HISTORY);
     });
-  });
 
-  describe('Configuração de máximo de tópicos por 24h', () => {
-    beforeEach(() => {
-      const topics = [
-        new Topic('customer-1', 'Topic 1', 'topic-1'),
+    it('should use default config when setConfig is not called', async () => {
+      // Arrange
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
       ];
-      mockTopicRepository.findByCustomerId.mockResolvedValue(topics);
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
       mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
-    });
 
-    test('deve processar quando há 0 tasks completadas (config: max 1)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 1 });
-      mockTaskProcessRepository.search.mockResolvedValue([]);
+      // Act
+      await taskRunner.execute(baseTaskProcess);
 
-      await taskRunner.execute(mockTaskProcess);
-
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.GENERATE_TOPIC_HISTORY);
-    });
-
-    test('deve processar quando há 2 tasks completadas (config: max 3)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 3 });
-      
-      const completedTasks = [
-        new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date()),
-        new TaskProcess('topic-2', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-2', undefined, new Date()),
-      ];
-
-      mockTaskProcessRepository.search.mockResolvedValue(completedTasks);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.GENERATE_TOPIC_HISTORY);
-    });
-
-    test('deve adiar quando há exatamente 1 task completada (config: max 1)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 1 });
-      
-      const completedTask = new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date());
-      mockTaskProcessRepository.search.mockResolvedValue([completedTask]);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.REGENERATE_TOPIC_HISTORY);
-    });
-
-    test('deve adiar quando há exatamente 3 tasks completadas (config: max 3)', async () => {
-      taskRunner.setConfig({ maxTopicsPer24h: 3 });
-      
-      const completedTasks = [
-        new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date()),
-        new TaskProcess('topic-2', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-2', undefined, new Date()),
-        new TaskProcess('topic-3', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-3', undefined, new Date()),
-      ];
-
-      mockTaskProcessRepository.search.mockResolvedValue(completedTasks);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.REGENERATE_TOPIC_HISTORY);
-    });
-  });
-
-  describe('Integração completa', () => {
-    test('deve funcionar corretamente com cenário realista', async () => {
-      // Configurar customer com múltiplos tópicos
-      const topics = [
-        new Topic('customer-1', 'Topic 1', 'topic-1'),
-        new Topic('customer-1', 'Topic 2', 'topic-2'),
-        new Topic('customer-1', 'Topic 3', 'topic-3'),
-      ];
-
-      mockTopicRepository.findByCustomerId.mockResolvedValue(topics);
-      
-      // Configurar que há 1 task completada nas últimas 24h (config: max 1)
-      taskRunner.setConfig({ maxTopicsPer24h: 1 });
-      
-      const completedTask = new TaskProcess('topic-1', 'customer-1', TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', 'task-1', undefined, new Date());
-      mockTaskProcessRepository.search.mockResolvedValue([completedTask]);
-
-      await taskRunner.execute(mockTaskProcess);
-
-      // Verificar que foi criada uma task de verificação (não de geração)
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0];
-      expect(savedTask.type).toBe(TaskProcess.REGENERATE_TOPIC_HISTORY);
-      expect(savedTask.status).toBe('pending');
+      // Assert
+      // Should not schedule any tasks because default maxTopicsPer24h is 1 and we have 1 completed task
+      expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('already has 1 processed tasks, which meets the maximum limit of 1 topics per 24h')
+      );
     });
   });
 }); 

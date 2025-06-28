@@ -1,17 +1,14 @@
 import { TaskProcess } from "../../taskprocess/entities/TaskProcess";
-import { TaskProcessRunner } from "../../taskprocess/ports/TaskProcessRunner";
 import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRepositoryPort";
 import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
 import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
 import { LoggerPort } from "../../shared/ports/LoggerPort";
-import { Topic } from "../../topic/entities/Topic";
 
 export interface ReGenerateTopicHistoryConfig {
   maxTopicsPer24h: number; // 1 or 3
 }
 
-export class ReGenerateTopicHistoryTaskRunner
-  implements TaskProcessRunner {
+export class ReGenerateTopicHistoryTaskRunner {
   private config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 1 };
 
   constructor(
@@ -21,159 +18,74 @@ export class ReGenerateTopicHistoryTaskRunner
     private readonly logger: LoggerPort
   ) {}
 
-  /**
-   * Sets the configuration for the task runner
-   * @param config Configuration object with maxTopicsPer24h
-   */
   setConfig(config: ReGenerateTopicHistoryConfig): void {
     this.config = config;
   }
 
-  /**
-   * Executes the regenerate topic history task
-   * @param taskProcess The task process containing the customer ID in entityId
-   * @returns Promise<void> Resolves when task is processed
-   * @throws Error if customer has no topics or task creation fails
-   */
   async execute(taskProcess: TaskProcess): Promise<void> {
     const customerId = taskProcess.customerId;
-    const topicId = taskProcess.entityId;
-
-    // Step 1: Check if customer has any topics
-    const customerTopics = await this.topicRepository.findByCustomerId(
-      customerId
-    );
-    if (!customerTopics || customerTopics.length === 0) {
-      throw new Error(`Customer with ID ${customerId} has no topics`);
-    }
-
-    // Step 2: Check if there are completed tasks in the last 24h
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
-    const recentCompletedTasks = await this.taskProcessRepository.search({
-      customerId: customerId,
-      type: TaskProcess.GENERATE_TOPIC_HISTORY,
+    
+    // Get all scheduled GENERATE_TOPIC_HISTORY tasks not processed for the customerId in the last 24h
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const allCustomerTasks = await this.taskProcessRepository.searchProcessedTasks({
+      customerId,
       dateFrom: twentyFourHoursAgo,
-      dateTo: new Date()
     });
 
-    // Step 3: Check if we've reached the maximum topics per 24h
-    if (recentCompletedTasks.length >= this.config.maxTopicsPer24h) {
-      // Find the newest completed task and schedule verification for 24h later
-      const newestTask = recentCompletedTasks.reduce((latest, current) => 
-        (current.createdAt && latest.createdAt && current.createdAt > latest.createdAt) ? current : latest
+    const generateTasks = allCustomerTasks ? allCustomerTasks.filter(task => task.type === TaskProcess.GENERATE_TOPIC_HISTORY) : [];
+    
+    const processedTasksCount = generateTasks.filter(task => task.status === 'completed').length
+    
+    if (processedTasksCount < this.config.maxTopicsPer24h) {
+      // Define how many topics are needed to be generated to reach the maxTopicsPer24h
+      const topicsNeeded = this.config.maxTopicsPer24h - processedTasksCount;
+      
+      // Get topics with less topic histories
+      const topics = await this.topicRepository.findByCustomerId(customerId);
+      const topicsWithHistoryCount = await Promise.all(
+        topics.map(async (topic) => {
+          const histories = await this.topicHistoryRepository.findByTopicId(topic.id);
+          return { topic, historyCount: histories.length };
+        })
       );
-
-      if (newestTask.createdAt) {
-        const lastSendingDate = newestTask.createdAt;
-        const verificationDate = new Date(lastSendingDate);
-        verificationDate.setHours(verificationDate.getHours() + 24);
-
-        // Create verification scheduled task
-        const verificationTaskProcess = new TaskProcess(
-          topicId, 
+      
+      // Sort topics by history count (ascending) and take the ones needed
+      const topicsToProcess = topicsWithHistoryCount
+        .sort((a, b) => a.historyCount - b.historyCount)
+        .slice(0, topicsNeeded)
+        .map(item => item.topic);
+      
+      // Get the last SEND_TOPIC_HISTORY task to calculate the next schedule time
+      const sendTasks = allCustomerTasks ? allCustomerTasks.filter(task => 
+        task.type === TaskProcess.SEND_TOPIC_HISTORY
+      ) : [];
+      const lastSendTask = sendTasks.length > 0 
+        ? sendTasks.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+        : null;
+      
+      const nextScheduleTime = lastSendTask 
+        ? new Date(lastSendTask.createdAt.getTime() + 24 * 60 * 60 * 1000) // +24 hours
+        : new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to 24h from now
+      
+      // Schedule new GENERATE_TOPIC_HISTORY tasks for the selected topics
+      for (const topic of topicsToProcess) {
+        const newTask = new TaskProcess(
+          topic.id, // entityId
           customerId,
-          TaskProcess.REGENERATE_TOPIC_HISTORY,
-          "pending",
+          TaskProcess.GENERATE_TOPIC_HISTORY,
+          'pending',
           undefined, // id will be auto-generated
           undefined, // errorMsg
-          verificationDate // scheduledTo
+          nextScheduleTime, // scheduledTo
+          undefined // processAt
         );
-
-        await this.taskProcessRepository.save(verificationTaskProcess);
-
-        this.logger.info(
-          `Scheduled verification task for customer ${customerId} due to maximum topics per 24h reached (${this.config.maxTopicsPer24h})`,
-          {
-            customerId,
-            topicId,
-            maxTopicsPer24h: this.config.maxTopicsPer24h,
-            lastSending: lastSendingDate.toISOString(),
-            nextVerification: verificationDate.toISOString(),
-            recentCompletedTasks: recentCompletedTasks.length
-          }
-        );
+        
+        await this.taskProcessRepository.save(newTask);
+        this.logger.info(`Scheduled GENERATE_TOPIC_HISTORY task for topic ${topic.id} at ${nextScheduleTime}`);
       }
-      return;
-    }
-
-    // Step 4: Find topic with fewer histories and create generation task
-    const topicWithLessHistories = await this.findTopicIdWithLessTopicsHistories(
-      customerTopics
-    );
-
-    if (topicWithLessHistories) {
-      // Create a new TaskProcess for topic history generation
-      const scheduledTime = new Date();
-
-      const newTaskProcess = new TaskProcess(
-        topicWithLessHistories.id, // Use the topic with fewer histories as entityId
-        customerId,
-        TaskProcess.GENERATE_TOPIC_HISTORY,
-        "pending",
-        undefined, // id will be auto-generated
-        undefined, // errorMsg
-        scheduledTime // scheduledTo
-      );
-
-      // Save the new task process
-      await this.taskProcessRepository.save(newTaskProcess);
-
-      this.logger.info(
-        `Scheduled topic history generation task for customer ${customerId} using topic ${topicWithLessHistories.id} (fewer histories)`,
-        {
-          customerId,
-          topicId: topicWithLessHistories.id,
-          topicSubject: topicWithLessHistories.subject,
-          scheduledTime: scheduledTime.toISOString(),
-          taskType: TaskProcess.GENERATE_TOPIC_HISTORY
-        }
-      );
     } else {
-      this.logger.info(
-        `No topic with fewer histories found for customer ${customerId}`,
-        { customerId, topicCount: customerTopics.length }
-      );
+      // If the customer has more than maxTopicsPer24h tasks, just print an info message
+      this.logger.info(`Customer ${customerId} already has ${processedTasksCount} processed tasks, which meets the maximum limit of ${this.config.maxTopicsPer24h} topics per 24h`);
     }
-  }
-
-  /**
-   * Finds the topic with fewer topic histories among the given topics
-   * @param topics Array of topics to check
-   * @returns Promise<Topic> The topic with fewer histories, or the first topic if no histories exist
-   */
-  private async findTopicIdWithLessTopicsHistories(topics: Topic[]): Promise<Topic | null> {
-    let topicWithLessHistories: Topic | null = null;
-    let leastHistories = Infinity;
-
-    for (const topic of topics) {
-      const topicHistories = await this.topicHistoryRepository.findByTopicId(
-        topic.id
-      );
-
-      if (topicHistories && topicHistories.length < leastHistories) {
-        leastHistories = topicHistories.length;
-        topicWithLessHistories = topic;
-      }
-    }
-
-    if (!topicWithLessHistories) {
-      this.logger.info(
-        `No topic with fewer histories found for customer, using first topic: ${topics[0].id}`,
-        { topicId: topics[0].id, topicSubject: topics[0].subject }
-      );
-      return topics[0];
-    }
-
-    this.logger.info(
-      `Found topic with fewer histories: ${topicWithLessHistories.id}, with ${leastHistories} histories`,
-      {
-        topicId: topicWithLessHistories.id,
-        topicSubject: topicWithLessHistories.subject,
-        historyCount: leastHistories
-      }
-    );
-    return topicWithLessHistories;
   }
 }
