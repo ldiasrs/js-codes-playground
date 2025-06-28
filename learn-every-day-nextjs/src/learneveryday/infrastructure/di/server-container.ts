@@ -1,32 +1,11 @@
-import { NextJSContainer } from './nextjs-container';
-import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
-
-export class ServerContainer extends NextJSContainer {
-  private cronScheduler: TriggerTaskProcessExecutorCron | null = null;
-
-  constructor() {
-    super();
-    this.initializeServerServices();
-  }
-
-  private initializeServerServices(): void {
-    this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
-      this.get('ProcessTopicHistoryWorkflowCommand'),
-      this.get('Logger')
-    ));
-  }
-
-  getCronScheduler(): TriggerTaskProcessExecutorCron | null {
-    return this.cronScheduler;
-  }
-}
+import { NextJSContainer } from "./nextjs-container";
 
 export class ServerContainerBuilder {
-  private static container: ServerContainer;
+  private static container: NextJSContainer;
 
-  public static build(): ServerContainer {
+  public static build(): NextJSContainer {
     if (!this.container) {
-      this.container = new ServerContainer();
+      this.container = new NextJSContainer();
     }
     return this.container;
   }
@@ -35,7 +14,7 @@ export class ServerContainerBuilder {
     if (this.container) {
       // Stop cron scheduler before resetting
       this.container.reset();
-      this.container = null as unknown as ServerContainer;
+      this.container = null as unknown as NextJSContainer;
     }
   }
 
@@ -44,7 +23,7 @@ export class ServerContainerBuilder {
    */
   public static shutdown(): void {
     if (this.container) {
-      this.container = null as unknown as ServerContainer;
+      this.container = null as unknown as NextJSContainer;
     }
   }
 } 

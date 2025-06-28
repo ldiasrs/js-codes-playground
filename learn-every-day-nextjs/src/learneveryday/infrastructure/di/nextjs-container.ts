@@ -29,7 +29,6 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 // Runners
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { ReGenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -39,7 +38,6 @@ import { VerifyCustomerCommand } from '../../application/commands/customer/Verif
 import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
 import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
-import { GenerateTopicHistoryCommand } from '../../application/commands/topic-history/GenerateTopicHistoryCommand';
 import { ExecuteTaskProcessCommand } from '../../application/commands/taskprocess/ExecuteTaskProcessCommand';
 import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
@@ -47,7 +45,7 @@ import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/t
 import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
-import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
+import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 
 export interface Container {
   get<T>(token: string): T;
@@ -208,12 +206,6 @@ export class NextJSContainer implements Container {
       this.get('DeleteTopicFeature')
     ));
 
-    this.registerSingleton('GenerateTopicHistoryCommand', () => new GenerateTopicHistoryCommand(
-      this.get('GenerateTopicHistoryTaskRunner'),
-      this.get('TopicHistoryRepository'),
-      this.get('TopicRepository')
-    ));
-
     this.registerSingleton('ExecuteTaskProcessCommand', () => new ExecuteTaskProcessCommand(
       this.get('TaskProcessRepository'),
       this.get('Logger')
@@ -236,10 +228,6 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository')
     ));
 
-    this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
-      this.get('ProcessTopicHistoryWorkflowCommand'),
-      this.get('Logger')
-    ));
   }
 
   protected registerSingleton<T>(token: string, factory: () => T): void {
