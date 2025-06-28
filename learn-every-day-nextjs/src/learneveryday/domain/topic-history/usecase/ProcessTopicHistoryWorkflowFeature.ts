@@ -1,6 +1,5 @@
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { GenerateTopicHistoryTaskRunner } from './GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
@@ -12,7 +11,6 @@ export interface ProcessTopicHistoryWorkflowFeatureData {
 
 export class ProcessTopicHistoryWorkflowFeature {
   constructor(
-    private readonly customerRepository: CustomerRepositoryPort,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly reGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner,
     private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
@@ -50,7 +48,7 @@ export class ProcessTopicHistoryWorkflowFeature {
     
     const pendingTasks = await this.taskProcessRepository.findPendingTaskProcessByStatusAndType(
       'pending',
-      TaskProcess.REGENERATE_TOPIC_HISTORY,
+      TaskProcess.REGENERATE_TOPICS_HISTORIES,
       limit
     );
     

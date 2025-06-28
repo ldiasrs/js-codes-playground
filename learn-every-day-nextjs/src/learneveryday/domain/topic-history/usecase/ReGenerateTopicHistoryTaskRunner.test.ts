@@ -107,7 +107,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
     const baseTaskProcess = new TaskProcess(
       topicId1,
       customerId,
-      TaskProcess.REGENERATE_TOPIC_HISTORY,
+      TaskProcess.REGENERATE_TOPICS_HISTORIES,
       'pending'
     );
 

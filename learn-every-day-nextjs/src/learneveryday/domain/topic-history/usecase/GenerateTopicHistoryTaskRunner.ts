@@ -75,28 +75,42 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
       taskType: TaskProcess.SEND_TOPIC_HISTORY
     });
 
-    // Step 8: Create and save a new regenerate-topic-history task
-    const scheduledTimeRegenerate = new Date();
-    scheduledTimeRegenerate.setHours(scheduledTimeRegenerate.getHours()); 
-    
-    const newRegenerateTaskProcess = new TaskProcess(
-      topic.id, 
-      topic.customerId,
-      TaskProcess.REGENERATE_TOPIC_HISTORY,
-      'pending',
-      undefined, // id will be auto-generated
-      undefined, // errorMsg
-      scheduledTimeRegenerate // scheduledTo
-    );
-
-    // Save the new regenerate task process
-    await this.taskProcessRepository.save(newRegenerateTaskProcess);
-
-    this.logger.info(`Scheduled regenerate topic history task for customer ${topic.customerId}`, {
-      topicId,
+    // Step 8: Create and save a new regenerate-topic-history task only if there's no pending one for this customer
+    const existingRegenerateTasks = await this.taskProcessRepository.searchProcessedTasks({
       customerId: topic.customerId,
-      scheduledTime: scheduledTimeRegenerate.toISOString(),
-      taskType: TaskProcess.REGENERATE_TOPIC_HISTORY
+      type: TaskProcess.REGENERATE_TOPICS_HISTORIES,
+      status: 'pending'
     });
+
+    if (existingRegenerateTasks.length === 0) {
+      const scheduledTimeRegenerate = new Date();
+      scheduledTimeRegenerate.setHours(scheduledTimeRegenerate.getHours()); 
+      
+      const newRegenerateTaskProcess = new TaskProcess(
+        topic.id, 
+        topic.customerId,
+        TaskProcess.REGENERATE_TOPICS_HISTORIES,
+        'pending',
+        undefined, // id will be auto-generated
+        undefined, // errorMsg
+        scheduledTimeRegenerate // scheduledTo
+      );
+
+      // Save the new regenerate task process
+      await this.taskProcessRepository.save(newRegenerateTaskProcess);
+
+      this.logger.info(`Scheduled regenerate topic history task for customer ${topic.customerId}`, {
+        topicId,
+        customerId: topic.customerId,
+        scheduledTime: scheduledTimeRegenerate.toISOString(),
+        taskType: TaskProcess.REGENERATE_TOPICS_HISTORIES
+      });
+    } else {
+      this.logger.info(`Skipped creating regenerate topic history task for customer ${topic.customerId} - pending task already exists`, {
+        topicId,
+        customerId: topic.customerId,
+        existingTaskCount: existingRegenerateTasks.length
+      });
+    }
   }
 } 

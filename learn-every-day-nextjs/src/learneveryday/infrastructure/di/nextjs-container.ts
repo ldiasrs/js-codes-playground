@@ -139,7 +139,6 @@ export class NextJSContainer implements Container {
     ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessTopicHistoryWorkflowFeature(
-      this.get('CustomerRepository'),
       this.get('TaskProcessRepository'),
       this.get('ReGenerateTopicHistoryTaskRunner'),
       this.get('GenerateTopicHistoryTaskRunner'),
