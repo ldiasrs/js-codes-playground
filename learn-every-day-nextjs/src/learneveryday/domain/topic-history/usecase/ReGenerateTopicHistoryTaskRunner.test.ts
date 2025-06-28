@@ -135,13 +135,13 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       );
     };
 
-    it('should schedule new tasks when customer has less than maxTopicsPer24h completed tasks', async () => {
+    it('should schedule new tasks when customer has less than maxTopicsPer24h pending tasks', async () => {
       // Arrange
       const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
       taskRunner.setConfig(config);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed', new Date()),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending', new Date()),
         createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', new Date()),
       ];
 
@@ -172,8 +172,8 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       taskRunner.setConfig(config);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
       ];
 
       mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
@@ -184,7 +184,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Assert
       expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('already has 2 processed tasks, which meets the maximum limit of 1 topics per 24h')
+        expect.stringContaining('already has 2 pending tasks, which meets the maximum limit of 1 topics per 24h')
       );
     });
 
@@ -194,7 +194,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       taskRunner.setConfig(config);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
       ];
 
       mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
@@ -242,7 +242,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
     it('should use default config when setConfig is not called', async () => {
       // Arrange
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
       ];
 
       mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
@@ -253,10 +253,10 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       await taskRunner.execute(baseTaskProcess);
 
       // Assert
-      // Should not schedule any tasks because default maxTopicsPer24h is 1 and we have 1 completed task
+      // Should not schedule any tasks because default maxTopicsPer24h is 1 and we have 1 pending task
       expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('already has 1 processed tasks, which meets the maximum limit of 1 topics per 24h')
+        expect.stringContaining('already has 1 pending tasks, which meets the maximum limit of 1 topics per 24h')
       );
     });
 
@@ -269,7 +269,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       const expectedNextScheduleTime = new Date(lastSendTaskTime.getTime() + 24 * 60 * 60 * 1000);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
         createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', lastSendTaskTime),
       ];
 
@@ -292,7 +292,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       taskRunner.setConfig(config);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
         // No SEND_TOPIC_HISTORY tasks
       ];
 
@@ -329,7 +329,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       const expectedNextScheduleTime = new Date(newerSendTaskTime.getTime() + 24 * 60 * 60 * 1000);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
         createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', olderSendTaskTime),
         createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', newerSendTaskTime),
       ];

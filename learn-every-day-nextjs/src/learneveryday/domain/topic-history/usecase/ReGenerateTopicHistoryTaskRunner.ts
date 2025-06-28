@@ -34,11 +34,11 @@ export class ReGenerateTopicHistoryTaskRunner {
 
     const generateTasks = allCustomerTasks ? allCustomerTasks.filter(task => task.type === TaskProcess.GENERATE_TOPIC_HISTORY) : [];
     
-    const processedTasksCount = generateTasks.filter(task => task.status === 'completed').length
+    const pendingTasksCount = generateTasks.filter(task => task.status === 'pending').length
     
-    if (processedTasksCount < this.config.maxTopicsPer24h) {
+    if (pendingTasksCount < this.config.maxTopicsPer24h) {
       // Define how many topics are needed to be generated to reach the maxTopicsPer24h
-      const topicsNeeded = this.config.maxTopicsPer24h - processedTasksCount;
+      const topicsNeeded = this.config.maxTopicsPer24h - pendingTasksCount;
       
       // Get topics with less topic histories
       const topics = await this.topicRepository.findByCustomerId(customerId);
@@ -85,7 +85,7 @@ export class ReGenerateTopicHistoryTaskRunner {
       }
     } else {
       // If the customer has more than maxTopicsPer24h tasks, just print an info message
-      this.logger.info(`Customer ${customerId} already has ${processedTasksCount} processed tasks, which meets the maximum limit of ${this.config.maxTopicsPer24h} topics per 24h`);
+      this.logger.info(`Customer ${customerId} already has ${pendingTasksCount} pending tasks, which meets the maximum limit of ${this.config.maxTopicsPer24h} topics per 24h`);
     }
   }
 }
