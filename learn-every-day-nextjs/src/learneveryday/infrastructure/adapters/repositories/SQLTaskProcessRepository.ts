@@ -171,7 +171,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     return rows.map(row => this.mapToTaskProcess(row));
   }
 
-  async search(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]> {
+  async searchProcessedTasks(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
     let sql = 'SELECT * FROM task_processes WHERE 1=1';

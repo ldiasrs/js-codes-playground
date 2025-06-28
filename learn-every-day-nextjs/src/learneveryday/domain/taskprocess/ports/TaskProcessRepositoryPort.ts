@@ -25,7 +25,7 @@ export interface TaskProcessRepositoryPort {
   findScheduledTasks(): Promise<TaskProcess[]>;
   findFailedTasks(): Promise<TaskProcess[]>;
   findPendingTaskProcessByStatusAndType(status: TaskProcessStatus, type: TaskProcessType, limit?: number): Promise<TaskProcess[]>;
-  search(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]>;
+  searchProcessedTasks(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]>;
   delete(id: string): Promise<boolean>;
   deleteByEntityId(entityId: string): Promise<void>;
   deleteByCustomerId(customerId: string): Promise<void>;
