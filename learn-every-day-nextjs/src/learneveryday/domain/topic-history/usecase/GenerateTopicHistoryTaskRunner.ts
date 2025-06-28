@@ -6,6 +6,7 @@ import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort'
 import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
+import { Topic } from '../../topic/entities/Topic';
 
 export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
@@ -24,93 +25,186 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
    */
   async execute(taskProcess: TaskProcess): Promise<void> {
     const topicId = taskProcess.entityId;
+    
+    const topic = await this.validateAndGetTopic(topicId);
+    const newHistory = await this.generateAndSaveTopicHistory(topic);
+    await this.scheduleSendTask(newHistory, topic);
+    await this.scheduleRegenerateTaskIfNeeded(topic);
+  }
 
-    // Step 1: Verify topic exists
+  /**
+   * Validates that the topic exists and returns it
+   * @param topicId The ID of the topic to validate
+   * @returns Promise<Topic> The validated topic
+   * @throws Error if topic doesn't exist
+   */
+  private async validateAndGetTopic(topicId: string): Promise<Topic> {
     const topic = await this.topicRepository.findById(topicId);
     if (!topic) {
       throw new Error(`Topic with ID ${topicId} not found`);
     }
+    return topic;
+  }
 
-    // Step 2: Get existing history for context
-    const existingHistory = await this.topicHistoryRepository.findByTopicId(topicId);
-
-    // Step 3: Generate new topic history content
+  /**
+   * Generates and saves new topic history content
+   * @param topic The topic to generate history for
+   * @returns Promise<TopicHistory> The newly created topic history
+   */
+  private async generateAndSaveTopicHistory(topic: Topic): Promise<TopicHistory> {
+    const existingHistory = await this.topicHistoryRepository.findByTopicId(topic.id);
+    
     const generatedContent = await this.generateTopicHistoryPort.generate({
       topicSubject: topic.subject,
       history: existingHistory
     });
 
-    // Step 4: Create and save the new history entry
-    const newHistory = new TopicHistory(topicId, generatedContent);
+    const newHistory = new TopicHistory(topic.id, generatedContent);
     await this.topicHistoryRepository.save(newHistory);
 
-    this.logger.info(`Generated topic history for topic: ${topicId}`, {
-      topicId,
+    this.logger.info(`Generated topic history for topic: ${topic.id}`, {
+      topicId: topic.id,
       topicSubject: topic.subject,
       customerId: topic.customerId,
       historyId: newHistory.id
     });
 
-    const scheduledTimeSend = new Date();
-    scheduledTimeSend.setMinutes(scheduledTimeSend.getMinutes()); 
-    
-    const newSendTaskProcess = new TaskProcess(
-      newHistory.id, 
-      topic.customerId,
-      TaskProcess.SEND_TOPIC_HISTORY,
-      'pending',
-      undefined, // id will be auto-generated
-      undefined, // errorMsg
-      scheduledTimeSend // scheduledTo
-    );
+    return newHistory;
+  }
 
-    // Step 7: Save the new send task process
+  /**
+   * Schedules a send task for the generated topic history
+   * @param newHistory The newly created topic history
+   * @param topic The topic associated with the history
+   */
+  private async scheduleSendTask(newHistory: TopicHistory, topic: Topic): Promise<void> {
+    const scheduledTimeSend = this.calculateSendScheduledTime();
+    
+    const newSendTaskProcess = this.createSendTaskProcess(newHistory, topic, scheduledTimeSend);
     await this.taskProcessRepository.save(newSendTaskProcess);
 
-    this.logger.info(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topicId}`, {
-      topicId,
+    this.logger.info(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topic.id}`, {
+      topicId: topic.id,
       customerId: topic.customerId,
       historyId: newHistory.id,
       scheduledTime: scheduledTimeSend.toISOString(),
       taskType: TaskProcess.SEND_TOPIC_HISTORY
     });
+  }
 
-    // Step 8: Create and save a new regenerate-topic-history task only if there's no pending one for this customer
+  /**
+   * Schedules a regenerate task if no pending one exists for the customer
+   * @param topic The topic to potentially schedule regeneration for
+   */
+  private async scheduleRegenerateTaskIfNeeded(topic: Topic): Promise<void> {
+    const hasPendingRegenerateTask = await this.hasPendingRegenerateTask(topic.customerId);
+    
+    if (hasPendingRegenerateTask) {
+      this.logSkippedRegenerateTask(topic);
+      return;
+    }
+
+    await this.createRegenerateTask(topic);
+  }
+
+  /**
+   * Checks if there's a pending regenerate task for the customer
+   * @param customerId The customer ID to check
+   * @returns Promise<boolean> True if a pending task exists
+   */
+  private async hasPendingRegenerateTask(customerId: string): Promise<boolean> {
     const existingRegenerateTasks = await this.taskProcessRepository.searchProcessedTasks({
-      customerId: topic.customerId,
+      customerId,
       type: TaskProcess.REGENERATE_TOPICS_HISTORIES,
       status: 'pending'
     });
+    
+    return existingRegenerateTasks.length > 0;
+  }
 
-    if (existingRegenerateTasks.length === 0) {
-      const scheduledTimeRegenerate = new Date();
-      scheduledTimeRegenerate.setHours(scheduledTimeRegenerate.getHours()); 
-      
-      const newRegenerateTaskProcess = new TaskProcess(
-        topic.id, 
-        topic.customerId,
-        TaskProcess.REGENERATE_TOPICS_HISTORIES,
-        'pending',
-        undefined, // id will be auto-generated
-        undefined, // errorMsg
-        scheduledTimeRegenerate // scheduledTo
-      );
+  /**
+   * Creates and saves a new regenerate task for the customer
+   * @param topic The topic to create regeneration task for
+   */
+  private async createRegenerateTask(topic: Topic): Promise<void> {
+    const scheduledTimeRegenerate = this.calculateRegenerateScheduledTime();
+    
+    const newRegenerateTaskProcess = this.createRegenerateTaskProcess(topic, scheduledTimeRegenerate);
+    await this.taskProcessRepository.save(newRegenerateTaskProcess);
 
-      // Save the new regenerate task process
-      await this.taskProcessRepository.save(newRegenerateTaskProcess);
+    this.logger.info(`Scheduled regenerate topic history task for customer ${topic.customerId}`, {
+      topicId: topic.id,
+      customerId: topic.customerId,
+      scheduledTime: scheduledTimeRegenerate.toISOString(),
+      taskType: TaskProcess.REGENERATE_TOPICS_HISTORIES
+    });
+  }
 
-      this.logger.info(`Scheduled regenerate topic history task for customer ${topic.customerId}`, {
-        topicId,
-        customerId: topic.customerId,
-        scheduledTime: scheduledTimeRegenerate.toISOString(),
-        taskType: TaskProcess.REGENERATE_TOPICS_HISTORIES
-      });
-    } else {
-      this.logger.info(`Skipped creating regenerate topic history task for customer ${topic.customerId} - pending task already exists`, {
-        topicId,
-        customerId: topic.customerId,
-        existingTaskCount: existingRegenerateTasks.length
-      });
-    }
+  /**
+   * Calculates the scheduled time for send task
+   * @returns Date The scheduled time
+   */
+  private calculateSendScheduledTime(): Date {
+    const scheduledTime = new Date();
+    scheduledTime.setMinutes(scheduledTime.getMinutes());
+    return scheduledTime;
+  }
+
+  /**
+   * Calculates the scheduled time for regenerate task
+   * @returns Date The scheduled time
+   */
+  private calculateRegenerateScheduledTime(): Date {
+    const scheduledTime = new Date();
+    scheduledTime.setHours(scheduledTime.getHours());
+    return scheduledTime;
+  }
+
+  /**
+   * Creates a send task process
+   * @param newHistory The topic history to send
+   * @param topic The associated topic
+   * @param scheduledTime The scheduled time for the task
+   * @returns TaskProcess The created task process
+   */
+  private createSendTaskProcess(newHistory: TopicHistory, topic: Topic, scheduledTime: Date): TaskProcess {
+    return new TaskProcess(
+      newHistory.id,
+      topic.customerId,
+      TaskProcess.SEND_TOPIC_HISTORY,
+      'pending',
+      undefined,
+      undefined,
+      scheduledTime
+    );
+  }
+
+  /**
+   * Creates a regenerate task process
+   * @param topic The topic to regenerate history for
+   * @param scheduledTime The scheduled time for the task
+   * @returns TaskProcess The created task process
+   */
+  private createRegenerateTaskProcess(topic: Topic, scheduledTime: Date): TaskProcess {
+    return new TaskProcess(
+      topic.id,
+      topic.customerId,
+      TaskProcess.REGENERATE_TOPICS_HISTORIES,
+      'pending',
+      undefined,
+      undefined,
+      scheduledTime
+    );
+  }
+
+  /**
+   * Logs when regenerate task creation is skipped
+   * @param topic The topic for which regeneration was skipped
+   */
+  private logSkippedRegenerateTask(topic: Topic): void {
+    this.logger.info(`Skipped creating regenerate topic history task for customer ${topic.customerId} - pending task already exists`, {
+      topicId: topic.id,
+      customerId: topic.customerId
+    });
   }
 } 
