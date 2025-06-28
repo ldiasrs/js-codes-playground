@@ -47,6 +47,7 @@ import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/t
 import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
+import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
 
 export interface Container {
   get<T>(token: string): T;
@@ -233,6 +234,11 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('SearchTopicsQuery', () => new SearchTopicsQuery(
       this.get('TopicRepository')
+    ));
+
+    this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
+      this.get('ProcessTopicHistoryWorkflowCommand'),
+      this.get('Logger')
     ));
   }
 

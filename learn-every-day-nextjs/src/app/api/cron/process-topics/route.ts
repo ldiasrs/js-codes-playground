@@ -1,24 +1,18 @@
 import { NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
+import { ProcessTopicHistoryWorkflowCommand } from '@/learneveryday/application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
 export async function GET() {
   try {
     const container = ServerContainerBuilder.build();
-    const cronScheduler = container.getCronScheduler();
-    
-    if (cronScheduler) {
-      await cronScheduler.triggerNow();
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Topic processing workflow executed successfully',
-        timestamp: new Date().toISOString()
-      });
-    }
+    const processTopicHistoryWorkflowCommand = container.get<ProcessTopicHistoryWorkflowCommand>('ProcessTopicHistoryWorkflowCommand');
+
+    await processTopicHistoryWorkflowCommand.execute({ limit: 100 });
     
     return NextResponse.json({ 
-      success: false, 
-      message: 'Cron scheduler not available' 
-    }, { status: 500 });
+      success: true, 
+      message: 'Topic processing workflow executed successfully' 
+    }, { status: 200 });
   } catch (error) {
     console.error('Cron job execution failed:', error);
     return NextResponse.json({ 
