@@ -110,9 +110,7 @@ export const RegisterForm: React.FC = () => {
     if (result.success) {
       setSuccessMessage(result.message);
       // Navigate to login page after a short delay
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 2000);
+      router.push('/auth/login')
     }
   };
 

@@ -27,10 +27,7 @@ export const LoginForm: React.FC = () => {
     
     if (result.success) {
       setSuccessMessage(result.message);
-      // Navigate to verification page after a short delay
-      setTimeout(() => {
-        router.push('/auth/verify');
-      }, 1500);
+      router.push('/auth/verify');
     } else {
       setError(result.message);
     }

@@ -49,9 +49,7 @@ export const VerificationForm: React.FC = () => {
     if (result.success) {
       setSuccessMessage(result.message);
       // Navigate to topics page after a short delay
-      setTimeout(() => {
-        router.push('/topics');
-      }, 1500);
+      router.push('/topics');
     } else {
       setError(result.message);
     }
