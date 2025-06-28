@@ -63,24 +63,20 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
   private buildPrompt(topicSubject: string, history: TopicHistory[]): string {
     const historyContext = this.formatHistoryContext(history);
     
-    return `Generate a new learning history entry for the topic: "${topicSubject}"
+    return `
+        You will act like a teacher that is teaching a student about the topic: "${topicSubject}".
+        - Your goal is understand the need of the topic and provide several continue informations
+        - This is one of the informations that you will provide
+        - Right in bullet points
+        - Be concise and to the point max 3 bullet points
+        - Must be in Brazilian Portuguese
+        - The examples are very important so you should add practical examples
+        - In the end reference sources where more information can be found
+        - Format the content to be sent by email
 
-${historyContext}
-
-Please create a new learning entry that:
-- Is engaging and informative
-- Builds upon the previous learning experiences
-- Provides new insights or perspectives
-- Is written in numbered list
-- Includes practical takeaways or applications
-- Is approximately 150-300 words
-- Must be in Brazilian Portuguese
-- The text must pass a joy and a message of learning
-- Add some practical examples
-- In the end add references links to the content
-- Format the content to be sent by email
-
-Generate the content now:`;
+        Below are the previous learning entries for this topic, consider them as context to generate a new learning entry.
+        ${historyContext}
+`;
   }
 
   private formatHistoryContext(history: TopicHistory[]): string {
