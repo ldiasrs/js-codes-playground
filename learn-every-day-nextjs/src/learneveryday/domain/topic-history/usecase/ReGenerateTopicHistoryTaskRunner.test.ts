@@ -259,5 +259,92 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
         expect.stringContaining('already has 1 processed tasks, which meets the maximum limit of 1 topics per 24h')
       );
     });
+
+    it('should calculate nextScheduleTime correctly when there is a last SEND_TOPIC_HISTORY task', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
+      taskRunner.setConfig(config);
+
+      const lastSendTaskTime = new Date('2024-01-15T10:00:00Z');
+      const expectedNextScheduleTime = new Date(lastSendTaskTime.getTime() + 24 * 60 * 60 * 1000);
+
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', lastSendTaskTime),
+      ];
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
+      mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
+
+      // Act
+      await taskRunner.execute(baseTaskProcess);
+
+      // Assert
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
+      expect(savedTask.scheduledTo).toEqual(expectedNextScheduleTime);
+    });
+
+    it('should calculate nextScheduleTime correctly when there is no last SEND_TOPIC_HISTORY task', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
+      taskRunner.setConfig(config);
+
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        // No SEND_TOPIC_HISTORY tasks
+      ];
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
+      mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
+
+      const beforeExecution = new Date();
+
+      // Act
+      await taskRunner.execute(baseTaskProcess);
+
+      // Assert
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
+      const afterExecution = new Date();
+
+      // The scheduledTo should be 24 hours from now (between beforeExecution and afterExecution + 24h)
+      const expectedMinTime = new Date(beforeExecution.getTime() + 24 * 60 * 60 * 1000);
+      const expectedMaxTime = new Date(afterExecution.getTime() + 24 * 60 * 60 * 1000);
+
+      expect(savedTask.scheduledTo).toBeInstanceOf(Date);
+      expect(savedTask.scheduledTo!.getTime()).toBeGreaterThanOrEqual(expectedMinTime.getTime());
+      expect(savedTask.scheduledTo!.getTime()).toBeLessThanOrEqual(expectedMaxTime.getTime());
+    });
+
+    it('should use the most recent SEND_TOPIC_HISTORY task when multiple exist', async () => {
+      // Arrange
+      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
+      taskRunner.setConfig(config);
+
+      const olderSendTaskTime = new Date('2024-01-15T10:00:00Z');
+      const newerSendTaskTime = new Date('2024-01-16T14:00:00Z');
+      const expectedNextScheduleTime = new Date(newerSendTaskTime.getTime() + 24 * 60 * 60 * 1000);
+
+      const mockTasks = [
+        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'completed'),
+        createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', olderSendTaskTime),
+        createMockTask(TaskProcess.SEND_TOPIC_HISTORY, 'completed', newerSendTaskTime),
+      ];
+
+      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
+      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
+      mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
+
+      // Act
+      await taskRunner.execute(baseTaskProcess);
+
+      // Assert
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
+      expect(savedTask.scheduledTo).toEqual(expectedNextScheduleTime);
+    });
   });
 }); 
