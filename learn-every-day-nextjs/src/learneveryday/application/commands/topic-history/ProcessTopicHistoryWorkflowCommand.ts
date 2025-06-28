@@ -17,6 +17,7 @@ export class ProcessTopicHistoryWorkflowCommand extends BaseCommand<void, Proces
       limit: data.limit
     };
 
-    await this.processTopicHistoryWorkflowFeature.execute(featureData);
+   this.processTopicHistoryWorkflowFeature.execute(featureData);
+   
   }
 } 
