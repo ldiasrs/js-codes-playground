@@ -38,7 +38,6 @@ import { VerifyCustomerCommand } from '../../application/commands/customer/Verif
 import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
 import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
-import { ExecuteTaskProcessCommand } from '../../application/commands/taskprocess/ExecuteTaskProcessCommand';
 import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
 // Queries
@@ -203,11 +202,6 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('DeleteTopicCommand', () => new DeleteTopicCommand(
       this.get('DeleteTopicFeature')
-    ));
-
-    this.registerSingleton('ExecuteTaskProcessCommand', () => new ExecuteTaskProcessCommand(
-      this.get('TaskProcessRepository'),
-      this.get('Logger')
     ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowCommand', () => new ProcessTopicHistoryWorkflowCommand(
