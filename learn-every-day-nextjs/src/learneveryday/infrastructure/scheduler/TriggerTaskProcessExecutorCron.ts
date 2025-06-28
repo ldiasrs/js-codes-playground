@@ -11,42 +11,6 @@ export class TriggerTaskProcessExecutorCron {
     private readonly logger: LoggerPort
   ) {}
 
-  /**
-   * Starts the cron job that runs every hour
-   * @param cronExpression Optional cron expression (default: '0/30 * * * *' - every 30 minutes)
-   */
-  start(cronExpression: string = '0/30 * * * *'): void {
-    if (this.cronJob) {
-      this.logger.warn('Cron job is already running');
-      return;
-    }
-
-    this.logger.info(`Starting TriggerTaskProcessExecutorCron with schedule: ${cronExpression}`);
-
-    this.cronJob = cron.schedule(cronExpression, async () => {
-      await this.executeTaskProcessing();
-    }, {
-      timezone: 'UTC'
-    });
-
-    this.logger.info('TriggerTaskProcessExecutorCron started successfully');
-  }
-
-  /**
-   * Stops the cron job
-   */
-  stop(): void {
-    if (this.cronJob) {
-      this.cronJob.stop();
-      this.cronJob = null;
-      this.logger.info('TriggerTaskProcessExecutorCron stopped');
-    }
-  }
-
-  /**
-   * Executes the task processing workflow for all customers
-   * Uses the ProcessTopicHistoryWorkflowCommand to handle the entire workflow
-   */
   async executeTaskProcessing(): Promise<void> {
     if (this.isRunning) {
       this.logger.warn('Task processing is already running, skipping this execution');

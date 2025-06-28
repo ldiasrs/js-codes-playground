@@ -1,6 +1,5 @@
 import { NextJSContainer } from './nextjs-container';
 import { TriggerTaskProcessExecutorCron } from '../scheduler/TriggerTaskProcessExecutorCron';
-import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 
 export class ServerContainer extends NextJSContainer {
   private cronScheduler: TriggerTaskProcessExecutorCron | null = null;
@@ -8,55 +7,15 @@ export class ServerContainer extends NextJSContainer {
   constructor() {
     super();
     this.initializeServerServices();
-    this.startCronScheduler();
   }
 
   private initializeServerServices(): void {
-    // Register server-side only services
     this.registerSingleton('TriggerTaskProcessExecutorCron', () => new TriggerTaskProcessExecutorCron(
       this.get('ProcessTopicHistoryWorkflowCommand'),
       this.get('Logger')
     ));
   }
 
-  private startCronScheduler(): void {
-    // Skip cron scheduler in serverless environments (Vercel)
-    if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
-      const logger = this.get<LoggerPort>('Logger');
-      logger.info('🚀 Skipping cron scheduler in serverless environment - using Vercel cron jobs instead');
-      return;
-    }
-
-    try {
-      this.cronScheduler = this.get<TriggerTaskProcessExecutorCron>('TriggerTaskProcessExecutorCron');
-      
-      // Start the cron scheduler with default schedule (every hour)
-      this.cronScheduler.start();
-      
-      const logger = this.get<LoggerPort>('Logger');
-      logger.info('🚀 Cron scheduler started successfully');
-    } catch (error) {
-      const logger = this.get<LoggerPort>('Logger');
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      logger.error('❌ Failed to start cron scheduler:', errorObj);
-    }
-  }
-
-  /**
-   * Stops the cron scheduler
-   * Useful for graceful shutdown
-   */
-  stopCronScheduler(): void {
-    if (this.cronScheduler) {
-      this.cronScheduler.stop();
-      const logger = this.get<LoggerPort>('Logger');
-      logger.info('🛑 Cron scheduler stopped');
-    }
-  }
-
-  /**
-   * Gets the cron scheduler instance
-   */
   getCronScheduler(): TriggerTaskProcessExecutorCron | null {
     return this.cronScheduler;
   }
@@ -75,7 +34,6 @@ export class ServerContainerBuilder {
   public static reset(): void {
     if (this.container) {
       // Stop cron scheduler before resetting
-      this.container.stopCronScheduler();
       this.container.reset();
       this.container = null as unknown as ServerContainer;
     }
@@ -86,7 +44,6 @@ export class ServerContainerBuilder {
    */
   public static shutdown(): void {
     if (this.container) {
-      this.container.stopCronScheduler();
       this.container = null as unknown as ServerContainer;
     }
   }
