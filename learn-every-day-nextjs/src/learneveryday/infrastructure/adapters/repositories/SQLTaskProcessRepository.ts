@@ -164,7 +164,7 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     const rows = await connection.query(
-      'SELECT * FROM task_processes WHERE status = $1 AND type = $2 ORDER BY created_at ASC LIMIT $3',
+      'SELECT * FROM task_processes WHERE status = $1 AND type = $2 AND scheduled_to >= NOW() ORDER BY created_at ASC LIMIT $3',
       [status, type, limit]
     ) as unknown as TaskProcessData[];
 
