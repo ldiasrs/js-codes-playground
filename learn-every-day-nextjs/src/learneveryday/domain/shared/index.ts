@@ -8,6 +8,3 @@ export type { LoggerPort, LogLevel, LogContext } from './ports/LoggerPort';
 
 // Shared Utilities
 export { TierLimits } from './TierLimits';
-
-// Shared Use Cases
-export { TaskWorkflowFeature, type WorkflowStep, type TaskWorkflowFeatureData } from './usecase/TaskWorkflowFeature'; 
