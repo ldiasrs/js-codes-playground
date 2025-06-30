@@ -62,6 +62,13 @@ export class ChatGptTopicHistoryGenerator implements GenerateTopicHistoryPort {
 
   private buildPrompt(topicSubject: string, history: TopicHistory[]): string {
     const historyContext = this.formatHistoryContext(history);
+
+    if (topicSubject.includes('#clean-prompt')) {
+      if (topicSubject.includes('#discard-history')) {
+        return topicSubject;
+      }
+      return `topicSubject \n\n This is what i know about the topic:\n ${topicSubject}`
+    }
     
     return `
         You will act like a teacher that is teaching a student about the topic: "${topicSubject}".
