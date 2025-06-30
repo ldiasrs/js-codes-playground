@@ -39,6 +39,7 @@ export class TasksProcessExecutor {
 
     this.logger.info(`Found ${pendingTasks.length} pending tasks to process`, {
       processType,
+      limit,
       taskCount: pendingTasks.length
     });
 
