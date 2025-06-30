@@ -32,11 +32,35 @@ export class ReGenerateTopicHistoryTaskRunner {
       dateFrom: twentyFourHoursAgo,
     });
 
+    this.logger.info(`Found ${allCustomerTasks.length} tasks for customer ${customerId} in the last 24h`, {
+      customerId,
+      dateFrom: twentyFourHoursAgo,
+      taskCount: allCustomerTasks.length
+    });
+
     const generateTasks = allCustomerTasks ? allCustomerTasks.filter(task => task.type === TaskProcess.GENERATE_TOPIC_HISTORY) : [];
+
+    this.logger.info(`Found ${generateTasks.length} generate tasks for customer ${customerId} in the last 24h`, {
+      customerId,
+      dateFrom: twentyFourHoursAgo,
+      taskCount: generateTasks.length
+    });
     
     const pendingTasksCount = generateTasks.filter(task => task.status === 'pending').length
+
+    this.logger.info(`Found ${pendingTasksCount} pending tasks for customer ${customerId} in the last 24h`, {
+      customerId,
+      dateFrom: twentyFourHoursAgo,
+      taskCount: pendingTasksCount
+    });
     
     if (pendingTasksCount < this.config.maxTopicsPer24h) {
+      this.logger.info(`Customer ${customerId} has less than ${this.config.maxTopicsPer24h} pending tasks, generating more`, {
+        customerId,
+        maxTopicsPer24h: this.config.maxTopicsPer24h,
+        pendingTasksCount
+      });
+
       // Define how many topics are needed to be generated to reach the maxTopicsPer24h
       const topicsNeeded = this.config.maxTopicsPer24h - pendingTasksCount;
       
@@ -69,6 +93,7 @@ export class ReGenerateTopicHistoryTaskRunner {
       
       // Schedule new GENERATE_TOPIC_HISTORY tasks for the selected topics
       for (const topic of topicsToProcess) {
+        this.logger.info(`Scheduling GENERATE_TOPIC_HISTORY task for topic ${topic.id} at ${nextScheduleTime}`);
         const newTask = new TaskProcess(
           topic.id, // entityId
           customerId,
