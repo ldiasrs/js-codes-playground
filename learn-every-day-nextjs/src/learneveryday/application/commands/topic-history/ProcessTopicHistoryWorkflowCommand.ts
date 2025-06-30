@@ -1,5 +1,5 @@
 import { BaseCommand } from '../Command';
-import { ProcessTopicHistoryWorkflowFeature, ProcessTopicHistoryWorkflowFeatureData } from '../../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
+import { ProcessTopicHistoryWorkflowFeature } from '../../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 
 export interface ProcessTopicHistoryWorkflowCommandData {
   limit?: number;
@@ -12,12 +12,9 @@ export class ProcessTopicHistoryWorkflowCommand extends BaseCommand<void, Proces
     super();
   }
 
-  async execute(data: ProcessTopicHistoryWorkflowCommandData): Promise<void> {
-    const featureData: ProcessTopicHistoryWorkflowFeatureData = {
-      limit: data.limit
-    };
+  async execute(): Promise<void> {
 
-   this.processTopicHistoryWorkflowFeature.execute(featureData);
+   this.processTopicHistoryWorkflowFeature.execute();
    
   }
 } 

@@ -7,7 +7,7 @@ export async function GET() {
     const container = ServerContainerBuilder.build();
     const processTopicHistoryWorkflowCommand = container.get<ProcessTopicHistoryWorkflowCommand>('ProcessTopicHistoryWorkflowCommand');
 
-    await processTopicHistoryWorkflowCommand.execute({ limit: 10 });
+    await processTopicHistoryWorkflowCommand.execute();
     
     return NextResponse.json({ 
       success: true, 
