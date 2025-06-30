@@ -3,6 +3,7 @@ import { ProcessTopicHistoryWorkflowFeature } from '../../../domain/topic-histor
 
 export interface ProcessTopicHistoryWorkflowCommandData {
   limit?: number;
+  maxExecutionTimeMs?: number; // Timeout protection for Vercel
 }
 
 export class ProcessTopicHistoryWorkflowCommand extends BaseCommand<void, ProcessTopicHistoryWorkflowCommandData> {
@@ -12,9 +13,7 @@ export class ProcessTopicHistoryWorkflowCommand extends BaseCommand<void, Proces
     super();
   }
 
-  async execute(): Promise<void> {
-
-   this.processTopicHistoryWorkflowFeature.execute();
-   
+  async execute(data: ProcessTopicHistoryWorkflowCommandData = {}): Promise<void> {
+    await this.processTopicHistoryWorkflowFeature.execute(data);
   }
 } 

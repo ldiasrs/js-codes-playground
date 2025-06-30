@@ -6,6 +6,7 @@ import { LoggerPort } from '../../shared/ports/LoggerPort';
 export interface TasksProcessExecutorData {
   processType: TaskProcessType;
   limit?: number;
+  maxExecutionTimeMs?: number; // Timeout protection for Vercel
 }
 
 export class TasksProcessExecutor {
@@ -22,12 +23,24 @@ export class TasksProcessExecutor {
    * @throws Error if task processing fails
    */
   async execute(data: TasksProcessExecutorData, runner: TaskProcessRunner): Promise<void> {
-    const { processType, limit = 10 } = data;
+    const { processType, limit = 10, maxExecutionTimeMs = 8000 } = data;
+    const startTime = Date.now();
 
     this.logger.info(`Starting task process execution for type: ${processType}`, {
       processType,
-      limit
+      limit,
+      maxExecutionTimeMs
     });
+
+    // Check execution time limit early
+    if (Date.now() - startTime > maxExecutionTimeMs) {
+      this.logger.warn(`Execution time limit exceeded for process type: ${processType}`, {
+        processType,
+        executionTimeMs: Date.now() - startTime,
+        maxExecutionTimeMs
+      });
+      return;
+    }
 
     // Get pending tasks of the specified type
     const pendingTasks = await this.taskProcessRepository.findPendingTaskProcessByStatusAndType('pending', processType, limit);
@@ -43,8 +56,19 @@ export class TasksProcessExecutor {
       taskCount: pendingTasks.length
     });
 
-    // Process each task
+    // Process each task with timeout protection
     for (const task of pendingTasks) {
+      // Check execution time limit before processing each task
+      if (Date.now() - startTime > maxExecutionTimeMs) {
+        this.logger.warn(`Execution time limit exceeded, stopping task processing for type: ${processType}`, {
+          processType,
+          executionTimeMs: Date.now() - startTime,
+          maxExecutionTimeMs,
+          processedTasks: pendingTasks.indexOf(task)
+        });
+        break;
+      }
+
       try {
         // Mark task as running
         const runningTask = task.startProcessing();
@@ -60,7 +84,8 @@ export class TasksProcessExecutor {
         this.logger.info(`Successfully processed task: ${task.id}`, {
           taskId: task.id,
           processType: task.type,
-          customerId: task.customerId
+          customerId: task.customerId,
+          executionTimeMs: Date.now() - startTime
         });
 
       } catch (error) {
@@ -73,14 +98,18 @@ export class TasksProcessExecutor {
         this.logger.error(`Failed to process task: ${task.id}`, errorObj, {
           taskId: task.id,
           processType: task.type,
-          customerId: task.customerId
+          customerId: task.customerId,
+          executionTimeMs: Date.now() - startTime
         });
       }
     }
 
+    const totalExecutionTime = Date.now() - startTime;
     this.logger.info(`Completed task process execution for type: ${processType}`, {
       processType,
-      processedTasks: pendingTasks.length
+      processedTasks: pendingTasks.length,
+      executionTimeMs: totalExecutionTime,
+      maxExecutionTimeMs
     });
   }
 } 
