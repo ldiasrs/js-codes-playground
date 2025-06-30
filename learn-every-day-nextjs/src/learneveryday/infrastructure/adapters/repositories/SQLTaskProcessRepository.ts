@@ -69,71 +69,71 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
   async findById(id: string): Promise<TaskProcess | undefined> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE id = $1',
       [id]
-    ) as unknown as TaskProcessData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToTaskProcess(rows[0]);
+    return this.mapToTaskProcess(result.rows[0] as unknown as TaskProcessData);
   }
 
   async findByEntityId(entityId: string): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE entity_id = $1 ORDER BY created_at DESC',
       [entityId]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findByCustomerId(customerId: string): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE customer_id = $1 ORDER BY created_at DESC',
       [customerId]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findByType(type: TaskProcessType): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE type = $1 ORDER BY created_at DESC',
       [type]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findByStatus(status: TaskProcessStatus): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE status = $1 ORDER BY created_at DESC',
       [status]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findByEntityIdAndType(entityId: string, type: TaskProcessType): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE entity_id = $1 AND type = $2 ORDER BY created_at DESC',
       [entityId, type]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findPendingTasks(): Promise<TaskProcess[]> {
@@ -148,12 +148,12 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const connection = await this.dbManager.getConnection('task_processes');
     
     // Find tasks that have a scheduled_to date but are still pending
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to IS NOT NULL AND status = $1 ORDER BY scheduled_to ASC',
       ['pending']
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findFailedTasks(): Promise<TaskProcess[]> {
@@ -163,12 +163,12 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
   async findPendingTaskProcessByStatusAndType(status: TaskProcessStatus, type: TaskProcessType, limit: number = 10): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE status = $1 AND type = $2 AND scheduled_to <= NOW() ORDER BY created_at ASC LIMIT $3',
       [status, type, limit]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async searchProcessedTasks(criteria: TaskProcessSearchCriteria): Promise<TaskProcess[]> {
@@ -220,15 +220,15 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
 
     sql += ' ORDER BY created_at DESC';
 
-    const rows = await connection.query(sql, params) as unknown as TaskProcessData[];
-    return rows.map(row => this.mapToTaskProcess(row));
+    const result = await connection.query(sql, params);
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async findAll(): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query('SELECT * FROM task_processes ORDER BY created_at DESC') as unknown as TaskProcessData[];
-    return rows.map(row => this.mapToTaskProcess(row));
+    const result = await connection.query('SELECT * FROM task_processes ORDER BY created_at DESC');
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async delete(id: string): Promise<boolean> {
@@ -237,9 +237,9 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const result = await connection.query(
       'DELETE FROM task_processes WHERE id = $1',
       [id]
-    ) as { rowCount: number }[];
+    );
 
-    return result[0]?.rowCount === 1;
+    return result.rowCount === 1;
   }
 
   async deleteByEntityId(entityId: string): Promise<void> {
@@ -248,9 +248,9 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const result = await connection.query(
       'DELETE FROM task_processes WHERE entity_id = $1',
       [entityId]
-    ) as { rowCount: number }[];
+    );
 
-    if (result[0]?.rowCount === 0) {
+    if (result.rowCount === 0) {
       throw new Error(`No task processes found with entity_id: ${entityId}`);
     }
   }
@@ -261,9 +261,9 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const result = await connection.query(
       'DELETE FROM task_processes WHERE customer_id = $1',
       [customerId]
-    ) as { rowCount: number }[];
+    );
 
-    if (result[0]?.rowCount === 0) {
+    if (result.rowCount === 0) {
       throw new Error(`No task processes found with customer_id: ${customerId}`);
     }
   }
@@ -271,30 +271,30 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
   async count(): Promise<number> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query('SELECT COUNT(*) as count FROM task_processes') as { count: number }[];
-    return rows[0]?.count || 0;
+    const result = await connection.query('SELECT COUNT(*) as count FROM task_processes');
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async countByStatus(status: TaskProcessStatus): Promise<number> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT COUNT(*) as count FROM task_processes WHERE status = $1',
       [status]
-    ) as { count: number }[];
+    );
     
-    return rows[0]?.count || 0;
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async countByType(type: TaskProcessType): Promise<number> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT COUNT(*) as count FROM task_processes WHERE type = $1',
       [type]
-    ) as { count: number }[];
+    );
     
-    return rows[0]?.count || 0;
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async getTasksCreatedToday(): Promise<TaskProcess[]> {
@@ -321,34 +321,34 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     const dateStart = moment(date).startOf('day').toISOString();
     const dateEnd = moment(date).endOf('day').toISOString();
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to BETWEEN $1 AND $2 ORDER BY scheduled_to ASC',
       [dateStart, dateEnd]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   async getTasksScheduledForDateRange(dateFrom: Date, dateTo: Date): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE scheduled_to BETWEEN $1 AND $2 ORDER BY scheduled_to ASC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   private async findByDateRange(dateFrom: Date, dateTo: Date): Promise<TaskProcess[]> {
     const connection = await this.dbManager.getConnection('task_processes');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM task_processes WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as unknown as TaskProcessData[];
+    );
 
-    return rows.map(row => this.mapToTaskProcess(row));
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
   private mapToTaskProcess(data: TaskProcessData): TaskProcess {

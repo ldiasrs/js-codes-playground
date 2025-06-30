@@ -49,56 +49,56 @@ export class SQLTopicRepository implements TopicRepositoryPort {
   async findById(id: string): Promise<Topic | undefined> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topics WHERE id = $1',
       [id]
-    ) as unknown as TopicData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToTopic(rows[0]);
+    return this.mapToTopic(result.rows[0] as unknown as TopicData);
   }
 
   async findAll(): Promise<Topic[]> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query('SELECT * FROM topics') as unknown as TopicData[];
-    return rows.map(row => this.mapToTopic(row));
+    const result = await connection.query('SELECT * FROM topics');
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async findByCustomerId(customerId: string): Promise<Topic[]> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topics WHERE customer_id = $1',
       [customerId]
-    ) as unknown as TopicData[];
+    );
 
-    return rows.map(row => this.mapToTopic(row));
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async findBySubject(subject: string): Promise<Topic[]> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topics WHERE subject LIKE $1',
       [`%${subject}%`]
-    ) as unknown as TopicData[];
+    );
 
-    return rows.map(row => this.mapToTopic(row));
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<Topic[]> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topics WHERE date_created BETWEEN $1 AND $2',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as unknown as TopicData[];
+    );
 
-    return rows.map(row => this.mapToTopic(row));
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async findWithRecentActivity(hours: number): Promise<Topic[]> {
@@ -106,12 +106,12 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     
     const cutoffDate = moment().subtract(hours, 'hours').toISOString();
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topics WHERE date_created >= $1',
       [cutoffDate]
-    ) as unknown as TopicData[];
+    );
 
-    return rows.map(row => this.mapToTopic(row));
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async findTopicsWithOldestHistories(limit: number = 10, hoursSinceLastUpdate: number = 24): Promise<Topic[]> {
@@ -120,27 +120,27 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const cutoffDate = moment().subtract(hoursSinceLastUpdate, 'hours').toISOString();
     
     // Find topics that haven't been updated in the last X hours
-    const rows = await connection.query(
+    const result = await connection.query(
       `SELECT t.* FROM topics t
        LEFT JOIN topic_histories th ON t.id = th.topic_id
        WHERE th.created_at IS NULL OR th.created_at < $1
        ORDER BY th.created_at ASC
        LIMIT $2`,
       [cutoffDate, limit]
-    ) as unknown as TopicData[];
+    );
 
-    return rows.map(row => this.mapToTopic(row));
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async existsByCustomerIdAndSubject(customerId: string, subject: string): Promise<boolean> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT COUNT(*) as count FROM topics WHERE customer_id = $1 AND subject = $2',
       [customerId, subject]
-    ) as unknown as { count: number }[];
+    );
 
-    return (rows[0]?.count || 0) > 0;
+    return ((result.rows[0] as unknown as { count: number })?.count || 0) > 0;
   }
 
   async search(criteria: TopicSearchCriteria): Promise<Topic[]> {
@@ -170,8 +170,8 @@ export class SQLTopicRepository implements TopicRepositoryPort {
       }
     }
 
-    const rows = await connection.query(sql, params) as unknown as TopicData[];
-    return rows.map(row => this.mapToTopic(row));
+    const result = await connection.query(sql, params);
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
   }
 
   async delete(id: string): Promise<boolean> {
@@ -180,27 +180,27 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     const result = await connection.query(
       'DELETE FROM topics WHERE id = $1',
       [id]
-    ) as { rowCount: number }[];
+    );
 
-    return result[0].rowCount > 0;
+    return result.rowCount > 0;
   }
 
   async count(): Promise<number> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query('SELECT COUNT(*) as count FROM topics') as { count: number }[];
-    return rows[0]?.count || 0;
+    const result = await connection.query('SELECT COUNT(*) as count FROM topics');
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async countByCustomerId(customerId: string): Promise<number> {
     const connection = await this.dbManager.getConnection('topics');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT COUNT(*) as count FROM topics WHERE customer_id = $1',
       [customerId]
-    ) as { count: number }[];
+    );
     
-    return rows[0]?.count || 0;
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async getTopicsCreatedToday(): Promise<Topic[]> {

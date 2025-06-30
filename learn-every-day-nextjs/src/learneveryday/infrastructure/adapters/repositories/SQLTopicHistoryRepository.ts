@@ -49,49 +49,49 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
   async findById(id: string): Promise<TopicHistory | undefined> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topic_histories WHERE id = $1',
       [id]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToTopicHistory(rows[0]);
+    return this.mapToTopicHistory(result.rows[0] as unknown as TopicHistoryData);
   }
 
   async findByTopicId(topicId: string): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topic_histories WHERE topic_id = $1 ORDER BY created_at DESC',
       [topicId]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    return rows.map(row => this.mapToTopicHistory(row));
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async findByContent(content: string): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topic_histories WHERE content LIKE $1 ORDER BY created_at DESC',
       [`%${content}%`]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    return rows.map(row => this.mapToTopicHistory(row));
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topic_histories WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    return rows.map(row => this.mapToTopicHistory(row));
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async findWithRecentActivity(hours: number): Promise<TopicHistory[]> {
@@ -99,12 +99,12 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     
     const cutoffDate = moment().subtract(hours, 'hours').toISOString();
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM topic_histories WHERE created_at >= $1 ORDER BY created_at DESC',
       [cutoffDate]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    return rows.map(row => this.mapToTopicHistory(row));
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async search(criteria: TopicHistorySearchCriteria): Promise<TopicHistory[]> {
@@ -136,49 +136,49 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
 
     sql += ' ORDER BY created_at DESC';
 
-    const rows = await connection.query(sql, params) as unknown as TopicHistoryData[];
-    return rows.map(row => this.mapToTopicHistory(row));
+    const result = await connection.query(sql, params);
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async findLastTopicHistoryByCustomerId(customerId: string): Promise<TopicHistory | undefined> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       `SELECT th.* FROM topic_histories th
        INNER JOIN topics t ON th.topic_id = t.id
        WHERE t.customer_id = $1
        ORDER BY th.created_at DESC
        LIMIT 1`,
       [customerId]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToTopicHistory(rows[0]);
+    return this.mapToTopicHistory(result.rows[0] as unknown as TopicHistoryData);
   }
 
   async findByCustomerId(customerId: string): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
     // Since TopicHistory doesn't have customerId, we need to get it from topics
-    const rows = await connection.query(
+    const result = await connection.query(
       `SELECT th.* FROM topic_histories th
        INNER JOIN topics t ON th.topic_id = t.id
        WHERE t.customer_id = $1
        ORDER BY th.created_at DESC`,
       [customerId]
-    ) as unknown as TopicHistoryData[];
+    );
 
-    return rows.map(row => this.mapToTopicHistory(row));
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async findAll(): Promise<TopicHistory[]> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query('SELECT * FROM topic_histories ORDER BY created_at DESC') as unknown as TopicHistoryData[];
-    return rows.map(row => this.mapToTopicHistory(row));
+    const result = await connection.query('SELECT * FROM topic_histories ORDER BY created_at DESC');
+    return result.rows.map(row => this.mapToTopicHistory(row as unknown as TopicHistoryData));
   }
 
   async delete(id: string): Promise<boolean> {
@@ -187,9 +187,9 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const result = await connection.query(
       'DELETE FROM topic_histories WHERE id = $1',
       [id]
-    ) as { rowCount: number }[];
+    );
 
-    return result[0].rowCount > 0;
+    return result.rowCount > 0;
   }
 
   async deleteByTopicId(topicId: string): Promise<void> {
@@ -198,9 +198,9 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
     const result = await connection.query(
       'DELETE FROM topic_histories WHERE topic_id = $1',
       [topicId]
-    ) as { rowCount: number }[];
+    );
 
-    if (result[0].rowCount === 0) {
+    if (result.rowCount === 0) {
       throw new Error(`No topic history found with topic_id: ${topicId}`);
     }
   }
@@ -208,8 +208,8 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
   async count(): Promise<number> {
     const connection = await this.dbManager.getConnection('topic_histories');
     
-    const rows = await connection.query('SELECT COUNT(*) as count FROM topic_histories') as unknown as { count: number }[];
-    return rows[0]?.count || 0;
+    const result = await connection.query('SELECT COUNT(*) as count FROM topic_histories');
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async getTopicHistoryCreatedToday(): Promise<TopicHistory[]> {

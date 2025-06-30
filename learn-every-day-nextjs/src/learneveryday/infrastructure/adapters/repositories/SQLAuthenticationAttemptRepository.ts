@@ -62,56 +62,56 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
   async findById(id: string): Promise<AuthenticationAttempt | undefined> {
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM authentication_attempts WHERE id = $1',
       [id]
-    ) as unknown as AuthenticationAttemptData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToAuthenticationAttempt(rows[0]);
+    return this.mapToAuthenticationAttempt(result.rows[0] as unknown as AuthenticationAttemptData);
   }
 
   async findLatestValidByCustomerId(customerId: string): Promise<AuthenticationAttempt | undefined> {
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       `SELECT * FROM authentication_attempts 
        WHERE customer_id = $1 AND is_used = false AND expires_at > $2
        ORDER BY attempt_date DESC 
        LIMIT 1`,
       [customerId, new Date().toISOString()]
-    ) as unknown as AuthenticationAttemptData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToAuthenticationAttempt(rows[0]);
+    return this.mapToAuthenticationAttempt(result.rows[0] as unknown as AuthenticationAttemptData);
   }
 
   async findByCustomerId(customerId: string): Promise<AuthenticationAttempt[]> {
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM authentication_attempts WHERE customer_id = $1 ORDER BY attempt_date DESC',
       [customerId]
-    ) as unknown as AuthenticationAttemptData[];
+    );
 
-    return rows.map(row => this.mapToAuthenticationAttempt(row));
+    return result.rows.map(row => this.mapToAuthenticationAttempt(row as unknown as AuthenticationAttemptData));
   }
 
   async findExpired(): Promise<AuthenticationAttempt[]> {
     const connection = await this.dbManager.getConnection('authentication_attempts');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM authentication_attempts WHERE expires_at <= $1',
       [new Date().toISOString()]
-    ) as unknown as AuthenticationAttemptData[];
+    );
 
-    return rows.map(row => this.mapToAuthenticationAttempt(row));
+    return result.rows.map(row => this.mapToAuthenticationAttempt(row as unknown as AuthenticationAttemptData));
   }
 
   async deleteExpired(): Promise<number> {
@@ -120,9 +120,9 @@ export class SQLAuthenticationAttemptRepository implements AuthenticationAttempt
     const result = await connection.query(
       'DELETE FROM authentication_attempts WHERE expires_at <= $1',
       [new Date().toISOString()]
-    ) as { rowCount: number }[];
+    );
 
-    return result[0]?.rowCount || 0;
+    return result.rowCount;
   }
 
   async update(authenticationAttempt: AuthenticationAttempt): Promise<AuthenticationAttempt> {

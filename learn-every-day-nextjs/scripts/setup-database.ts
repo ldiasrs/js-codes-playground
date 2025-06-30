@@ -35,7 +35,7 @@ class SimpleDatabaseSetup {
   private async getExecutedMigrations(connection: DatabaseConnection): Promise<string[]> {
     try {
       const result = await connection.query('SELECT filename FROM migrations ORDER BY date_executed');
-      return result.map((row: Record<string, unknown>) => row.filename as string);
+      return result.rows.map((row: Record<string, unknown>) => row.filename as string);
     } catch (error) {
       console.error('🔄 Error on getExecutedMigrations', error);
       return [];

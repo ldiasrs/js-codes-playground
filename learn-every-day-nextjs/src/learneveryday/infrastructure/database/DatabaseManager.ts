@@ -1,8 +1,13 @@
 import { DatabaseConfiguration } from '../config/database.config';
 import { createPool, VercelPool } from '@vercel/postgres';
 
+export interface QueryResult {
+  rows: Record<string, unknown>[];
+  rowCount: number;
+}
+
 export interface DatabaseConnection {
-  query(sql: string, params?: unknown[]): Promise<Record<string, unknown>[]>;
+  query(sql: string, params?: unknown[]): Promise<QueryResult>;
   close(): Promise<void>;
 }
 
@@ -25,9 +30,12 @@ export class PostgreSQLConnection implements DatabaseConnection {
     this.pool = createPool({ connectionString });
   }
 
-  async query(sql: string, params: unknown[] = []): Promise<Record<string, unknown>[]> {
+  async query(sql: string, params: unknown[] = []): Promise<QueryResult> {
     const result = await this.pool.query(sql, params);
-    return result.rows;
+    return {
+      rows: result.rows ?? [],
+      rowCount: result.rowCount ?? 0
+    };
   }
 
   async close(): Promise<void> {

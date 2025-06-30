@@ -66,86 +66,86 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
   async findById(id: string): Promise<Customer | undefined> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE id = $1',
       [id]
-    ) as unknown as CustomerData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToCustomer(rows[0]);
+    return this.mapToCustomer(result.rows[0] as unknown as CustomerData);
   }
 
   async findAll(): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query('SELECT * FROM customers') as unknown as CustomerData[];
-    return rows.map(row => this.mapToCustomer(row));
+    const result = await connection.query('SELECT * FROM customers');
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   async findByCustomerName(customerName: string): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE customer_name LIKE $1',
       [`%${customerName}%`]
-    ) as unknown as CustomerData[];
+    );
 
-    return rows.map(row => this.mapToCustomer(row));
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   async findByEmail(email: string): Promise<Customer | undefined> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE email = $1',
       [email]
-    ) as unknown as CustomerData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToCustomer(rows[0]);
+    return this.mapToCustomer(result.rows[0] as unknown as CustomerData);
   }
 
   async findByGovIdentification(govIdentification: { type: string; content: string }): Promise<Customer | undefined> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE gov_identification_type = $1 AND gov_identification_content = $2',
       [govIdentification.type, govIdentification.content]
-    ) as unknown as CustomerData[];
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return undefined;
     }
 
-    return this.mapToCustomer(rows[0]);
+    return this.mapToCustomer(result.rows[0] as unknown as CustomerData);
   }
 
   async findByTier(tier: string): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE tier = $1',
       [tier]
-    ) as unknown as CustomerData[];
+    );
 
-    return rows.map(row => this.mapToCustomer(row));
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   async findByDateRange(dateFrom: Date, dateTo: Date): Promise<Customer[]> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query(
+    const result = await connection.query(
       'SELECT * FROM customers WHERE date_created BETWEEN $1 AND $2',
       [dateFrom.toISOString(), dateTo.toISOString()]
-    ) as unknown as CustomerData[];
+    );
 
-    return rows.map(row => this.mapToCustomer(row));
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   async search(criteria: CustomerSearchCriteria): Promise<Customer[]> {
@@ -186,8 +186,8 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
       }
     }
 
-    const rows = await connection.query(sql, params) as unknown as CustomerData[];
-    return rows.map(row => this.mapToCustomer(row));
+    const result = await connection.query(sql, params);
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   async delete(id: string): Promise<boolean> {
@@ -196,16 +196,16 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const result = await connection.query(
       'DELETE FROM customers WHERE id = $1',
       [id]
-    ) as { rowCount: number }[];
+    );
 
-    return (result[0]?.rowCount || 0) > 0;
+    return result.rowCount > 0;
   }
 
   async count(): Promise<number> {
     const connection = await this.dbManager.getConnection('customers');
     
-    const rows = await connection.query('SELECT COUNT(*) as count FROM customers') as { count: number }[];
-    return rows[0]?.count || 0;
+    const result = await connection.query('SELECT COUNT(*) as count FROM customers');
+    return (result.rows[0] as unknown as { count: number })?.count || 0;
   }
 
   async getCustomersCreatedToday(): Promise<Customer[]> {
@@ -232,14 +232,14 @@ export class SQLCustomerRepository implements CustomerRepositoryPort {
     const cutoffDate = moment().subtract(hours, 'hours').toISOString();
     
     // Find customers who have topics created after the cutoff date
-    const rows = await connection.query(
+    const result = await connection.query(
       `SELECT DISTINCT c.* FROM customers c
        INNER JOIN topics t ON c.id = t.customer_id
        WHERE t.date_created >= $1`,
       [cutoffDate]
-    ) as unknown as CustomerData[];
+    );
 
-    return rows.map(row => this.mapToCustomer(row));
+    return result.rows.map(row => this.mapToCustomer(row as unknown as CustomerData));
   }
 
   private mapToCustomer(data: CustomerData): Customer {
