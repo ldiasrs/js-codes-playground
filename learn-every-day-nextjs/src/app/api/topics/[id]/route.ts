@@ -38,7 +38,7 @@ export async function GET(
   } catch (error) {
     console.error('Get topic by ID API error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
@@ -89,7 +89,7 @@ export async function PUT(
   } catch (error) {
     console.error('Update topic API error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
@@ -121,7 +121,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Delete topic API error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
