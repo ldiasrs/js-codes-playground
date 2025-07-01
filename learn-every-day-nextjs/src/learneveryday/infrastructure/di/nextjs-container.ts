@@ -73,7 +73,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('AuthenticationAttemptRepository', () => new SQLAuthenticationAttemptRepository());
 
     // Register ports
-    this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createChatGptGeneratorFromEnv(this.get('Logger')));
+    this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createGeminiGenerator(this.get('Logger')));
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
