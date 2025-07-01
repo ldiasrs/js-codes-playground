@@ -33,10 +33,6 @@ export class UpdateTopicFeature {
       throw new Error('Topic subject cannot be empty');
     }
 
-    if (subject.trim().length > 255) {
-      throw new Error('Topic subject cannot exceed 255 characters');
-    }
-
     // Step 3: Check if topic with same subject already exists for this customer
     const topicExists = await this.topicRepository.existsByCustomerIdAndSubject(existingTopic.customerId, subject.trim());
 
