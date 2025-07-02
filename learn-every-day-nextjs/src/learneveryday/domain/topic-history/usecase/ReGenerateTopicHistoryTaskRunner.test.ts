@@ -5,12 +5,15 @@ import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
+import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
+import { Customer, CustomerTier } from '../../customer/entities/Customer';
 
 describe('ReGenerateTopicHistoryTaskRunner', () => {
   let taskRunner: ReGenerateTopicHistoryTaskRunner;
   let mockTopicRepository: jest.Mocked<TopicRepositoryPort>;
   let mockTopicHistoryRepository: jest.Mocked<TopicHistoryRepositoryPort>;
   let mockTaskProcessRepository: jest.Mocked<TaskProcessRepositoryPort>;
+  let mockCustomerRepository: jest.Mocked<CustomerRepositoryPort>;
   let mockLogger: jest.Mocked<LoggerPort>;
   
   const customerId = 'customer-123';
@@ -86,6 +89,24 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       getTasksScheduledForDateRange: jest.fn(),
     } as jest.Mocked<TaskProcessRepositoryPort>;
 
+    mockCustomerRepository = {
+      save: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      findByCustomerName: jest.fn(),
+      findByEmail: jest.fn(),
+      findByGovIdentification: jest.fn(),
+      findByTier: jest.fn(),
+      findByDateRange: jest.fn(),
+      search: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+      getCustomersCreatedToday: jest.fn(),
+      getCustomersCreatedThisWeek: jest.fn(),
+      getCustomersCreatedThisMonth: jest.fn(),
+      getCustomersWithRecentActivity: jest.fn(),
+    } as jest.Mocked<CustomerRepositoryPort>;
+
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
@@ -99,6 +120,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       mockTopicRepository,
       mockTopicHistoryRepository,
       mockTaskProcessRepository,
+      mockCustomerRepository,
       mockLogger
     );
   });
@@ -137,8 +159,8 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
 
     it('should schedule new tasks when customer has less than maxTopicsPer24h pending tasks', async () => {
       // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
-      taskRunner.setConfig(config);
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Standard);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const mockTasks = [
         createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending', new Date()),
@@ -155,12 +177,13 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      // Assert - Standard tier allows 3 topics per 24h, has 1 pending, so should schedule 2 more
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(2);
       expect(mockTaskProcessRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           type: TaskProcess.GENERATE_TOPIC_HISTORY,
           status: 'pending',
-          entityId: topicId2,
+          entityId: topicId2, // Topic with 0 histories should be scheduled first
           scheduledTo: expect.any(Date),
         })
       );

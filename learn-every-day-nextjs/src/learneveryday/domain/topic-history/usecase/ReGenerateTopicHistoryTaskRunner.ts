@@ -4,44 +4,49 @@ import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
 import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
 import { LoggerPort } from "../../shared/ports/LoggerPort";
 import { Topic } from "../../topic/entities/Topic";
+import { CustomerRepositoryPort } from "../../customer/ports/CustomerRepositoryPort";
+import { TierLimits } from "../../shared/TierLimits";
 
 export interface ReGenerateTopicHistoryConfig {
-  maxTopicsPer24h: number; // 1 or 3
+  maxTopicsPer24h: number; // 1 or 3 or 5 depending on tier
   maxTopicsToProcess: number; // Limit for batch processing
-  maxExecutionTimeMs: number; // Timeout protection
 }
 
 export class ReGenerateTopicHistoryTaskRunner {
-  private config: ReGenerateTopicHistoryConfig = { 
-    maxTopicsPer24h: 1,
-    maxTopicsToProcess: 50, // Limit batch size for Vercel
-    maxExecutionTimeMs: 8000 // 8 seconds to stay under Vercel timeout
-  };
+ 
 
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly customerRepository: CustomerRepositoryPort,
     private readonly logger: LoggerPort
   ) {}
-
-  setConfig(config: Partial<ReGenerateTopicHistoryConfig>): void {
-    this.config = { ...this.config, ...config };
-  }
 
   async execute(taskProcess: TaskProcess): Promise<void> {
     const startTime = Date.now();
     const customerId = taskProcess.customerId;
-    
-    // Check execution time limit early
-    if (Date.now() - startTime > this.config.maxExecutionTimeMs) {
-      this.logger.warn(`Execution time limit exceeded for customer ${customerId}`, {
-        customerId,
-        executionTimeMs: Date.now() - startTime,
-        maxExecutionTimeMs: this.config.maxExecutionTimeMs
-      });
+
+    // Get customer to determine tier-based limits
+    const customer = await this.customerRepository.findById(customerId);
+    if (!customer) {
+      this.logger.error(`Customer with ID ${customerId} not found`);
       return;
     }
+
+    const maxTopicsPer24h = TierLimits.getMaxTopicsPer24hForTier(customer.tier);
+    
+    const config: ReGenerateTopicHistoryConfig = { 
+      maxTopicsPer24h,
+      maxTopicsToProcess: 50, // Limit batch size for Vercel
+    };
+
+    this.logger.info(`Customer ${customerId} has ${customer.tier} tier with ${maxTopicsPer24h} topics per 24h limit`, {
+      customerId,
+      tier: customer.tier,
+      maxTopicsPer24h
+    });
+
     
     // Get all scheduled GENERATE_TOPIC_HISTORY tasks not processed for the customerId in the last 24h
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -72,21 +77,21 @@ export class ReGenerateTopicHistoryTaskRunner {
       taskCount: pendingTasksCount
     });
     
-    if (pendingTasksCount < this.config.maxTopicsPer24h) {
-      this.logger.info(`Customer ${customerId} has less than ${this.config.maxTopicsPer24h} pending tasks, generating more`, {
+    if (pendingTasksCount < config.maxTopicsPer24h) {
+      this.logger.info(`Customer ${customerId} has less than ${config.maxTopicsPer24h} pending tasks, generating more`, {
         customerId,
-        maxTopicsPer24h: this.config.maxTopicsPer24h,
+        maxTopicsPer24h: config.maxTopicsPer24h,
         pendingTasksCount
       });
 
       // Define how many topics are needed to be generated to reach the maxTopicsPer24h
-      const topicsNeeded = this.config.maxTopicsPer24h - pendingTasksCount;
+      const topicsNeeded = config.maxTopicsPer24h - pendingTasksCount;
       
       // Get topics with optimized batch query to avoid N+1 problem
       const topics = await this.topicRepository.findByCustomerId(customerId);
       
       // Limit the number of topics to process to prevent timeout
-      const limitedTopics = topics.slice(0, this.config.maxTopicsToProcess);
+      const limitedTopics = topics.slice(0, config.maxTopicsToProcess);
       
       if (limitedTopics.length === 0) {
         this.logger.info(`No topics found for customer ${customerId}`);
@@ -119,14 +124,13 @@ export class ReGenerateTopicHistoryTaskRunner {
       
     } else {
       // If the customer has more than maxTopicsPer24h tasks, just print an info message
-      this.logger.info(`Customer ${customerId} already has ${pendingTasksCount} pending tasks, which meets the maximum limit of ${this.config.maxTopicsPer24h} topics per 24h`);
+      this.logger.info(`Customer ${customerId} already has ${pendingTasksCount} pending tasks, which meets the maximum limit of ${config.maxTopicsPer24h} topics per 24h`);
     }
     
     const totalExecutionTime = Date.now() - startTime;
     this.logger.info(`ReGenerateTopicHistoryTaskRunner completed for customer ${customerId}`, {
       customerId,
       executionTimeMs: totalExecutionTime,
-      maxExecutionTimeMs: this.config.maxExecutionTimeMs
     });
   }
 
