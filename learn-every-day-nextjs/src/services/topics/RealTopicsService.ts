@@ -16,22 +16,13 @@ import {
 
 export class RealTopicsService implements TopicsService {
   /**
-   * Gets authentication headers including Bearer token
+   * Gets customerId from sessionStorage
    */
-  private getAuthHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // Add Authorization header if token exists in localStorage
+  private getCustomerId(): string | null {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      return sessionStorage.getItem('customerId');
     }
-
-    return headers;
+    return null;
   }
 
   /**
@@ -39,14 +30,21 @@ export class RealTopicsService implements TopicsService {
    */
   async getAllTopics(request?: GetAllTopicsRequest): Promise<GetAllTopicsResponse> {
     try {
-      const url = request?.customerId 
-        ? `/api/topics?customerId=${encodeURIComponent(request.customerId)}`
-        : '/api/topics';
-        
-      const response = await fetch(url, {
+      const customerId = request?.customerId || this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+      const response = await fetch(`/api/topics?customerId=${encodeURIComponent(customerId)}`, {
         method: 'GET',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
 
       const result = await response.json();
@@ -77,10 +75,21 @@ export class RealTopicsService implements TopicsService {
    */
   async getTopicById(request: GetTopicByIdRequest): Promise<GetTopicByIdResponse> {
     try {
-      const response = await fetch(`/api/topics/${request.id}`, {
+      const customerId = this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+      const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'GET',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
 
       const result = await response.json();
@@ -111,12 +120,23 @@ export class RealTopicsService implements TopicsService {
    */
   async createTopic(request: CreateTopicRequest): Promise<CreateTopicResponse> {
     try {
+      const customerId = request.customerId || this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
       const response = await fetch('/api/topics', {
         method: 'POST',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({
-          customerId: request.customerId,
+          customerId,
           subject: request.subject,
         }),
       });
@@ -149,10 +169,21 @@ export class RealTopicsService implements TopicsService {
    */
   async updateTopic(request: UpdateTopicRequest): Promise<UpdateTopicResponse> {
     try {
-      const response = await fetch(`/api/topics/${request.id}`, {
+      const customerId = this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+      const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'PUT',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({
           subject: request.subject,
         }),
@@ -186,10 +217,21 @@ export class RealTopicsService implements TopicsService {
    */
   async deleteTopic(request: DeleteTopicRequest): Promise<DeleteTopicResponse> {
     try {
-      const response = await fetch(`/api/topics/${request.id}`, {
+      const customerId = this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+      const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'DELETE',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
 
       const result = await response.json();
@@ -219,14 +261,25 @@ export class RealTopicsService implements TopicsService {
    */
   async searchTopics(request: SearchTopicsRequest): Promise<SearchTopicsResponse> {
     try {
+      const customerId = request.customerId || this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
       const queryParams = new URLSearchParams();
       queryParams.append('q', request.query);
-      queryParams.append('customerId', request.customerId);
+      queryParams.append('customerId', customerId);
       
       const response = await fetch(`/api/topics/search?${queryParams.toString()}`, {
         method: 'GET',
-        headers: this.getAuthHeaders(),
-        credentials: 'include', // Include cookies for HTTP-only auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
 
       const result = await response.json();

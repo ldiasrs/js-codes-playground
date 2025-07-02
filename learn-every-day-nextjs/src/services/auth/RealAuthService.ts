@@ -63,11 +63,10 @@ export class RealAuthService implements AuthService {
 
       const result = await response.json();
 
-      if (result.success && result.user && result.token) {
-        // Store auth data in localStorage for backward compatibility and client-side access
+      if (result.success && result.customerId) {
+        // Store only customerId in sessionStorage
         if (typeof window !== 'undefined') {
-          localStorage.setItem('authToken', result.token);
-          localStorage.setItem('userData', JSON.stringify(result.user));
+          sessionStorage.setItem('customerId', result.customerId);
           // Clear the pending email since verification is complete
           sessionStorage.removeItem('pendingEmail');
         }
@@ -75,26 +74,27 @@ export class RealAuthService implements AuthService {
         return {
           success: true,
           message: result.message,
-          user: result.user,
-          token: result.token,
+          customerId: result.customerId,
         };
       } else {
         return {
           success: false,
           message: result.message,
+          customerId: '',
         };
       }
     } catch (error) {
       console.error('Verification error:', error);
       return {
         success: false,
-        message: 'An error occurred during verification. Please try again.',
+        customerId: '',
+          message: 'An error occurred during verification. Please try again.',
       };
     }
   }
 
   /**
-   * Logs out the current user by calling the logout endpoint and clearing local storage
+   * Logs out the current user by calling the logout endpoint and clearing session storage
    */
   async logout(): Promise<void> {
     try {
@@ -103,18 +103,16 @@ export class RealAuthService implements AuthService {
         credentials: 'include', // Include cookies in request
       });
       
-      // Clear any local storage data
+      // Clear session storage data
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        sessionStorage.removeItem('customerId');
         sessionStorage.removeItem('pendingEmail');
       }
     } catch (error) {
       console.error('Logout error:', error);
-      // Still clear local data even if API call fails
+      // Still clear session data even if API call fails
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        sessionStorage.removeItem('customerId');
         sessionStorage.removeItem('pendingEmail');
       }
     }

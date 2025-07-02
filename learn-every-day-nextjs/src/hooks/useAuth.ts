@@ -14,33 +14,27 @@ export const useAuth = () => {
     isLoading: true,
   });
 
-  // Initialize auth state from localStorage on mount
+  // Initialize auth state from sessionStorage on mount
   useEffect(() => {
     const initializeAuth = () => {
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('userData');
+        const customerId = sessionStorage.getItem('customerId');
 
-        if (token && userData) {
-          try {
-            const user = JSON.parse(userData) as UserData;
-            setAuthState({
-              isAuthenticated: true,
-              user,
-              token,
-              isLoading: false,
-            });
-          } catch {
-            // Invalid stored data, clear it
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userData');
-            setAuthState({
-              isAuthenticated: false,
-              user: null,
-              token: null,
-              isLoading: false,
-            });
-          }
+        if (customerId) {
+          // Create a minimal user object with just the customerId
+          const user: UserData = {
+            id: customerId,
+            email: '', // We don't store email in session anymore
+            name: '', // We don't store name in session anymore
+            createdAt: '', // We don't store createdAt in session anymore
+          };
+
+          setAuthState({
+            isAuthenticated: true,
+            user,
+            token: null, // We don't store token anymore
+            isLoading: false,
+          });
         } else {
           setAuthState({
             isAuthenticated: false,
@@ -79,17 +73,13 @@ export const useAuth = () => {
     try {
       const response = await authService.verifyCode({ email, code });
       
-      if (response.success && response.user && response.token) {
-        // Store auth data
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('authToken', response.token);
-          localStorage.setItem('userData', JSON.stringify(response.user));
-        }
+      if (response.success && response.customerId) {
+        // Create user object from response
 
         setAuthState({
           isAuthenticated: true,
-          user: response.user,
-          token: response.token,
+          user,
+          token: null, // We don't use tokens in state anymore
           isLoading: false,
         });
 

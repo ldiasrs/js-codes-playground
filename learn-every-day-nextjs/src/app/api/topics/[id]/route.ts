@@ -10,10 +10,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Topic ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerId) {
+      return NextResponse.json(
+        { success: false, message: 'Customer ID is required' },
         { status: 400 }
       );
     }
@@ -51,10 +60,19 @@ export async function PUT(
   try {
     const { id } = await params;
     const { subject } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Topic ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerId) {
+      return NextResponse.json(
+        { success: false, message: 'Customer ID is required' },
         { status: 400 }
       );
     }
@@ -101,10 +119,19 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Topic ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerId) {
+      return NextResponse.json(
+        { success: false, message: 'Customer ID is required' },
         { status: 400 }
       );
     }

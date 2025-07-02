@@ -16,7 +16,7 @@ export interface VerifyCodeRequest {
 export interface VerifyCodeResponse {
   success: boolean;
   message: string;
-  user?: UserData;
+  customerId: string;
   token?: string;
 }
 

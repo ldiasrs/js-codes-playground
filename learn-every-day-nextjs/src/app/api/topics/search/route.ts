@@ -4,8 +4,9 @@ import { SearchTopicsQuery } from '../../../../learneveryday/application/queries
 
 export async function GET(request: NextRequest) {
   try {
-    const query = request.nextUrl.searchParams.get('q');
-    const customerId = request.nextUrl.searchParams.get('customerId');
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q');
+    const customerId = searchParams.get('customerId');
 
     if (!query) {
       return NextResponse.json(

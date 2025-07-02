@@ -2,34 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../learneveryday/infrastructure/di/server-container';
 import { GetAllTopicsQuery } from '../../../learneveryday/application/queries/topic/GetAllTopicsQuery';
 import { AddTopicCommand } from '../../../learneveryday/application/commands/topic/AddTopicCommand';
-import { getUserFromHeaders } from '../../../learneveryday/infrastructure/middleware/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user information from middleware headers
-    const user = getUserFromHeaders(request);
-    if (!user) {
+    // Get customerId from query parameters
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
+
+    if (!customerId) {
       return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+        { success: false, message: 'Customer ID is required' },
+        { status: 400 }
       );
     }
 
-    console.log('Topics API request from user:', user.userId, user.email);
+    console.log('Topics API request for customer:', customerId);
 
     const container = ServerContainerBuilder.build();
     const getAllTopicsQuery = container.get<GetAllTopicsQuery>('GetAllTopicsQuery');
     
-    // You can now use user.userId to filter topics or apply user-specific logic
-    const topics = await getAllTopicsQuery.execute({ customerId: user.userId });
+    const topics = await getAllTopicsQuery.execute({ customerId });
 
     return NextResponse.json({
       success: true,
       topics,
-      user: {
-        id: user.userId,
-        email: user.email
-      }
+      customerId
     });
   } catch (error) {
     console.error('Topics API error:', error);

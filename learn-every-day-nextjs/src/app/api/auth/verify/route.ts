@@ -22,19 +22,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (result.success && result.customer && result.token) {
-      // Convert CustomerDTO to UserData format
-      const userData = {
-        id: result.customer.id,
-        email: result.customer.email,
-        name: result.customer.customerName,
-        createdAt: result.customer.dateCreated
-      };
 
       // Create response with secure cookie
       const response = NextResponse.json({
         success: true,
         message: result.message,
-        user: userData,
+        customerId: result.customer.id,
         token: result.token
       });
 
