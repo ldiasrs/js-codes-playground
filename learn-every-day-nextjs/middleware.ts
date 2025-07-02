@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { JwtConfiguration } from './src/learneveryday/infrastructure/config/jwt.config';
 
 interface JwtPayload {
   sub: string;
@@ -35,10 +36,12 @@ const publicRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Get JWT configuration
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    console.error('JWT_SECRET not configured');
+  // Get JWT configuration from global config
+  let jwtConfig;
+  try {
+    jwtConfig = JwtConfiguration.getInstance().getConfig();
+  } catch (error) {
+    console.error('JWT configuration error:', error);
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
@@ -69,8 +72,15 @@ export function middleware(request: NextRequest) {
 
   if (token) {
     try {
-      userPayload = jwt.verify(token, jwtSecret) as JwtPayload;
-      isValidToken = true;
+      userPayload = jwt.verify(token, jwtConfig.secret) as JwtPayload;
+      
+      // Verify issuer if configured
+      if (jwtConfig.issuer && userPayload.iss !== jwtConfig.issuer) {
+        console.warn('JWT issuer mismatch');
+        isValidToken = false;
+      } else {
+        isValidToken = true;
+      }
     } catch (error) {
       console.warn('Invalid JWT token:', error);
       isValidToken = false;
