@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { CreateCustomerCommandData } from '../learneveryday/application/commands/customer/CreateCustomerCommand';
-import { CustomerDTO } from '../learneveryday/application/dto/CustomerDTO';
 
 interface RegistrationResult {
   success: boolean;
   message: string;
-  customer?: CustomerDTO;
+  customerId?: string;
 }
 
 export const useRegistration = () => {
@@ -34,7 +33,7 @@ export const useRegistration = () => {
       return {
         success: true,
         message: result.message || 'Registration successful',
-        customer: result.customer,
+        customerId: result.customerId,
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';

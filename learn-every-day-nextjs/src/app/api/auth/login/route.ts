@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { AuthCustomerCommand } from '../../../../learneveryday/application/commands/customer/AuthCustomerCommand';
+import { LoginCommand } from '../../../../learneveryday/application/commands/customer/LoginCommand';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,13 +14,14 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const authCommand = container.get<AuthCustomerCommand>('AuthCustomerCommand');
+    const authCommand = container.get<LoginCommand>('LoginCommand');
     const result = await authCommand.execute({ email });
 
     if (result.success) {
       return NextResponse.json({
         success: true,
         message: result.message,
+        customerId: result.customerId,
         requiresVerification: true
       });
     } else {

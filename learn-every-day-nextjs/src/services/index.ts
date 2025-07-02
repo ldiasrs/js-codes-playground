@@ -1,6 +1,5 @@
-export type { AuthService } from './auth/AuthService';
-export { RealAuthService } from './auth/RealAuthService';
-export type { LoginRequest, LoginResponse, VerifyCodeRequest, VerifyCodeResponse, UserData, AuthState } from './auth/types';
+export { LoginAuthService } from './auth/LoginAuthService';
+export type { LoginRequest, LoginResponse, VerifyCodeRequest, VerifyCodeResponse, LoginAuthState as AuthState } from './auth/types';
 
 export type { TopicsService } from './topics/TopicsService';
 export { RealTopicsService } from './topics/RealTopicsService';

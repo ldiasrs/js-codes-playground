@@ -1,5 +1,4 @@
-export { AuthCustomerCommand } from './AuthCustomerCommand';
-export type { AuthCustomerCommandData } from './AuthCustomerCommand';
+export { LoginCommand } from './LoginCommand';
 export { CreateCustomerCommand } from './CreateCustomerCommand';
 export type { CreateCustomerCommandData } from './CreateCustomerCommand';
 export { DeleteCustomerCommand } from './DeleteCustomerCommand';

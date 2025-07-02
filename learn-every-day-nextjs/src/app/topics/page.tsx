@@ -58,7 +58,7 @@ const PROMPT_EXAMPLES = [
 ];
 
 export default function TopicsPage() {
-  const { user, logout } = useAuth();
+  const { customerId, logout } = useAuth();
   const { 
     topics, 
     loading, 
@@ -77,14 +77,14 @@ export default function TopicsPage() {
   const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (customerId) {
       loadTopics();
     }
-  }, [user]);
+  }, [customerId]);
 
   const loadTopics = async () => {
-    if (user) {
-      await getAllTopics({ customerId: user.id });
+    if (customerId) {
+      await getAllTopics({ customerId: customerId });
     }
   };
 
@@ -95,14 +95,14 @@ export default function TopicsPage() {
 
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.subject.trim() || !user) return;
+    if (!formData.subject.trim() || !customerId) return;
 
     try {
       setSubmitting(true);
       clearError();
       
       const result = await createTopic({
-        customerId: user.id,
+        customerId: customerId,
         subject: formData.subject.trim()
       });
       

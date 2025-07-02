@@ -4,12 +4,12 @@ import { VerifyCustomerCommand } from '../../../../learneveryday/application/com
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, verificationCode } = await request.json();
+    const { customerId, verificationCode } = await request.json();
 
-    console.log('Verify API request received:', { email, verificationCode });
-    if (!email || !verificationCode) {
+    console.log('Verify API request received:', { customerId, verificationCode });
+    if (!customerId || !verificationCode) {
       return NextResponse.json(
-        { success: false, message: 'Email and verification code are required' },
+        { success: false, message: 'CustomerId and verification code are required' },
         { status: 400 }
       );
     }
@@ -17,17 +17,17 @@ export async function POST(request: NextRequest) {
     const container = ServerContainerBuilder.build();
     const verifyCommand = container.get<VerifyCustomerCommand>('VerifyCustomerCommand');
     const result = await verifyCommand.execute({ 
-      email, 
+      customerId, 
       verificationCode 
     });
 
-    if (result.success && result.customer && result.token) {
+    if (result.success && result.customerId && result.token) {
 
       // Create response with secure cookie
       const response = NextResponse.json({
         success: true,
         message: result.message,
-        customerId: result.customer.id,
+        customerId: result.customerId,
         token: result.token
       });
 

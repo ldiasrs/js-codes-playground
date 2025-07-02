@@ -9,42 +9,39 @@ import { useAuth } from '../../hooks/useAuth';
 
 export const VerificationForm: React.FC = () => {
   const [code, setCode] = useState('');
-  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  
   const [successMessage, setSuccessMessage] = useState('');
   const [isResending, setIsResending] = useState(false);
-  const { verifyCode, login, isLoading } = useAuth();
+  const { verifyCode, login, isLoading, customerId } = useAuth();
   const router = useRouter();
 
   // Get email from sessionStorage on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedEmail = sessionStorage.getItem('pendingEmail');
-      if (storedEmail) {
-        setEmail(storedEmail);
-      } else {
-        // No email found, redirect back to login
+      console.log('customerId', customerId);
+      console.log('BBBBB customerId', customerId);
+      if (!customerId) {
         router.push('/auth/login');
-      }
+      } 
     }
-  }, [router]);
+  }, [router, customerId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
-
     if (!code.trim()) {
       setError('Please enter the verification code');
       return;
     }
 
-    if (!email) {
+    if (!customerId) {
       setError('Email not found. Please try logging in again.');
       return;
     }
 
-    const result = await verifyCode(email, code);
+    const result = await verifyCode(customerId, code);
     
     if (result.success) {
       setSuccessMessage(result.message);
@@ -59,9 +56,8 @@ export const VerificationForm: React.FC = () => {
     setError('');
     setSuccessMessage('');
     setIsResending(true);
-
     try {
-      const result = await login(email);
+      const result = await login(customerId ?? '');
       
       if (result.success) {
         setSuccessMessage('Verification code resent to your email');
@@ -76,7 +72,7 @@ export const VerificationForm: React.FC = () => {
     }
   };
 
-  if (!email) {
+  if (!customerId) {
     return (
       <div className="text-center">
         <LoadingSpinner size="lg" className="mx-auto mb-4" />
@@ -91,7 +87,7 @@ export const VerificationForm: React.FC = () => {
         <p className="text-muted-foreground">
           We&apos;ve sent a verification code to:
         </p>
-        <p className="font-medium text-foreground mt-1">{email}</p>
+          <p className="font-medium text-foreground mt-1">{customerId}</p>
       </div>
 
       <Input

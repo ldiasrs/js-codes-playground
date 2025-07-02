@@ -1,7 +1,6 @@
-import { AuthService } from './AuthService';
 import { LoginRequest, LoginResponse, VerifyCodeRequest, VerifyCodeResponse } from './types';
 
-export class RealAuthService implements AuthService {
+export class LoginAuthService  {
   /**
    * Initiates the login process by sending a verification code to the provided email
    */
@@ -19,15 +18,10 @@ export class RealAuthService implements AuthService {
       const result = await response.json();
 
       if (result.success) {
-        // Store email for verification (needed for the verification step)
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('pendingEmail', request.email);
-        }
-
         return {
           success: true,
           message: result.message,
-          requiresVerification: true,
+          customerId: result.customerId,
         };
       } else {
         return {
@@ -49,13 +43,24 @@ export class RealAuthService implements AuthService {
    */
   async verifyCode(request: VerifyCodeRequest): Promise<VerifyCodeResponse> {
     try {
-      const response = await fetch('/api/auth/verify', {
+
+      const customerId = request?.customerId || this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          customerId: '',
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+
+      const response = await fetch(`/api/auth/verify?customerId=${encodeURIComponent(customerId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          email: request.email, 
           verificationCode: request.code 
         }),
         credentials: 'include', // Include cookies in request
@@ -64,11 +69,12 @@ export class RealAuthService implements AuthService {
       const result = await response.json();
 
       if (result.success && result.customerId) {
-        // Store only customerId in sessionStorage
+        // Store customerId and token in sessionStorage
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('customerId', result.customerId);
-          // Clear the pending email since verification is complete
-          sessionStorage.removeItem('pendingEmail');
+          if (result.token) {
+            sessionStorage.setItem('authToken', result.token);
+          }
         }
 
         return {
@@ -106,15 +112,21 @@ export class RealAuthService implements AuthService {
       // Clear session storage data
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('customerId');
-        sessionStorage.removeItem('pendingEmail');
+        sessionStorage.removeItem('authToken');
       }
     } catch (error) {
       console.error('Logout error:', error);
       // Still clear session data even if API call fails
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('customerId');
-        sessionStorage.removeItem('pendingEmail');
+        sessionStorage.removeItem('authToken');
       }
     }
+  }
+  private getCustomerId(): string | null {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('customerId');
+    }
+    return null;
   }
 } 

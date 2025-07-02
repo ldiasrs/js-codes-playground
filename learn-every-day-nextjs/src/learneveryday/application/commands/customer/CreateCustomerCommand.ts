@@ -1,7 +1,6 @@
-import { BaseCommand } from '../Command';
-import { CustomerDTO, CustomerDTOMapper } from '../../dto/CustomerDTO';
-import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../domain/customer/usecase/CreateCustomerFeature';
 import { CustomerTier } from '../../../domain/customer/entities/Customer';
+import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../domain/customer/usecase/CreateCustomerFeature';
+import { BaseCommand } from '../Command';
 
 export interface CreateCustomerCommandData {
   customerName: string;
@@ -14,12 +13,17 @@ export interface CreateCustomerCommandData {
   tier?: CustomerTier;
 }
 
-export class CreateCustomerCommand extends BaseCommand<CustomerDTO, CreateCustomerCommandData> {
+export interface CreateCustomerCommandResponse {
+  customerId: string;
+}
+
+
+export class CreateCustomerCommand extends BaseCommand<CreateCustomerCommandResponse, CreateCustomerCommandData> {
   constructor(private readonly createCustomerFeature: CreateCustomerFeature) {
     super();
   }
 
-  async execute(data?: CreateCustomerCommandData): Promise<CustomerDTO> {
+  async execute(data?: CreateCustomerCommandData): Promise<CreateCustomerCommandResponse> {
     if (!data) {
       throw new Error('CreateCustomerCommand requires data parameter');
     }
@@ -33,6 +37,8 @@ export class CreateCustomerCommand extends BaseCommand<CustomerDTO, CreateCustom
     };
 
     const customer = await this.createCustomerFeature.execute(featureData);
-    return CustomerDTOMapper.toDTO(customer);
+    return {
+      customerId: customer.id || ''
+    };
   }
 } 

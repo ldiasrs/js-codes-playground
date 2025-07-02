@@ -5,21 +5,21 @@ import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAtte
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { JwtConfiguration } from '../../../infrastructure/config/jwt.config';
 
-export interface VerifyCustomerFeatureData {
-  email: string;
+export interface VerifyAuthCodeFeatureData {
+  customerId: string;
   verificationCode: string;
 }
 
-export interface VerifyCustomerFeatureResult {
+export interface VerifyAuthCodeFeatureResult {
   success: boolean;
   message: string;
-  customer?: Customer;
+  customerId?: string;
   token?: string;
 }
 
 
 
-export class VerifyCustomerFeature {
+export class VerifyAuthCodeFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
     private readonly authenticationAttemptRepository: AuthenticationAttemptRepositoryPort,
@@ -33,16 +33,10 @@ export class VerifyCustomerFeature {
    * @returns Promise<VerifyCustomerFeatureResult> The verification result
    * @throws Error if verification process fails
    */
-  async execute(data: VerifyCustomerFeatureData): Promise<VerifyCustomerFeatureResult> {
-    const { email, verificationCode } = data;
+  async execute(data: VerifyAuthCodeFeatureData): Promise<VerifyAuthCodeFeatureResult> {
+    const { customerId, verificationCode } = data;
 
-    // Step 1: Validate email format
-    if (!this.isValidEmail(email)) {
-      return {
-        success: false,
-        message: 'Please enter a valid email address'
-      };
-    }
+  
 
     // Step 2: Validate verification code format
     if (!this.isValidVerificationCode(verificationCode)) {
@@ -53,11 +47,11 @@ export class VerifyCustomerFeature {
     }
 
     // Step 3: Find customer by email
-    const customer = await this.customerRepository.findByEmail(email);
+    const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
       return {
         success: false,
-        message: 'No account found with this email address'
+        message: 'No account found with this customerId'
       };
     }
 
@@ -90,7 +84,6 @@ export class VerifyCustomerFeature {
     if (authenticationAttempt.encryptedVerificationCode !== verificationCode) {
       this.logger.warn('Invalid verification code attempt', {
         customerId: customer.id,
-        customerEmail: customer.email,
         providedCode: verificationCode
       });
 
@@ -109,13 +102,12 @@ export class VerifyCustomerFeature {
 
     this.logger.info('Customer verification successful', {
       customerId: customer.id,
-      customerEmail: customer.email
     });
 
     return {
       success: true,
       message: 'Verification successful. Welcome back!',
-      customer,
+      customerId: customer.id || '',
       token
     };
   }
@@ -144,7 +136,7 @@ export class VerifyCustomerFeature {
     
     const payload = {
       sub: customer.id?.toString() || '',
-      user_email: customer.email.toString()
+      customerId: customer.id?.toString() || ''
     };
     
     return jwt.sign(

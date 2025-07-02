@@ -5,11 +5,11 @@ export interface LoginRequest {
 export interface LoginResponse {
   success: boolean;
   message: string;
-  requiresVerification?: boolean;
+  customerId?: string;
 }
 
 export interface VerifyCodeRequest {
-  email: string;
+  customerId: string;
   code: string;
 }
 
@@ -20,16 +20,9 @@ export interface VerifyCodeResponse {
   token?: string;
 }
 
-export interface UserData {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;
-}
 
-export interface AuthState {
+export interface LoginAuthState {
   isAuthenticated: boolean;
-  user: UserData | null;
-  token: string | null;
+  customerId: string | null;
   isLoading: boolean;
 } 

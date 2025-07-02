@@ -26,6 +26,32 @@ export class RealTopicsService implements TopicsService {
   }
 
   /**
+   * Gets the auth token from sessionStorage
+   */
+  private getAuthToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('authToken');
+    }
+    return null;
+  }
+
+  /**
+   * Creates headers with Authorization token if available
+   */
+  private createHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = this.getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
+  }
+
+  /**
    * Retrieves all topics for a customer
    */
   async getAllTopics(request?: GetAllTopicsRequest): Promise<GetAllTopicsResponse> {
@@ -41,9 +67,7 @@ export class RealTopicsService implements TopicsService {
 
       const response = await fetch(`/api/topics?customerId=${encodeURIComponent(customerId)}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
       });
 
@@ -86,9 +110,7 @@ export class RealTopicsService implements TopicsService {
 
       const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
       });
 
@@ -131,9 +153,7 @@ export class RealTopicsService implements TopicsService {
 
       const response = await fetch('/api/topics', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
         body: JSON.stringify({
           customerId,
@@ -180,9 +200,7 @@ export class RealTopicsService implements TopicsService {
 
       const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
         body: JSON.stringify({
           subject: request.subject,
@@ -228,9 +246,7 @@ export class RealTopicsService implements TopicsService {
 
       const response = await fetch(`/api/topics/${request.id}?customerId=${encodeURIComponent(customerId)}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
       });
 
@@ -276,9 +292,7 @@ export class RealTopicsService implements TopicsService {
       
       const response = await fetch(`/api/topics/search?${queryParams.toString()}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.createHeaders(),
         credentials: 'include',
       });
 

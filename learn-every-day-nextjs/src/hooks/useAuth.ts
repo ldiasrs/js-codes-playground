@@ -1,18 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AuthState, UserData } from '../services/auth/types';
-import { RealAuthService } from '../services/auth/RealAuthService';
+import { LoginAuthState } from '../services/auth/types';
+import { LoginAuthService } from '../services/auth/LoginAuthService';
 
-const authService = new RealAuthService();
+const authService = new LoginAuthService();
 
 export const useAuth = () => {
-  const [authState, setAuthState] = useState<AuthState>({
+  const [authState, setAuthState] = useState<LoginAuthState>({
     isAuthenticated: false,
-    user: null,
-    token: null,
+    customerId: null,
     isLoading: true,
   });
+
 
   // Initialize auth state from sessionStorage on mount
   useEffect(() => {
@@ -22,24 +22,15 @@ export const useAuth = () => {
 
         if (customerId) {
           // Create a minimal user object with just the customerId
-          const user: UserData = {
-            id: customerId,
-            email: '', // We don't store email in session anymore
-            name: '', // We don't store name in session anymore
-            createdAt: '', // We don't store createdAt in session anymore
-          };
-
           setAuthState({
             isAuthenticated: true,
-            user,
-            token: null, // We don't store token anymore
+            customerId: customerId,
             isLoading: false,
           });
         } else {
           setAuthState({
             isAuthenticated: false,
-            user: null,
-            token: null,
+            customerId: null,
             isLoading: false,
           });
         }
@@ -56,7 +47,8 @@ export const useAuth = () => {
       const response = await authService.login({ email });
       
       if (response.success) {
-        return { success: true, message: response.message };
+        setAuthState(prev => ({ ...prev, customerId: response.customerId ?? null, isAuthenticated: true }));
+        return { success: true, message: response.message};
       } else {
         return { success: false, message: response.message };
       }
@@ -67,19 +59,18 @@ export const useAuth = () => {
     }
   }, []);
 
-  const verifyCode = useCallback(async (email: string, code: string) => {
+  const verifyCode = useCallback(async (customerId: string, code: string) => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      const response = await authService.verifyCode({ email, code });
+      const response = await authService.verifyCode({ customerId, code });
       
       if (response.success && response.customerId) {
-        // Create user object from response
+    
 
         setAuthState({
           isAuthenticated: true,
-          user,
-          token: null, // We don't use tokens in state anymore
+          customerId: response.customerId,
           isLoading: false,
         });
 
@@ -102,8 +93,7 @@ export const useAuth = () => {
       
       setAuthState({
         isAuthenticated: false,
-        user: null,
-        token: null,
+        customerId: null,
         isLoading: false,
       });
     } catch (error) {

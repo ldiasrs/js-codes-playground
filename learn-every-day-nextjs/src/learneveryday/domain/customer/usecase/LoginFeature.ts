@@ -1,22 +1,20 @@
-import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { SendVerificationCodePort } from '../ports/SendVerificationCodePort';
 import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
 import { AuthenticationAttempt } from '../entities/AuthenticationAttempt';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 
-export interface AuthCustomerFeatureData {
+export interface LoginFeatureData {
   email: string;
 }
 
-export interface AuthCustomerFeatureResult {
+export interface LoginFeatureResponse {
   success: boolean;
   message: string;
-  customer?: Customer;
-  verificationCode?: string;
+  customerId?: string;
 }
 
-export class AuthCustomerFeature {
+export class LoginFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
     private readonly sendVerificationCodePort: SendVerificationCodePort,
@@ -27,10 +25,9 @@ export class AuthCustomerFeature {
   /**
    * Authenticates a customer by email and sends a verification code
    * @param data The data containing the customer's email
-   * @returns Promise<AuthCustomerFeatureResult> The authentication result
    * @throws Error if authentication process fails
    */
-  async execute(data: AuthCustomerFeatureData): Promise<AuthCustomerFeatureResult> {
+  async execute(data: LoginFeatureData): Promise<LoginFeatureResponse> {
     const { email } = data;
 
     // Step 1: Validate email format
@@ -69,7 +66,7 @@ export class AuthCustomerFeature {
       
       await this.authenticationAttemptRepository.save(authenticationAttempt);
 
-      this.logger.info(`Verification code sent to customer ${customer.id}`, {
+      this.logger.info(`Verification code: ${verificationCode} sent to customer ${customer.id}`, {
         customerId: customer.id,
         customerEmail: customer.email,
         verificationCode
@@ -78,8 +75,7 @@ export class AuthCustomerFeature {
       return {
         success: true,
         message: `Verification code sent to ${customer.email}`,
-        customer,
-        verificationCode
+        customerId: customer.id
       };
     } catch (error) {
       this.logger.error('Error sending verification code', error as Error, {

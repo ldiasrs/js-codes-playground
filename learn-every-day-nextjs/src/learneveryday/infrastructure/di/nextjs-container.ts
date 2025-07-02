@@ -16,8 +16,7 @@ import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerifica
 // Use Cases
 import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
 import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
-import { AuthCustomerFeature } from '../../domain/customer/usecase/AuthCustomerFeature';
-import { VerifyCustomerFeature } from '../../domain/customer/usecase/VerifyCustomerFeature';
+import { LoginFeature } from '../../domain/customer/usecase/LoginFeature';
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
 import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
@@ -33,7 +32,7 @@ import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/S
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
 import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
-import { AuthCustomerCommand } from '../../application/commands/customer/AuthCustomerCommand';
+import { LoginCommand } from '../../application/commands/customer/LoginCommand';
 import { VerifyCustomerCommand } from '../../application/commands/customer/VerifyCustomerCommand';
 import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
 import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
@@ -45,6 +44,7 @@ import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQ
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
+import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
 export interface Container {
   get<T>(token: string): T;
@@ -92,14 +92,14 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository')
     ));
 
-    this.registerSingleton('AuthCustomerFeature', () => new AuthCustomerFeature(
+    this.registerSingleton('LoginFeature', () => new LoginFeature(
       this.get('CustomerRepository'),
       this.get('VerificationCodeSender'),
       this.get('AuthenticationAttemptRepository'),
       this.get('Logger')
     ));
 
-    this.registerSingleton('VerifyCustomerFeature', () => new VerifyCustomerFeature(
+    this.registerSingleton('VerifyAuthCodeFeature', () => new VerifyAuthCodeFeature(
       this.get('CustomerRepository'),
       this.get('AuthenticationAttemptRepository'),
       this.get('Logger')
@@ -185,12 +185,12 @@ export class NextJSContainer implements Container {
       this.get('DeleteCustomerFeature')
     ));
 
-    this.registerSingleton('AuthCustomerCommand', () => new AuthCustomerCommand(
-      this.get('AuthCustomerFeature')
+    this.registerSingleton('LoginCommand', () => new LoginCommand(
+      this.get('LoginFeature')
     ));
 
     this.registerSingleton('VerifyCustomerCommand', () => new VerifyCustomerCommand(
-      this.get('VerifyCustomerFeature')
+      this.get('VerifyAuthCodeFeature')
     ));
 
     this.registerSingleton('AddTopicCommand', () => new AddTopicCommand(
