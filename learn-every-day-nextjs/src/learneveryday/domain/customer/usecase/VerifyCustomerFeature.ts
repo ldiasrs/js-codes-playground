@@ -1,7 +1,9 @@
+import jwt from 'jsonwebtoken';
 import { Customer } from '../entities/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
+import { JwtConfiguration } from '../../../infrastructure/config/jwt.config';
 
 export interface VerifyCustomerFeatureData {
   email: string;
@@ -15,11 +17,14 @@ export interface VerifyCustomerFeatureResult {
   token?: string;
 }
 
+
+
 export class VerifyCustomerFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
     private readonly authenticationAttemptRepository: AuthenticationAttemptRepositoryPort,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly jwtConfiguration: JwtConfiguration = JwtConfiguration.getInstance()
   ) {}
 
   /**
@@ -132,19 +137,23 @@ export class VerifyCustomerFeature {
   }
 
   /**
-   * Generates a simple authentication token
-   * In a production environment, this should use JWT
+   * Generates a JWT authentication token with proper signing
    */
   private generateToken(customer: Customer): string {
+    const jwtConfig = this.jwtConfiguration.getConfig();
+    
     const payload = {
-      customerId: customer.id,
-      email: customer.email,
-      customerName: customer.customerName,
-      issuedAt: new Date().toISOString()
+      sub: customer.id?.toString() || '',
+      user_email: customer.email.toString()
     };
     
-    // Simple base64 encoding for demo purposes
-    // In production, use JWT with proper signing
-    return Buffer.from(JSON.stringify(payload)).toString('base64');
+    return jwt.sign(
+      payload, 
+      jwtConfig.secret, 
+      {
+        issuer: jwtConfig.issuer,
+        algorithm: jwtConfig.algorithm
+      }
+    );
   }
 } 
