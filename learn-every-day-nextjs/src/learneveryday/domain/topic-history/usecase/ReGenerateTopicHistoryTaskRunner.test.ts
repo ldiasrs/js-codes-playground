@@ -1,4 +1,4 @@
-import { ReGenerateTopicHistoryTaskRunner, ReGenerateTopicHistoryConfig } from './ReGenerateTopicHistoryTaskRunner';
+import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { Topic } from '../../topic/entities/Topic';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
@@ -190,12 +190,11 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
     });
 
     it('should not schedule new tasks when customer has reached maxTopicsPer24h limit', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 1 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Basic tier customer (limit: 1 topic per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Basic);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
         createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
       ];
 
@@ -207,14 +206,14 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Assert
       expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('already has 2 pending tasks, which meets the maximum limit of 1 topics per 24h')
+        expect.stringContaining('already has 1 pending tasks, which meets the maximum limit of 1 topics per 24h')
       );
     });
 
     it('should prioritize topics with fewer histories when scheduling tasks', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Standard tier customer (limit: 3 topics per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Standard);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const mockTasks = [
         createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
@@ -238,18 +237,18 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      // Assert - Standard tier allows 3 topics per 24h, has 1 pending, so should schedule 2 more
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(2);
       
-      // Should schedule task for topic with 0 histories (topicId2)
-      const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
-      expect(savedTask.entityId).toBe(topicId2);
+      // Should schedule task for topic with 0 histories (topicId2) first
+      const savedTasks = mockTaskProcessRepository.save.mock.calls.map(call => call[0] as TaskProcess);
+      expect(savedTasks[0].entityId).toBe(topicId2);
     });
 
     it('should handle empty search results gracefully', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 1 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Basic tier customer (limit: 1 topic per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Basic);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue([]);
       mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
@@ -258,35 +257,28 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
+      // Assert - Should schedule 1 task for Basic tier
       expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
     });
 
-    it('should use default config when setConfig is not called', async () => {
+    it('should use default config when customer not found', async () => {
       // Arrange
-      const mockTasks = [
-        createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
-      ];
-
-      mockTaskProcessRepository.searchProcessedTasks.mockResolvedValue(mockTasks);
-      mockTopicRepository.findByCustomerId.mockResolvedValue(mockTopics);
-      mockTopicHistoryRepository.findByTopicId.mockResolvedValue([]);
+      mockCustomerRepository.findById.mockResolvedValue(undefined);
 
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
-      // Should not schedule any tasks because default maxTopicsPer24h is 1 and we have 1 pending task
+      // Assert - Should return early without scheduling tasks
       expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('already has 1 pending tasks, which meets the maximum limit of 1 topics per 24h')
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `Customer with ID ${customerId} not found`
       );
     });
 
     it('should calculate nextScheduleTime correctly when there is a last SEND_TOPIC_HISTORY task', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Standard tier customer (limit: 3 topics per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Standard);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const lastSendTaskTime = new Date('2024-01-15T10:00:00Z');
       const expectedNextScheduleTime = new Date(lastSendTaskTime.getTime() + 24 * 60 * 60 * 1000);
@@ -303,16 +295,16 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      // Assert - Standard tier allows 3 topics per 24h, has 1 pending, so should schedule 2 more
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(2);
       const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
       expect(savedTask.scheduledTo).toEqual(expectedNextScheduleTime);
     });
 
     it('should calculate nextScheduleTime correctly when there is no last SEND_TOPIC_HISTORY task', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Standard tier customer (limit: 3 topics per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Standard);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const mockTasks = [
         createMockTask(TaskProcess.GENERATE_TOPIC_HISTORY, 'pending'),
@@ -328,8 +320,8 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      // Assert - Standard tier allows 3 topics per 24h, has 1 pending, so should schedule 2 more
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(2);
       const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
       const afterExecution = new Date();
 
@@ -343,9 +335,9 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
     });
 
     it('should use the most recent SEND_TOPIC_HISTORY task when multiple exist', async () => {
-      // Arrange
-      const config: ReGenerateTopicHistoryConfig = { maxTopicsPer24h: 2 };
-      taskRunner.setConfig(config);
+      // Arrange - Use Standard tier customer (limit: 3 topics per 24h)
+      const mockCustomer = Customer.createWithCPF('John Doe', '12345678901', 'john@example.com', '123-456-7890', customerId, CustomerTier.Standard);
+      mockCustomerRepository.findById.mockResolvedValue(mockCustomer);
 
       const olderSendTaskTime = new Date('2024-01-15T10:00:00Z');
       const newerSendTaskTime = new Date('2024-01-16T14:00:00Z');
@@ -364,8 +356,8 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Act
       await taskRunner.execute(baseTaskProcess);
 
-      // Assert
-      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(1);
+      // Assert - Standard tier allows 3 topics per 24h, has 1 pending, so should schedule 2 more
+      expect(mockTaskProcessRepository.save).toHaveBeenCalledTimes(2);
       const savedTask = mockTaskProcessRepository.save.mock.calls[0][0] as TaskProcess;
       expect(savedTask.scheduledTo).toEqual(expectedNextScheduleTime);
     });

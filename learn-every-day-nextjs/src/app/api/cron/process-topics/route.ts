@@ -3,7 +3,7 @@ import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure
 import { ProcessTopicHistoryWorkflowCommand } from '@/learneveryday/application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
 // Vercel function timeout protection (8 seconds to stay under 10s limit)
-const MAX_EXECUTION_TIME_MS = 8000;
+const MAX_EXECUTION_TIME_MS = 30000;
 
 export async function GET() {
   const startTime = Date.now();
