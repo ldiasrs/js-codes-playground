@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { JwtConfiguration } from './src/learneveryday/infrastructure/config/jwt.config';
+import { jwtVerify } from 'jose';
+import { JwtConfiguration } from './learneveryday/infrastructure/config/jwt.config';
 
 interface JwtPayload {
   sub: string;
@@ -33,15 +33,21 @@ const publicRoutes = [
   '/api/auth/verify'
 ];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Debug: Log every middleware call
+  console.log(`🔍 Middleware called for: ${pathname}`);
+  console.log(`🔍 Request method: ${request.method}`);
+  console.log(`🔍 Request URL: ${request.url}`);
   
   // Get JWT configuration from global config
   let jwtConfig;
   try {
     jwtConfig = JwtConfiguration.getInstance().getConfig();
+    console.log(`✅ JWT config loaded successfully`);
   } catch (error) {
-    console.error('JWT configuration error:', error);
+    console.error('🚨 JWT configuration error:', error);
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
@@ -72,15 +78,23 @@ export function middleware(request: NextRequest) {
 
   if (token) {
     try {
-      userPayload = jwt.verify(token, jwtConfig.secret) as JwtPayload;
+      // Convert secret to Uint8Array for jose
+      const secret = new TextEncoder().encode(jwtConfig.secret);
       
-      // Verify issuer if configured
-      if (jwtConfig.issuer && userPayload.iss !== jwtConfig.issuer) {
-        console.warn('JWT issuer mismatch');
-        isValidToken = false;
-      } else {
-        isValidToken = true;
-      }
+      const { payload } = await jwtVerify(token, secret, {
+        issuer: jwtConfig.issuer,
+        algorithms: [jwtConfig.algorithm],
+      });
+      
+      userPayload = {
+        sub: payload.sub || '',
+        email: payload.email as string || '',
+        iat: payload.iat || 0,
+        exp: payload.exp,
+        iss: payload.iss
+      };
+      
+      isValidToken = true;
     } catch (error) {
       console.warn('Invalid JWT token:', error);
       isValidToken = false;
