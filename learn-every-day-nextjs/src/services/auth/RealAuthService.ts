@@ -13,6 +13,7 @@ export class RealAuthService implements AuthService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: request.email }),
+        credentials: 'include', // Include cookies in request
       });
 
       const result = await response.json();
@@ -63,6 +64,14 @@ export class RealAuthService implements AuthService {
       const result = await response.json();
 
       if (result.success && result.user && result.token) {
+        // Store auth data in localStorage for backward compatibility and client-side access
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authToken', result.token);
+          localStorage.setItem('userData', JSON.stringify(result.user));
+          // Clear the pending email since verification is complete
+          sessionStorage.removeItem('pendingEmail');
+        }
+
         return {
           success: true,
           message: result.message,
@@ -110,6 +119,4 @@ export class RealAuthService implements AuthService {
       }
     }
   }
-
-
 } 

@@ -16,6 +16,25 @@ import {
 
 export class RealTopicsService implements TopicsService {
   /**
+   * Gets authentication headers including Bearer token
+   */
+  private getAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Authorization header if token exists in localStorage
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    return headers;
+  }
+
+  /**
    * Retrieves all topics for a customer
    */
   async getAllTopics(request?: GetAllTopicsRequest): Promise<GetAllTopicsResponse> {
@@ -26,9 +45,8 @@ export class RealTopicsService implements TopicsService {
         
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
       });
 
       const result = await response.json();
@@ -61,9 +79,8 @@ export class RealTopicsService implements TopicsService {
     try {
       const response = await fetch(`/api/topics/${request.id}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
       });
 
       const result = await response.json();
@@ -96,9 +113,8 @@ export class RealTopicsService implements TopicsService {
     try {
       const response = await fetch('/api/topics', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
         body: JSON.stringify({
           customerId: request.customerId,
           subject: request.subject,
@@ -135,9 +151,8 @@ export class RealTopicsService implements TopicsService {
     try {
       const response = await fetch(`/api/topics/${request.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
         body: JSON.stringify({
           subject: request.subject,
         }),
@@ -173,9 +188,8 @@ export class RealTopicsService implements TopicsService {
     try {
       const response = await fetch(`/api/topics/${request.id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
       });
 
       const result = await response.json();
@@ -211,9 +225,8 @@ export class RealTopicsService implements TopicsService {
       
       const response = await fetch(`/api/topics/search?${queryParams.toString()}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
+        credentials: 'include', // Include cookies for HTTP-only auth
       });
 
       const result = await response.json();
