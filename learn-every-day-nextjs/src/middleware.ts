@@ -14,7 +14,6 @@ interface JwtPayload {
 const protectedRoutes = [
   '/topics',
   '/api/topics',
-  '/api/cron'
 ];
 
 // These routes should redirect authenticated users
@@ -22,7 +21,6 @@ const authRoutes = [
   '/auth/login',
   '/auth/register',
   '/auth/verify',
-  '/lending'
 ];
 
 // Public routes that don't require authentication
@@ -30,7 +28,8 @@ const publicRoutes = [
   '/',
   '/api/auth/login',
   '/api/auth/register',
-  '/api/auth/verify'
+  '/api/auth/verify',
+  '/api/cron'
 ];
 
 export async function middleware(request: NextRequest) {
@@ -61,6 +60,7 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname.startsWith(route)
   );
+  console.log('🚨 isProtectedRoute', isProtectedRoute);
 
   // Check if the route is an auth route
   const isAuthRoute = authRoutes.some(route => 
@@ -103,7 +103,9 @@ export async function middleware(request: NextRequest) {
 
   // Handle protected routes
   if (isProtectedRoute) {
+    console.log('🚨 isProtectedRoute 2', isProtectedRoute);
     if (!isValidToken) {
+      console.log('🚨 Invalid JWT token:', isValidToken);
       // Redirect to login for unauthenticated users trying to access protected routes
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
@@ -126,12 +128,14 @@ export async function middleware(request: NextRequest) {
 
   // Handle auth routes - redirect authenticated users away from login/register pages
   if (isAuthRoute && isValidToken) {
+    console.log('🚨 isAuthRoute and isValidToken');
     const redirectUrl = request.nextUrl.searchParams.get('redirect') || '/topics';
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 
   // Allow access to public routes
   if (isPublicRoute) {
+    console.log('🚨 isPublicRoute');
     return NextResponse.next();
   }
 

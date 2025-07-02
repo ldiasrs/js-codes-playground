@@ -47,7 +47,13 @@ export const useAuth = () => {
       const response = await authService.login({ email });
       
       if (response.success) {
-        setAuthState(prev => ({ ...prev, customerId: response.customerId ?? null, isAuthenticated: true }));
+        // Store customerId and email in sessionStorage immediately after successful login
+        if (typeof window !== 'undefined' && response.customerId) {
+          console.log('🚨 login: setting customerId', response.customerId);
+          sessionStorage.setItem('customerId', response.customerId);
+        }
+        
+        //setAuthState(prev => ({ ...prev, customerId: response.customerId ?? null, requireAuth: true, isAuthenticated: true }));
         return { success: true, message: response.message};
       } else {
         return { success: false, message: response.message };
@@ -65,6 +71,7 @@ export const useAuth = () => {
     try {
       const response = await authService.verifyCode({ customerId, code });
       
+      console.log('verifyCode response', response);
       if (response.success && response.customerId) {
     
 

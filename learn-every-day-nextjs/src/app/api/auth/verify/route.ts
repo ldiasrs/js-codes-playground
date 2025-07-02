@@ -4,9 +4,10 @@ import { VerifyCustomerCommand } from '../../../../learneveryday/application/com
 
 export async function POST(request: NextRequest) {
   try {
-    const { customerId, verificationCode } = await request.json();
+    const {  verificationCode } = await request.json();
 
-    console.log('Verify API request received:', { customerId, verificationCode });
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
     if (!customerId || !verificationCode) {
       return NextResponse.json(
         { success: false, message: 'CustomerId and verification code are required' },

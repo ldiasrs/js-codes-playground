@@ -44,7 +44,9 @@ export class LoginAuthService  {
   async verifyCode(request: VerifyCodeRequest): Promise<VerifyCodeResponse> {
     try {
 
+      console.log('🚨 verifyCode customerId', request);
       const customerId = request?.customerId || this.getCustomerId();
+
       
       if (!customerId) {
         return {
@@ -71,7 +73,6 @@ export class LoginAuthService  {
       if (result.success && result.customerId) {
         // Store customerId and token in sessionStorage
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('customerId', result.customerId);
           if (result.token) {
             sessionStorage.setItem('authToken', result.token);
           }

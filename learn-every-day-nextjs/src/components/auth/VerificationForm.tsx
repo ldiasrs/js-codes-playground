@@ -10,18 +10,18 @@ import { useAuth } from '../../hooks/useAuth';
 export const VerificationForm: React.FC = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
-  
   const [successMessage, setSuccessMessage] = useState('');
   const [isResending, setIsResending] = useState(false);
-  const { verifyCode, login, isLoading, customerId } = useAuth();
+  const { verifyCode, login, isLoading } = useAuth();
   const router = useRouter();
+  const customerId = sessionStorage.getItem('customerId');
 
-  // Get email from sessionStorage on component mount
+  // Get email and customerId from sessionStorage on component mount
   useEffect(() => {
+    console.log('VerificationForm customerId', customerId);
     if (typeof window !== 'undefined') {
-      console.log('customerId', customerId);
-      console.log('BBBBB customerId', customerId);
       if (!customerId) {
+        console.log('🚨 VerificationForm customerId not found, redirecting to login');
         router.push('/auth/login');
       } 
     }
@@ -36,11 +36,13 @@ export const VerificationForm: React.FC = () => {
       return;
     }
 
+    
     if (!customerId) {
-      setError('Email not found. Please try logging in again.');
+      setError('Session expired. Please try logging in again.');
       return;
     }
 
+    console.log('🚨 VerificationForm: customerId', customerId);
     const result = await verifyCode(customerId, code);
     
     if (result.success) {
@@ -57,7 +59,12 @@ export const VerificationForm: React.FC = () => {
     setSuccessMessage('');
     setIsResending(true);
     try {
-      const result = await login(customerId ?? '');
+      if (!customerId) {
+        setError('Email not found. Please try logging in again.');
+        return;
+      }
+      
+      const result = await login(customerId);
       
       if (result.success) {
         setSuccessMessage('Verification code resent to your email');

@@ -7,13 +7,11 @@ import { AuthGuard } from '../../../components/auth/AuthGuard';
 
 export default function VerifyPage() {
   return (
-    <AuthGuard requireAuth={false}>
       <AuthLayout
         title="Verify Your Email"
         subtitle="Enter the verification code sent to your email"
       >
         <VerificationForm />
       </AuthLayout>
-    </AuthGuard>
   );
 } 

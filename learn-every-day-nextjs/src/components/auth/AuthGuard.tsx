@@ -22,7 +22,7 @@ interface AuthGuardProps {
  */
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
-  redirectTo = '/lending',
+  redirectTo = '/',
   requireAuth = true,
   loadingComponent
 }) => {
@@ -32,10 +32,12 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   useEffect(() => {
     if (!isLoading) {
       if (requireAuth && !isAuthenticated) {
+        console.log('🚨 AuthGuard: redirecting to login');
         // Require auth but user is not authenticated - redirect to specified page
         router.push(redirectTo);
       } else if (!requireAuth && isAuthenticated) {
         // Don't require auth but user is authenticated - redirect to topics
+        console.log('🚨 AuthGuard: redirecting to topics');
         router.push('/topics');
       }
     }
