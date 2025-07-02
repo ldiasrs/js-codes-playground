@@ -92,9 +92,8 @@ export const VerificationForm: React.FC = () => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
         <p className="text-muted-foreground">
-          We&apos;ve sent a verification code to:
+          We&apos;ve sent a verification code to your email
         </p>
-          <p className="font-medium text-foreground mt-1">{customerId}</p>
       </div>
 
       <Input
