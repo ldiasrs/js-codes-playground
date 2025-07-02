@@ -30,12 +30,24 @@ export async function POST(request: NextRequest) {
         createdAt: result.customer.dateCreated
       };
 
-      return NextResponse.json({
+      // Create response with secure cookie
+      const response = NextResponse.json({
         success: true,
         message: result.message,
         user: userData,
         token: result.token
       });
+
+      // Set secure HTTP-only cookie for better security
+      response.cookies.set('authToken', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 86400, // 24 hours
+        path: '/'
+      });
+
+      return response;
     } else {
       return NextResponse.json({
         success: false,

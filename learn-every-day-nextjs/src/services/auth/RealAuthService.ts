@@ -57,6 +57,7 @@ export class RealAuthService implements AuthService {
           email: request.email, 
           verificationCode: request.code 
         }),
+        credentials: 'include', // Include cookies in request
       });
 
       const result = await response.json();
@@ -84,18 +85,31 @@ export class RealAuthService implements AuthService {
   }
 
   /**
-   * Logs out the current user
+   * Logs out the current user by calling the logout endpoint and clearing local storage
    */
   async logout(): Promise<void> {
     try {
-      // Clear stored data
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include cookies in request
+      });
+      
+      // Clear any local storage data
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('pendingEmail');
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
+        sessionStorage.removeItem('pendingEmail');
       }
     } catch (error) {
       console.error('Logout error:', error);
+      // Still clear local data even if API call fails
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        sessionStorage.removeItem('pendingEmail');
+      }
     }
   }
+
+
 } 
