@@ -14,6 +14,6 @@ export class ProcessTopicHistoryWorkflowCommand extends BaseCommand<void, Proces
   }
 
   async execute(data: ProcessTopicHistoryWorkflowCommandData = {}): Promise<void> {
-    await this.processTopicHistoryWorkflowFeature.execute(data);
+     this.processTopicHistoryWorkflowFeature.execute(data);
   }
 } 
