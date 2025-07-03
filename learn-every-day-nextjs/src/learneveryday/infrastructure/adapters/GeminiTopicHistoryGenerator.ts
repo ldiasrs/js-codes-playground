@@ -59,21 +59,17 @@ export class GeminiTopicHistoryGenerator implements GenerateTopicHistoryPort {
       if (topicSubject.includes('#discard-history')) {
         return topicSubject;
       }
-      return `topicSubject \n\n This is what i know about the topic:\n ${topicSubject}`
+      return `Esse é meu histórico anterior:\n\n ${topicSubject}`
     }
     
     return `
-        You will act like a teacher that is teaching a student about the topic: "${topicSubject}".
-        - Your goal is understand the need of the topic and provide several continue informations
-        - This is one of the informations that you will provide
-        - Right in bullet points
-        - Be concise and to the point max 3 bullet points
-        - Must be in Brazilian Portuguese
-        - The examples are very important so you should add practical examples
-        - In the end reference sources where more information can be found
-        - Format the content to be sent by email
+        - Eu quero aprender sobre ${topicSubject}, recebendo informações a cada interação.
+        - Quero receber a informação em uma lista numerada com 3 itens
+        - A informação que já foi processada não deve ser re-envida
+        - Quero a informação de maneira bem sucinta 
+        - Ao final coloque algumas referencias de livros e links de youtube sobre o assunto
 
-        Below are the previous learning entries for this topic, consider them as context to generate a new learning entry.
+        Esse é meu histórico anterior:\n\n
         ${historyContext}
 `;
   }

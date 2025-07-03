@@ -52,8 +52,6 @@ export const useAuth = () => {
           console.log('🚨 login: setting customerId', response.customerId);
           sessionStorage.setItem('customerId', response.customerId);
         }
-        
-        //setAuthState(prev => ({ ...prev, customerId: response.customerId ?? null, requireAuth: true, isAuthenticated: true }));
         return { success: true, message: response.message};
       } else {
         return { success: false, message: response.message };
