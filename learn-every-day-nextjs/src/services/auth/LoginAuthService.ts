@@ -71,12 +71,8 @@ export class LoginAuthService  {
       const result = await response.json();
 
       if (result.success && result.customerId) {
-        // Store customerId and token in sessionStorage
-        if (typeof window !== 'undefined') {
-          if (result.token) {
-            sessionStorage.setItem('authToken', result.token);
-          }
-        }
+        // Token is automatically stored in HTTP-only cookie by the server
+        // No need to store in sessionStorage for security reasons
 
         return {
           success: true,
@@ -113,14 +109,14 @@ export class LoginAuthService  {
       // Clear session storage data
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('customerId');
-        sessionStorage.removeItem('authToken');
+        // authToken is cleared via HTTP-only cookie by the server
       }
     } catch (error) {
       console.error('Logout error:', error);
       // Still clear session data even if API call fails
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('customerId');
-        sessionStorage.removeItem('authToken');
+        // authToken is managed via HTTP-only cookie by the server
       }
     }
   }

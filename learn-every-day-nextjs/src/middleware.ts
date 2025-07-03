@@ -29,7 +29,8 @@ const publicRoutes = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/verify',
-  '/api/cron'
+  '/api/cron',
+  '/lending'
 ];
 
 export async function middleware(request: NextRequest) {

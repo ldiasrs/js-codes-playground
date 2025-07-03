@@ -3,7 +3,6 @@
 import React from 'react';
 import { AuthLayout } from '../../../components/auth/AuthLayout';
 import { VerificationForm } from '../../../components/auth/VerificationForm';
-import { AuthGuard } from '../../../components/auth/AuthGuard';
 
 export default function VerifyPage() {
   return (

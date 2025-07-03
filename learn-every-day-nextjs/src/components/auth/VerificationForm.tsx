@@ -12,20 +12,26 @@ export const VerificationForm: React.FC = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isResending, setIsResending] = useState(false);
-  const { verifyCode, login, isLoading } = useAuth();
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { verifyCode, login, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const customerId = sessionStorage.getItem('customerId');
 
-  // Get email and customerId from sessionStorage on component mount
+  // Get customerId from sessionStorage on component mount
   useEffect(() => {
-    console.log('VerificationForm customerId', customerId);
     if (typeof window !== 'undefined') {
-      if (!customerId) {
+      const storedCustomerId = sessionStorage.getItem('customerId');
+      console.log('VerificationForm customerId', storedCustomerId);
+      
+      if (!storedCustomerId) {
         console.log('🚨 VerificationForm customerId not found, redirecting to login');
         router.push('/auth/login');
-      } 
+      } else {
+        setCustomerId(storedCustomerId);
+      }
+      setIsLoading(false);
     }
-  }, [router, customerId]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +85,7 @@ export const VerificationForm: React.FC = () => {
     }
   };
 
-  if (!customerId) {
+  if (isLoading || !customerId) {
     return (
       <div className="text-center">
         <LoadingSpinner size="lg" className="mx-auto mb-4" />
@@ -105,7 +111,7 @@ export const VerificationForm: React.FC = () => {
         error={error}
         required
         autoComplete="one-time-code"
-        disabled={isLoading}
+        disabled={authLoading}
         maxLength={6}
       />
 
@@ -117,8 +123,8 @@ export const VerificationForm: React.FC = () => {
 
       <Button
         type="submit"
-        loading={isLoading}
-        disabled={isLoading}
+        loading={authLoading}
+        disabled={authLoading}
         className="w-full"
       >
         Verify Code
@@ -131,7 +137,7 @@ export const VerificationForm: React.FC = () => {
             type="button"
             className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 underline underline-offset-2"
             onClick={handleResendCode}
-            disabled={isLoading || isResending}
+            disabled={authLoading || isResending}
           >
             {isResending ? 'Resending...' : 'Resend'}
           </button>

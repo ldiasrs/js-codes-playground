@@ -26,29 +26,13 @@ export class RealTopicsService implements TopicsService {
   }
 
   /**
-   * Gets the auth token from sessionStorage
-   */
-  private getAuthToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('authToken');
-    }
-    return null;
-  }
-
-  /**
-   * Creates headers with Authorization token if available
+   * Creates headers for API requests
+   * Authentication is handled via HTTP-only cookies automatically
    */
   private createHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
+    return {
       'Content-Type': 'application/json',
     };
-
-    const token = this.getAuthToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
   }
 
   /**
