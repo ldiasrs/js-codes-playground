@@ -1,6 +1,7 @@
 import { DatabaseManager } from '../database/DatabaseManager';
-import { TopicHistoryGeneratorFactory } from '../factories/TopicHistoryGeneratorFactory';
+import { AIPromptExecutorFactory } from '../factories/AIPromptExecutorFactory';
 import { LoggerFactory } from '../factories/LoggerFactory';
+import { PromptBuilder } from '../../domain/topic-history/services/PromptBuilder';
 
 // Repositories
 import { SQLCustomerRepository } from '../adapters/repositories/SQLCustomerRepository';
@@ -73,7 +74,8 @@ export class NextJSContainer implements Container {
     this.registerSingleton('AuthenticationAttemptRepository', () => new SQLAuthenticationAttemptRepository());
 
     // Register ports
-    this.registerSingleton('GenerateTopicHistoryPort', () => TopicHistoryGeneratorFactory.createGeminiGenerator(this.get('Logger')));
+    this.registerSingleton('AIPromptExecutorPort', () => AIPromptExecutorFactory.createGeminiExecutor(this.get('Logger')));
+    this.registerSingleton('PromptBuilder', () => new PromptBuilder());
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
@@ -154,7 +156,8 @@ export class NextJSContainer implements Container {
     this.registerSingleton('GenerateTopicHistoryTaskRunner', () => new GenerateTopicHistoryTaskRunner(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
-      this.get('GenerateTopicHistoryPort'),
+      this.get('AIPromptExecutorPort'),
+      this.get('PromptBuilder'),
       this.get('TaskProcessRepository'),
       this.get('Logger')
     ));

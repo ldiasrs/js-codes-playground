@@ -3,7 +3,8 @@ import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
+import { AIPromptExecutorPort } from '../ports/AIPromptExecutorPort';
+import { PromptBuilder } from '../services/PromptBuilder';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { Topic } from '../../topic/entities/Topic';
@@ -12,7 +13,8 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
+    private readonly aiPromptExecutorPort: AIPromptExecutorPort,
+    private readonly promptBuilder: PromptBuilder,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort
   ) {}
@@ -54,10 +56,12 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   private async generateAndSaveTopicHistory(topic: Topic): Promise<TopicHistory> {
     const existingHistory = await this.topicHistoryRepository.findByTopicId(topic.id);
     
-    const generatedContent = await this.generateTopicHistoryPort.generate({
+    const prompt = this.promptBuilder.build({
       topicSubject: topic.subject,
       history: existingHistory
     });
+
+    const generatedContent = await this.aiPromptExecutorPort.execute(prompt);
 
     const newHistory = new TopicHistory(topic.id, generatedContent);
     await this.topicHistoryRepository.save(newHistory);
