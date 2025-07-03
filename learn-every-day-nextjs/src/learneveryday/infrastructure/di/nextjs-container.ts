@@ -75,7 +75,7 @@ export class NextJSContainer implements Container {
 
     // Register ports
     this.registerSingleton('AIPromptExecutorPort', () => AIPromptExecutorFactory.createGeminiExecutor(this.get('Logger')));
-    this.registerSingleton('PromptBuilder', () => new PromptBuilder());
+    this.registerSingleton('PromptBuilder', () => new PromptBuilder(this.get('Logger')));
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
 
