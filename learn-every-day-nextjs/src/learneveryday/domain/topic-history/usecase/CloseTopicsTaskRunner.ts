@@ -94,7 +94,7 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
   }
 
   /**
-   * Removes all tasks associated with closed topics
+   * Cancels all tasks associated with closed topics by updating their status to 'cancelled'
    * @param customerId The customer ID to clean up tasks for
    */
   private async removeTasksFromClosedTopics(customerId: string): Promise<void> {
@@ -106,7 +106,7 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
         return;
       }
 
-      this.logger.info(`Found ${closedTopics.length} closed topics for customer ${customerId}, removing their tasks`, {
+      this.logger.info(`Found ${closedTopics.length} closed topics for customer ${customerId}, cancelling their tasks`, {
         customerId,
         closedTopicsCount: closedTopics.length,
         closedTopicIds: closedTopics.map(t => t.id)
@@ -114,17 +114,24 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
 
       for (const closedTopic of closedTopics) {
         try {
-          // Remove GENERATE_TOPIC_HISTORY tasks
+          let generateTasksCancelled = 0;
+          let sendTasksCancelled = 0;
+
+          // Cancel GENERATE_TOPIC_HISTORY tasks
           const generateTasks = await this.taskProcessRepository.findByEntityIdAndType(
             closedTopic.id, 
             TaskProcess.GENERATE_TOPIC_HISTORY
           );
 
           for (const task of generateTasks) {
-            await this.taskProcessRepository.delete(task.id);
+            if (task.status === 'pending') {
+              const cancelledTask = task.updateStatus('cancelled', 'Topic was closed');
+              await this.taskProcessRepository.save(cancelledTask);
+              generateTasksCancelled++;
+            }
           }
 
-          // Remove SEND_TOPIC_HISTORY tasks for all topic histories of this topic
+          // Cancel SEND_TOPIC_HISTORY tasks for all topic histories of this topic
           const topicHistories = await this.topicHistoryRepository.findByTopicId(closedTopic.id);
           for (const topicHistory of topicHistories) {
             const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(
@@ -133,23 +140,27 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
             );
 
             for (const sendTask of sendTasks) {
-              await this.taskProcessRepository.delete(sendTask.id);
+              if (sendTask.status === 'pending') {
+                const cancelledTask = sendTask.updateStatus('cancelled', 'Topic was closed');
+                await this.taskProcessRepository.save(cancelledTask);
+                sendTasksCancelled++;
+              }
             }
           }
 
-          this.logger.info(`Removed all tasks for closed topic ${closedTopic.id}`, {
+          this.logger.info(`Cancelled all pending tasks for closed topic ${closedTopic.id}`, {
             topicId: closedTopic.id,
             customerId,
-            generateTasksRemoved: generateTasks.length,
-            sendTasksRemoved: topicHistories.length
+            generateTasksCancelled,
+            sendTasksCancelled
           });
         } catch (error) {
-          this.logger.error(`Failed to remove tasks for closed topic ${closedTopic.id}`, 
+          this.logger.error(`Failed to cancel tasks for closed topic ${closedTopic.id}`, 
             error instanceof Error ? error : new Error(String(error)));
         }
       }
     } catch (error) {
-      this.logger.error(`Error removing tasks from closed topics for customer ${customerId}`, 
+      this.logger.error(`Error cancelling tasks from closed topics for customer ${customerId}`, 
         error instanceof Error ? error : new Error(String(error)));
     }
   }
