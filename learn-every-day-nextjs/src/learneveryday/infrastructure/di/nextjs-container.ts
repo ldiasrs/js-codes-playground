@@ -30,6 +30,7 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 // Runners
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
+import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/CloseTopicsTaskRunner';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -123,6 +124,7 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('CloseTopicFeature', () => new CloseTopicFeature(
       this.get('TopicRepository'),
+      this.get('TaskProcessRepository'),
       this.get('Logger')
     ));
 
@@ -148,6 +150,7 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessTopicHistoryWorkflowFeature(
       this.get('TaskProcessRepository'),
+      this.get('CloseTopicsTaskRunner'),
       this.get('ReGenerateTopicHistoryTaskRunner'),
       this.get('GenerateTopicHistoryTaskRunner'),
       this.get('SendTopicHistoryTaskRunner'),
@@ -178,12 +181,19 @@ export class NextJSContainer implements Container {
       this.get('Logger')
     ));
 
+    this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
+      this.get('TopicRepository'),
+      this.get('TopicHistoryRepository'),
+      this.get('TaskProcessRepository'),
+      this.get('CloseTopicFeature'),
+      this.get('Logger')
+    ));
+
     this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CustomerRepository'),
-      this.get('CloseTopicFeature'),
       this.get('Logger')
     ));
 

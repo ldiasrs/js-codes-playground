@@ -4,6 +4,7 @@ import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRe
 import { GenerateTopicHistoryTaskRunner } from './GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
+import { CloseTopicsTaskRunner } from './CloseTopicsTaskRunner';
 import { TasksProcessExecutor } from '../../taskprocess';
 
 export interface ProcessTopicHistoryWorkflowFeatureData {
@@ -15,6 +16,7 @@ export class ProcessTopicHistoryWorkflowFeature {
 
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly closeTopicsTaskRunner: CloseTopicsTaskRunner,
     private readonly reGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner,
     private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
     private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
@@ -34,9 +36,24 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     const executor = new TasksProcessExecutor(this.taskProcessRepository, this.logger);
     
-    // Check timeout before each phase
+    // Phase 1: Execute close topics tasks first
     if (Date.now() - startTime > maxExecutionTimeMs) {
       this.logger.warn('Execution time limit exceeded before starting workflow phases');
+      return;
+    }
+
+    await executor.execute(
+      {
+        processType: TaskProcess.CLOSE_TOPIC,
+        limit,
+        maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
+      },
+      this.closeTopicsTaskRunner
+    );
+
+    // Phase 2: Regenerate topics histories
+    if (Date.now() - startTime > maxExecutionTimeMs) {
+      this.logger.warn('Execution time limit exceeded after close topics phase');
       return;
     }
 
@@ -49,7 +66,7 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.reGenerateTopicHistoryTaskRunner
     );
 
-    // Check timeout before next phase
+    // Phase 3: Generate topic history
     if (Date.now() - startTime > maxExecutionTimeMs) {
       this.logger.warn('Execution time limit exceeded after regenerate phase');
       return;
@@ -64,7 +81,7 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.generateTopicHistoryTaskRunner
     );
 
-    // Check timeout before final phase
+    // Phase 4: Send topic history
     if (Date.now() - startTime > maxExecutionTimeMs) {
       this.logger.warn('Execution time limit exceeded after generate phase');
       return;

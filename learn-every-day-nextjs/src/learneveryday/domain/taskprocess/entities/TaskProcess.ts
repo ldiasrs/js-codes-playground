@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type TaskProcessType = typeof TaskProcess.GENERATE_TOPIC_HISTORY | typeof TaskProcess.SEND_TOPIC_HISTORY | typeof TaskProcess.REGENERATE_TOPICS_HISTORIES;
+export type TaskProcessType = typeof TaskProcess.GENERATE_TOPIC_HISTORY | typeof TaskProcess.SEND_TOPIC_HISTORY | typeof TaskProcess.REGENERATE_TOPICS_HISTORIES | typeof TaskProcess.CLOSE_TOPIC;
 
 export type TaskProcessStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
@@ -9,6 +9,7 @@ export class TaskProcess {
   public static readonly GENERATE_TOPIC_HISTORY = 'generate-topic-history';
   public static readonly SEND_TOPIC_HISTORY = 'send-topic-history';
   public static readonly REGENERATE_TOPICS_HISTORIES = 'regenerate-topics-histories';
+  public static readonly CLOSE_TOPIC = 'close-topic';
 
   public readonly id: string;
   public readonly entityId: string;
