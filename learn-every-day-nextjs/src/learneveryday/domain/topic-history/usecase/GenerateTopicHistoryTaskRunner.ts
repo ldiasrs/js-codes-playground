@@ -258,8 +258,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
    * @param topic The topic to create close topic task for
    */
   private async createCloseTopicTask(topic: Topic): Promise<void> {
-    const scheduledTimeCloseTopics = this.calculateCloseTopicScheduledTime();
-    
+    const scheduledTimeCloseTopics = new Date();
     const newCloseTopicTaskProcess = this.createCloseTopicTaskProcess(topic, scheduledTimeCloseTopics);
     await this.taskProcessRepository.save(newCloseTopicTaskProcess);
 
@@ -271,15 +270,6 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     });
   }
 
-  /**
-   * Calculates the scheduled time for close topic task
-   * @returns Date The scheduled time
-   */
-  private calculateCloseTopicScheduledTime(): Date {
-    const scheduledTime = new Date();
-    scheduledTime.setHours(scheduledTime.getHours() + 1);
-    return scheduledTime;
-  }
 
   /**
    * Creates a close topic task process
