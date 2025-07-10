@@ -8,7 +8,7 @@ import { Topic } from "../../topic/entities/Topic";
 import { CloseTopicFeature } from "../../topic/usecase/CloseTopicFeature";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
-  private static readonly MAX_HISTORIES_BEFORE_CLOSE = 5;
+  private static readonly MAX_HISTORIES_BEFORE_CLOSE = 4;
 
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
@@ -62,7 +62,7 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
 
       for (const topic of openTopics) {
         const histories = await this.topicHistoryRepository.findByTopicId(topic.id);
-        if (histories.length > CloseTopicsTaskRunner.MAX_HISTORIES_BEFORE_CLOSE) {
+        if (histories.length >= CloseTopicsTaskRunner.MAX_HISTORIES_BEFORE_CLOSE) {
           topicsToClose.push(topic);
         }
       }
