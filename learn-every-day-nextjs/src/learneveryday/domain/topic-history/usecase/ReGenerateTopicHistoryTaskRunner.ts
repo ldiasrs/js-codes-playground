@@ -7,6 +7,7 @@ import { Topic } from "../../topic/entities/Topic";
 import { CustomerRepositoryPort } from "../../customer/ports/CustomerRepositoryPort";
 import { TierLimits } from "../../shared/TierLimits";
 import { Customer } from "../../customer/entities/Customer";
+import { CloseTopicFeature } from "../../topic/usecase/CloseTopicFeature";
 
 export interface ReGenerateTopicHistoryConfig {
   maxTopicsPer24h: number; // 1 or 3 or 5 depending on tier
@@ -29,12 +30,14 @@ export class ReGenerateTopicHistoryTaskRunner {
   private static readonly BATCH_SIZE_LIMIT = 50;
   private static readonly CONCURRENCY_LIMIT = 5;
   private static readonly HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
+  private static readonly MAX_HISTORIES_BEFORE_CLOSE = 5;
 
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly customerRepository: CustomerRepositoryPort,
+    private readonly closeTopicFeature: CloseTopicFeature,
     private readonly logger: LoggerPort
   ) {}
 
@@ -43,6 +46,12 @@ export class ReGenerateTopicHistoryTaskRunner {
     const customerId = taskProcess.customerId;
 
     try {
+      // Step 1: Check and close topics with more than 5 histories
+      await this.checkAndCloseTopicsWithManyHistories(customerId);
+
+      // Step 2: Clean up tasks from closed topics
+      await this.removeTasksFromClosedTopics(customerId);
+
       const customer = await this.validateAndGetCustomer(customerId);
       if (!customer) return;
 
@@ -194,10 +203,23 @@ export class ReGenerateTopicHistoryTaskRunner {
     topicsNeeded: number, 
     maxTopicsToProcess: number
   ): Promise<Topic[]> {
-    const limitedTopics = topics.slice(0, maxTopicsToProcess);
+    // Filter out closed topics
+    const openTopics = topics.filter(topic => !topic.closed);
+    
+    if (openTopics.length === 0) {
+      this.logger.info('No open topics available for processing');
+      return [];
+    }
+
+    const limitedTopics = openTopics.slice(0, maxTopicsToProcess);
     const topicsWithHistoryCount = await this.getTopicsWithHistoryCountBatch(limitedTopics);
     
-    return topicsWithHistoryCount
+    // Filter out topics that already have the maximum number of histories
+    const eligibleTopics = topicsWithHistoryCount.filter(
+      item => item.historyCount <= ReGenerateTopicHistoryTaskRunner.MAX_HISTORIES_BEFORE_CLOSE
+    );
+    
+    return eligibleTopics
       .sort((a, b) => a.historyCount - b.historyCount)
       .slice(0, topicsNeeded)
       .map(item => item.topic);
@@ -293,5 +315,115 @@ export class ReGenerateTopicHistoryTaskRunner {
 
   private logScheduledTasks(taskCount: number, customerId: string): void {
     this.logger.info(`Scheduled ${taskCount} GENERATE_TOPIC_HISTORY tasks for customer ${customerId}`);
+  }
+
+  /**
+   * Checks for topics with more than 5 histories and closes them
+   * @param customerId The customer ID to check topics for
+   */
+  private async checkAndCloseTopicsWithManyHistories(customerId: string): Promise<void> {
+    try {
+      const topics = await this.topicRepository.findByCustomerId(customerId);
+      const openTopics = topics.filter(topic => !topic.closed);
+
+      if (openTopics.length === 0) {
+        this.logger.info(`No open topics found for customer ${customerId}`);
+        return;
+      }
+
+      const topicsToClose: Topic[] = [];
+
+      for (const topic of openTopics) {
+        const histories = await this.topicHistoryRepository.findByTopicId(topic.id);
+        if (histories.length > ReGenerateTopicHistoryTaskRunner.MAX_HISTORIES_BEFORE_CLOSE) {
+          topicsToClose.push(topic);
+        }
+      }
+
+      if (topicsToClose.length > 0) {
+        this.logger.info(`Found ${topicsToClose.length} topics to close for customer ${customerId}`, {
+          customerId,
+          topicsToCloseCount: topicsToClose.length,
+          topicIds: topicsToClose.map(t => t.id)
+        });
+
+        for (const topic of topicsToClose) {
+          try {
+            await this.closeTopicFeature.execute({ id: topic.id });
+            this.logger.info(`Closed topic ${topic.id} due to having more than ${ReGenerateTopicHistoryTaskRunner.MAX_HISTORIES_BEFORE_CLOSE} histories`, {
+              topicId: topic.id,
+              customerId,
+              subject: topic.subject
+            });
+          } catch (error) {
+            this.logger.error(`Failed to close topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)));
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error checking and closing topics with many histories for customer ${customerId}`, 
+        error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  /**
+   * Removes all tasks associated with closed topics
+   * @param customerId The customer ID to clean up tasks for
+   */
+  private async removeTasksFromClosedTopics(customerId: string): Promise<void> {
+    try {
+      const topics = await this.topicRepository.findByCustomerId(customerId);
+      const closedTopics = topics.filter(topic => topic.closed);
+
+      if (closedTopics.length === 0) {
+        return;
+      }
+
+      this.logger.info(`Found ${closedTopics.length} closed topics for customer ${customerId}, removing their tasks`, {
+        customerId,
+        closedTopicsCount: closedTopics.length,
+        closedTopicIds: closedTopics.map(t => t.id)
+      });
+
+      for (const closedTopic of closedTopics) {
+        try {
+          // Remove GENERATE_TOPIC_HISTORY tasks
+          const generateTasks = await this.taskProcessRepository.findByEntityIdAndType(
+            closedTopic.id, 
+            TaskProcess.GENERATE_TOPIC_HISTORY
+          );
+
+          for (const task of generateTasks) {
+            await this.taskProcessRepository.delete(task.id);
+          }
+
+          // Remove SEND_TOPIC_HISTORY tasks for all topic histories of this topic
+          const topicHistories = await this.topicHistoryRepository.findByTopicId(closedTopic.id);
+          for (const topicHistory of topicHistories) {
+            const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(
+              topicHistory.id, 
+              TaskProcess.SEND_TOPIC_HISTORY
+            );
+
+            for (const sendTask of sendTasks) {
+              await this.taskProcessRepository.delete(sendTask.id);
+            }
+          }
+
+          this.logger.info(`Removed all tasks for closed topic ${closedTopic.id}`, {
+            topicId: closedTopic.id,
+            customerId,
+            generateTasksRemoved: generateTasks.length,
+            sendTasksRemoved: topicHistories.length
+          });
+        } catch (error) {
+          this.logger.error(`Failed to remove tasks for closed topic ${closedTopic.id}`, 
+            error instanceof Error ? error : new Error(String(error)));
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error removing tasks from closed topics for customer ${customerId}`, 
+        error instanceof Error ? error : new Error(String(error)));
+    }
   }
 }

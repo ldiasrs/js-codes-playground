@@ -38,13 +38,24 @@ export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
       throw new Error(`Topic with ID ${topicHistory.topicId} not found`);
     }
 
-    // Step 3: Find the customer using the customerId from topic
+    // Step 3: Check if topic is closed
+    if (topic.closed) {
+      this.logger.info(`Skipping topic history sending for closed topic: ${topic.id}`, {
+        topicHistoryId,
+        topicId: topic.id,
+        customerId: topic.customerId,
+        subject: topic.subject
+      });
+      throw new Error(`Topic with ID ${topic.id} is closed and cannot send topic history`);
+    }
+
+    // Step 4: Find the customer using the customerId from topic
     const customer = await this.customerRepository.findById(topic.customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${topic.customerId} not found`);
     }
 
-    // Step 4: Send the topic history by email
+    // Step 5: Send the topic history by email
     await this.sendTopicHistoryByEmailPort.send({
       email: customer.email,
       topicHistory: topicHistory,

@@ -35,16 +35,26 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   }
 
   /**
-   * Validates that the topic exists and returns it
+   * Validates that the topic exists and is not closed
    * @param topicId The ID of the topic to validate
    * @returns Promise<Topic> The validated topic
-   * @throws Error if topic doesn't exist
+   * @throws Error if topic doesn't exist or is closed
    */
   private async validateAndGetTopic(topicId: string): Promise<Topic> {
     const topic = await this.topicRepository.findById(topicId);
     if (!topic) {
       throw new Error(`Topic with ID ${topicId} not found`);
     }
+
+    if (topic.closed) {
+      this.logger.info(`Skipping topic history generation for closed topic: ${topicId}`, {
+        topicId: topic.id,
+        customerId: topic.customerId,
+        subject: topic.subject
+      });
+      throw new Error(`Topic with ID ${topicId} is closed and cannot generate more history`);
+    }
+
     return topic;
   }
 

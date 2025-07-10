@@ -8,6 +8,7 @@ interface TopicData {
   customer_id: string;
   subject: string;
   date_created: string;
+  closed: boolean;
 }
 
 export class SQLTopicRepository implements TopicRepositoryPort {
@@ -24,22 +25,25 @@ export class SQLTopicRepository implements TopicRepositoryPort {
       id: topic.id,
       customer_id: topic.customerId,
       subject: topic.subject,
-      date_created: topic.dateCreated.toISOString()
+      date_created: topic.dateCreated.toISOString(),
+      closed: topic.closed
     };
 
     await connection.query(
       `INSERT INTO topics 
-       (id, customer_id, subject, date_created)
-       VALUES ($1, $2, $3, $4)
+       (id, customer_id, subject, date_created, closed)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT(id) DO UPDATE SET
          customer_id = EXCLUDED.customer_id,
          subject = EXCLUDED.subject,
-         date_created = EXCLUDED.date_created`,
+         date_created = EXCLUDED.date_created,
+         closed = EXCLUDED.closed`,
       [
         topicData.id,
         topicData.customer_id,
         topicData.subject,
-        topicData.date_created
+        topicData.date_created,
+        topicData.closed
       ]
     );
 
@@ -226,7 +230,8 @@ export class SQLTopicRepository implements TopicRepositoryPort {
       data.customer_id,
       data.subject,
       data.id,
-      new Date(data.date_created)
+      new Date(data.date_created),
+      data.closed
     );
   }
 } 

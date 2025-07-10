@@ -183,6 +183,7 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CustomerRepository'),
+      this.get('CloseTopicFeature'),
       this.get('Logger')
     ));
 
