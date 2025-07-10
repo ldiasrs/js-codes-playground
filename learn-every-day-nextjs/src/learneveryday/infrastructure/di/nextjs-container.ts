@@ -20,6 +20,7 @@ import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCusto
 import { LoginFeature } from '../../domain/customer/usecase/LoginFeature';
 import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
 import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeature';
+import { CloseTopicFeature } from '../../domain/topic/usecase/CloseTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
 import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
@@ -37,6 +38,7 @@ import { LoginCommand } from '../../application/commands/customer/LoginCommand';
 import { VerifyCustomerCommand } from '../../application/commands/customer/VerifyCustomerCommand';
 import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
 import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
+import { CloseTopicCommand } from '../../application/commands/topic/CloseTopicCommand';
 import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
 import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
 
@@ -115,6 +117,11 @@ export class NextJSContainer implements Container {
     ));
 
     this.registerSingleton('UpdateTopicFeature', () => new UpdateTopicFeature(
+      this.get('TopicRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('CloseTopicFeature', () => new CloseTopicFeature(
       this.get('TopicRepository'),
       this.get('Logger')
     ));
@@ -202,6 +209,10 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('UpdateTopicCommand', () => new UpdateTopicCommand(
       this.get('UpdateTopicFeature')
+    ));
+
+    this.registerSingleton('CloseTopicCommand', () => new CloseTopicCommand(
+      this.get('CloseTopicFeature')
     ));
 
     this.registerSingleton('DeleteTopicCommand', () => new DeleteTopicCommand(

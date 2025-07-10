@@ -8,6 +8,8 @@ import {
   CreateTopicResponse,
   UpdateTopicRequest,
   UpdateTopicResponse,
+  CloseTopicRequest,
+  CloseTopicResponse,
   DeleteTopicRequest,
   DeleteTopicResponse,
   SearchTopicsRequest,
@@ -210,6 +212,49 @@ export class RealTopicsService implements TopicsService {
       return {
         success: false,
         message: 'An error occurred while updating the topic. Please try again.',
+      };
+    }
+  }
+
+  /**
+   * Closes a topic
+   */
+  async closeTopic(request: CloseTopicRequest): Promise<CloseTopicResponse> {
+    try {
+      const customerId = this.getCustomerId();
+      
+      if (!customerId) {
+        return {
+          success: false,
+          message: 'Customer ID is required. Please log in again.',
+        };
+      }
+
+      const response = await fetch(`/api/topics/${request.id}/close?customerId=${encodeURIComponent(customerId)}`, {
+        method: 'PATCH',
+        headers: this.createHeaders(),
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        return {
+          success: true,
+          message: result.message,
+          topic: result.topic,
+        };
+      } else {
+        return {
+          success: false,
+          message: result.message,
+        };
+      }
+    } catch (error) {
+      console.error('Close topic error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while closing the topic. Please try again.',
       };
     }
   }

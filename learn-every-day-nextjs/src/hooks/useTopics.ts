@@ -6,6 +6,7 @@ import type {
   GetTopicByIdRequest,
   CreateTopicRequest,
   UpdateTopicRequest,
+  CloseTopicRequest,
   DeleteTopicRequest,
   SearchTopicsRequest,
 } from '../services/topics/types';
@@ -114,6 +115,34 @@ export function useTopics() {
     }
   }, [topicsService]);
 
+  const closeTopic = useCallback(async (request: CloseTopicRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await topicsService.closeTopic(request);
+      
+      if (response.success && response.topic) {
+        // Update the topic in the list
+        setTopics(prevTopics => 
+          prevTopics.map(topic => 
+            topic.id === request.id ? response.topic! : topic
+          )
+        );
+        return response.topic;
+      } else {
+        setError(response.message);
+        return null;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while closing the topic';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [topicsService]);
+
   const deleteTopic = useCallback(async (request: DeleteTopicRequest) => {
     try {
       setLoading(true);
@@ -172,6 +201,7 @@ export function useTopics() {
     getTopicById,
     createTopic,
     updateTopic,
+    closeTopic,
     deleteTopic,
     searchTopics,
     clearError,

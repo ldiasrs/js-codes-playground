@@ -7,6 +7,8 @@ import {
   CreateTopicResponse,
   UpdateTopicRequest,
   UpdateTopicResponse,
+  CloseTopicRequest,
+  CloseTopicResponse,
   DeleteTopicRequest,
   DeleteTopicResponse,
   SearchTopicsRequest,
@@ -33,6 +35,11 @@ export interface TopicsService {
    * Updates an existing topic
    */
   updateTopic(request: UpdateTopicRequest): Promise<UpdateTopicResponse>;
+
+  /**
+   * Closes a topic
+   */
+  closeTopic(request: CloseTopicRequest): Promise<CloseTopicResponse>;
 
   /**
    * Deletes a topic

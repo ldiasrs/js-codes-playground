@@ -3,6 +3,7 @@ export interface TopicData {
   subject: string;
   dateCreated: string;
   dateUpdated: string;
+  closed: boolean;
   history?: TopicHistoryData[];
 }
 
@@ -49,6 +50,16 @@ export interface UpdateTopicRequest {
 }
 
 export interface UpdateTopicResponse {
+  success: boolean;
+  message: string;
+  topic?: TopicData;
+}
+
+export interface CloseTopicRequest {
+  id: string;
+}
+
+export interface CloseTopicResponse {
   success: boolean;
   message: string;
   topic?: TopicData;
