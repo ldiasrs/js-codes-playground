@@ -12,6 +12,7 @@ export interface TopicDTO {
   id: string;
   subject: string;
   dateCreated: string;
+  closed: boolean;
   history: TopicHistoryDTO[];
 }
 
@@ -21,6 +22,7 @@ export class TopicDTOMapper {
       id: entity.id,
       subject: entity.subject,
       dateCreated: entity.dateCreated.toISOString(),
+      closed: entity.closed,
       history: history.map(h => ({
         id: h.id,
         topicId: h.topicId,
@@ -35,7 +37,8 @@ export class TopicDTOMapper {
       '', // customerId is not in DTO, would need to be provided separately
       dto.subject,
       dto.id,
-      new Date(dto.dateCreated)
+      new Date(dto.dateCreated),
+      dto.closed
     );
   }
 }
