@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:reset": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts reset && npm run db:setup",
-    "db:setup": "ts-node --project scripts/tsconfig.json scripts/setup-database.ts setup"
+    "db:setup-dev": "export APP_GLOBAL_CONFIG=$(cat config/global-config.local.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts setup",
+    "db:setup-prod": "export APP_GLOBAL_CONFIG=$(cat config/global-config.prod.json) && ts-node --project scripts/tsconfig.json scripts/setup-database.ts setup"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
