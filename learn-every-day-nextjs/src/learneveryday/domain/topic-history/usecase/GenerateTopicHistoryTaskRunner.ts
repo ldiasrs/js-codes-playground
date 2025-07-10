@@ -32,6 +32,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const newHistory = await this.generateAndSaveTopicHistory(topic);
     await this.scheduleSendTask(newHistory, topic);
     await this.scheduleRegenerateTaskIfNeeded(topic);
+    await this.scheduleCloseTopicTaskIfNeeded(topic);
   }
 
   /**
@@ -217,6 +218,93 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
    */
   private logSkippedRegenerateTask(topic: Topic): void {
     this.logger.info(`Skipped creating regenerate topic history task for customer ${topic.customerId} - pending task already exists`, {
+      topicId: topic.id,
+      customerId: topic.customerId
+    });
+  }
+
+  /**
+   * Schedules a close topic task if no pending one exists for the customer
+   * @param topic The topic to potentially schedule close topic task for
+   */
+  private async scheduleCloseTopicTaskIfNeeded(topic: Topic): Promise<void> {
+    const hasPendingCloseTopicTask = await this.hasPendingCloseTopicTask(topic.customerId);
+    
+    if (hasPendingCloseTopicTask) {
+      this.logSkippedCloseTopicTask(topic);
+      return;
+    }
+
+    await this.createCloseTopicTask(topic);
+  }
+
+  /**
+   * Checks if there's a pending close topic task for the customer
+   * @param customerId The customer ID to check
+   * @returns Promise<boolean> True if a pending task exists
+   */
+  private async hasPendingCloseTopicTask(customerId: string): Promise<boolean> {
+    const existingCloseTopicTasks = await this.taskProcessRepository.searchProcessedTasks({
+      customerId,
+      type: TaskProcess.CLOSE_TOPIC,
+      status: 'pending'
+    });
+    
+    return existingCloseTopicTasks.length > 0;
+  }
+
+  /**
+   * Creates and saves a new close topic task for the customer
+   * @param topic The topic to create close topic task for
+   */
+  private async createCloseTopicTask(topic: Topic): Promise<void> {
+    const scheduledTimeCloseTopics = this.calculateCloseTopicScheduledTime();
+    
+    const newCloseTopicTaskProcess = this.createCloseTopicTaskProcess(topic, scheduledTimeCloseTopics);
+    await this.taskProcessRepository.save(newCloseTopicTaskProcess);
+
+    this.logger.info(`Scheduled close topic task for customer ${topic.customerId}`, {
+      topicId: topic.id,
+      customerId: topic.customerId,
+      scheduledTime: scheduledTimeCloseTopics.toISOString(),
+      taskType: TaskProcess.CLOSE_TOPIC
+    });
+  }
+
+  /**
+   * Calculates the scheduled time for close topic task
+   * @returns Date The scheduled time
+   */
+  private calculateCloseTopicScheduledTime(): Date {
+    const scheduledTime = new Date();
+    scheduledTime.setHours(scheduledTime.getHours() + 1);
+    return scheduledTime;
+  }
+
+  /**
+   * Creates a close topic task process
+   * @param topic The topic to create close topic task for
+   * @param scheduledTime The scheduled time for the task
+   * @returns TaskProcess The created task process
+   */
+  private createCloseTopicTaskProcess(topic: Topic, scheduledTime: Date): TaskProcess {
+    return new TaskProcess(
+      topic.id,
+      topic.customerId,
+      TaskProcess.CLOSE_TOPIC,
+      'pending',
+      undefined,
+      undefined,
+      scheduledTime
+    );
+  }
+
+  /**
+   * Logs when close topic task creation is skipped
+   * @param topic The topic for which close topic task was skipped
+   */
+  private logSkippedCloseTopicTask(topic: Topic): void {
+    this.logger.info(`Skipped creating close topic task for customer ${topic.customerId} - pending task already exists`, {
       topicId: topic.id,
       customerId: topic.customerId
     });
