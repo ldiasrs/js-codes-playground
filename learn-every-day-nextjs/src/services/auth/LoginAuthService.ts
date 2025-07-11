@@ -2,6 +2,42 @@ import { LoginRequest, LoginResponse, VerifyCodeRequest, VerifyCodeResponse } fr
 
 export class LoginAuthService  {
   /**
+   * Validates the current JWT token and returns authentication state
+   */
+  async validateToken(): Promise<{ success: boolean; isAuthenticated: boolean; customerId?: string; message: string }> {
+    try {
+      const response = await fetch('/api/auth/validate', {
+        method: 'GET',
+        credentials: 'include', // Include cookies in request
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.isAuthenticated) {
+        return {
+          success: true,
+          isAuthenticated: true,
+          customerId: result.customerId,
+          message: result.message,
+        };
+      } else {
+        return {
+          success: false,
+          isAuthenticated: false,
+          message: result.message,
+        };
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return {
+        success: false,
+        isAuthenticated: false,
+        message: 'Unable to validate token',
+      };
+    }
+  }
+
+  /**
    * Initiates the login process by sending a verification code to the provided email
    */
   async login(request: LoginRequest): Promise<LoginResponse> {
