@@ -53,20 +53,8 @@ export const VerificationForm: React.FC = () => {
     
     if (result.success) {
       setSuccessMessage(result.message);
-      
-      // Check for redirect URL in sessionStorage
-      const redirectUrl = typeof window !== 'undefined' 
-        ? sessionStorage.getItem('authRedirect') 
-        : null;
-      
-      if (redirectUrl) {
-        // Clear the redirect URL from sessionStorage after using it
-        sessionStorage.removeItem('authRedirect');
-        router.push(redirectUrl);
-      } else {
-        // Default to topics page if no redirect URL
-        router.push('/topics');
-      }
+      // Navigate to topics page after a short delay
+      router.push('/topics');
     } else {
       setError(result.message);
     }
