@@ -16,14 +16,14 @@ export const useAuth = () => {
   // Initialize auth state from sessionStorage on mount
   // The middleware handles the real authentication - this is just for UI state
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       if (typeof window !== 'undefined') {
         const customerId = sessionStorage.getItem('customerId');
         console.log('🔍 Auth initialization - customerId from sessionStorage:', customerId);
         
-        // If we have a customerId, assume user is authenticated
-        // The middleware will handle the actual token validation and redirect if needed
         if (customerId) {
+          // If we have a customerId, assume user is authenticated
+          // The middleware will handle the actual token validation and redirect if needed
           console.log('✅ Auth initialization - customerId found, user appears authenticated');
           setAuthState({
             isAuthenticated: true,
@@ -31,12 +31,56 @@ export const useAuth = () => {
             isLoading: false,
           });
         } else {
-          console.log('❌ Auth initialization - no customerId, user not authenticated');
-          setAuthState({
-            isAuthenticated: false,
-            customerId: null,
-            isLoading: false,
-          });
+          // No customerId in sessionStorage, but user might still be authenticated
+          // Check if we can access a protected endpoint to detect server-side authentication
+          console.log('🔍 Auth initialization - no customerId, checking server-side auth...');
+          
+          try {
+            const response = await fetch('/api/auth/me', {
+              method: 'GET',
+              credentials: 'include',
+            });
+            
+            if (response.ok) {
+              const userData = await response.json();
+              if (userData.success && userData.customerId) {
+                // User is authenticated server-side, sync client-side state
+                console.log('✅ Auth initialization - server-side auth detected, syncing client state');
+                console.log('🔍 Auth initialization - customerId from server:', userData.customerId);
+                
+                // Store customerId in sessionStorage for future use
+                sessionStorage.setItem('customerId', userData.customerId);
+                
+                setAuthState({
+                  isAuthenticated: true,
+                  customerId: userData.customerId,
+                  isLoading: false,
+                });
+              } else {
+                console.log('❌ Auth initialization - server response invalid, user not authenticated');
+                setAuthState({
+                  isAuthenticated: false,
+                  customerId: null,
+                  isLoading: false,
+                });
+              }
+            } else {
+              // User cannot access protected endpoint, they're not authenticated
+              console.log('❌ Auth initialization - server-side auth not detected, user not authenticated');
+              setAuthState({
+                isAuthenticated: false,
+                customerId: null,
+                isLoading: false,
+              });
+            }
+          } catch (error) {
+            console.error('🚨 Auth initialization - error checking server-side auth:', error);
+            setAuthState({
+              isAuthenticated: false,
+              customerId: null,
+              isLoading: false,
+            });
+          }
         }
       }
     };

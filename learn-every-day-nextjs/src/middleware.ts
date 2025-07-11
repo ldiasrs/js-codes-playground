@@ -21,6 +21,7 @@ const publicRoutes = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/verify',
+  '/api/auth/me',
   '/api/cron',
   '/lending'
 ];

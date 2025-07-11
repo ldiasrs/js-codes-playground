@@ -1,49 +1,34 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  redirectTo?: string;
   requireAuth?: boolean;
   loadingComponent?: React.ReactNode;
 }
 
 /**
- * AuthGuard component that handles authentication checks and redirects
+ * AuthGuard component that handles authentication UI state
+ * 
+ * Note: The middleware handles all authentication redirects. This component
+ * only manages UI state (loading, content display) without conflicting redirects.
  * 
  * @param children - The content to render if authentication check passes
- * @param redirectTo - Where to redirect if authentication check fails (default: '/lending')
- * @param requireAuth - If true, redirects unauthenticated users. If false, redirects authenticated users (default: true)
+ * @param requireAuth - If true, shows loading until auth is confirmed. If false, shows content immediately (default: true)
  * @param loadingComponent - Custom loading component to show while checking auth state
  */
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
-  redirectTo = '/',
   requireAuth = true,
   loadingComponent
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (requireAuth && !isAuthenticated) {
-        console.log('🚨 AuthGuard: redirecting to login');
-        // Require auth but user is not authenticated - redirect to specified page
-        router.push(redirectTo);
-      } else if (!requireAuth && isAuthenticated) {
-        // Don't require auth but user is authenticated - redirect to topics
-        console.log('🚨 AuthGuard: redirecting to topics');
-        router.push('/topics');
-      }
-    }
-  }, [isAuthenticated, isLoading, router, requireAuth, redirectTo]);
 
   // Show loading state while checking authentication
+  // The middleware will handle redirects if needed
   if (isLoading) {
     if (loadingComponent) {
       return <>{loadingComponent}</>;
@@ -62,15 +47,29 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
-  // Don't render children if redirecting
-  if (requireAuth && !isAuthenticated) {
-    return null; // Will redirect to specified page
+  // For auth pages (requireAuth=false), always show content
+  // The middleware will redirect authenticated users away from auth pages
+  if (!requireAuth) {
+    return <>{children}</>;
   }
 
-  if (!requireAuth && isAuthenticated) {
-    return null; // Will redirect to topics
+  // For protected pages (requireAuth=true), show content if authenticated
+  // The middleware will redirect unauthenticated users to login
+  if (requireAuth && isAuthenticated) {
+    return <>{children}</>;
   }
 
-  // Render children if authentication check passes
-  return <>{children}</>;
+  // If we reach here, user is not authenticated on a protected page
+  // Show loading while middleware handles the redirect
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]"></div>
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center">
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    </div>
+  );
 }; 
