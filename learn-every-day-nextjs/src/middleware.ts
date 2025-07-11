@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { JwtConfiguration } from './learneveryday/infrastructure/config/jwt.config';
 
-interface JwtPayload {
-  sub: string;
-  email: string;
-  iat: number;
-  exp?: number;
-  iss?: string;
-}
-
 // These routes require authentication
 const protectedRoutes = [
   '/topics',
@@ -62,7 +54,6 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname.startsWith(route)
   );
-  console.log('🚨 isProtectedRoute', isProtectedRoute);
 
   // Check if the route is an auth route
   const isAuthRoute = authRoutes.some(route => 
@@ -76,26 +67,18 @@ export async function middleware(request: NextRequest) {
 
   // Verify token if present
   let isValidToken = false;
-  let userPayload: JwtPayload | null = null;
 
   if (token) {
     try {
       // Convert secret to Uint8Array for jose
       const secret = new TextEncoder().encode(jwtConfig.secret);
       
-      const { payload } = await jwtVerify(token, secret, {
+     await jwtVerify(token, secret, {
         issuer: jwtConfig.issuer,
         algorithms: [jwtConfig.algorithm],
       });
       
-      userPayload = {
-        sub: payload.sub || '',
-        email: payload.email as string || '',
-        iat: payload.iat || 0,
-        exp: payload.exp,
-        iss: payload.iss
-      };
-      
+
       isValidToken = true;
     } catch (error) {
       console.warn('Invalid JWT token:', error);
@@ -103,9 +86,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  console.log('🚨 isValidToken', isValidToken);
+  console.log('🚨 isProtectedRoute', isProtectedRoute);
+  console.log('🚨 isAuthRoute', isAuthRoute);
+  console.log('🚨 isPublicRoute', isPublicRoute);
   // Handle protected routes
   if (isProtectedRoute) {
-    console.log('🚨 isProtectedRoute 2', isProtectedRoute);
     if (!isValidToken) {
       console.log('🚨 Invalid JWT token:', isValidToken);
       // Redirect to login for unauthenticated users trying to access protected routes
@@ -113,31 +99,19 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-
-    // Add user info to headers for API routes
-    if (pathname.startsWith('/api/') && userPayload) {
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.set('x-user-id', userPayload.sub || '');
-      requestHeaders.set('x-user-email', userPayload.email || '');
-      
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      });
-    }
+    console.log('🚨 Token is valid, allowing access to protected route');
+    return NextResponse.next();
   }
 
   // Handle auth routes - redirect authenticated users away from login/register pages
   if (isAuthRoute && isValidToken) {
-    console.log('🚨 isAuthRoute and isValidToken');
-    const redirectUrl = request.nextUrl.searchParams.get('redirect') || '/topics';
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+    console.log('🚨 isAuthRoute and isValidToken, redirecting to topics');
+    return NextResponse.redirect(new URL('/topics', request.url));
   }
 
   // Allow access to public routes
   if (isPublicRoute) {
-    console.log('🚨 isPublicRoute');
+    console.log('🚨 isPublicRoute, allowing access to public route');
     return NextResponse.next();
   }
 
