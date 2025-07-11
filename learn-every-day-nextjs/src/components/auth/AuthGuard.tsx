@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
@@ -28,6 +28,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading) {
@@ -36,12 +37,17 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
         // Require auth but user is not authenticated - redirect to specified page
         router.push(redirectTo);
       } else if (!requireAuth && isAuthenticated) {
-        // Don't require auth but user is authenticated - redirect to topics
-        console.log('🚨 AuthGuard: redirecting to topics');
-        router.push('/topics');
+        // Don't require auth but user is authenticated
+        // Check if we're on an auth page and redirect to topics
+        if (pathname.startsWith('/auth/')) {
+          console.log('🚨 AuthGuard: redirecting authenticated user to topics');
+          router.push('/topics');
+        }
       }
+      // Note: When requireAuth=false and !isAuthenticated, we don't redirect
+      // This allows unauthenticated users to stay on login/register pages
     }
-  }, [isAuthenticated, isLoading, router, requireAuth, redirectTo]);
+  }, [isAuthenticated, isLoading, router, requireAuth, redirectTo, pathname]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -67,7 +73,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return null; // Will redirect to specified page
   }
 
-  if (!requireAuth && isAuthenticated) {
+  if (!requireAuth && isAuthenticated && pathname.startsWith('/auth/')) {
     return null; // Will redirect to topics
   }
 

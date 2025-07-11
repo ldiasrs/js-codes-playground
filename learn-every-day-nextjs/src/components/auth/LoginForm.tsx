@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,6 +12,15 @@ export const LoginForm: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const { login, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Store redirect URL in sessionStorage when component mounts
+  useEffect(() => {
+    const redirectParam = searchParams.get('redirect');
+    if (redirectParam && typeof window !== 'undefined') {
+      sessionStorage.setItem('authRedirect', redirectParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
