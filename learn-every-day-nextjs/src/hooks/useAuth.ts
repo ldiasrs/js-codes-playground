@@ -13,53 +13,25 @@ export const useAuth = () => {
     isLoading: true,
   });
 
-
-  // Initialize auth state from token validation on mount
+  // Initialize auth state from sessionStorage on mount
+  // The middleware handles the real authentication - this is just for UI state
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuth = () => {
       if (typeof window !== 'undefined') {
-        try {
-          // First check if we have a customerId in sessionStorage for basic state
-          const customerId = sessionStorage.getItem('customerId');
-          console.log('🔍 Auth initialization - customerId from sessionStorage:', customerId);
-          
-          if (customerId) {
-            // We have a customerId, but we need to validate the token
-            console.log('🔍 Auth initialization - validating token...');
-            const validationResult = await authService.validateToken();
-            console.log('🔍 Auth initialization - validation result:', validationResult);
-            
-            if (validationResult.success && validationResult.isAuthenticated) {
-              // Token is valid, user is authenticated
-              console.log('✅ Auth initialization - token is valid, user authenticated');
-              setAuthState({
-                isAuthenticated: true,
-                customerId: validationResult.customerId || customerId,
-                isLoading: false,
-              });
-            } else {
-              // Token is invalid or expired, clear session data
-              console.log('❌ Auth initialization - token invalid/expired, clearing session');
-              sessionStorage.removeItem('customerId');
-              setAuthState({
-                isAuthenticated: false,
-                customerId: null,
-                isLoading: false,
-              });
-            }
-          } else {
-            // No customerId in sessionStorage, user is not authenticated
-            console.log('❌ Auth initialization - no customerId, user not authenticated');
-            setAuthState({
-              isAuthenticated: false,
-              customerId: null,
-              isLoading: false,
-            });
-          }
-        } catch (error) {
-          console.error('🚨 Auth initialization error:', error);
-          // Clear session data on error
-          sessionStorage.removeItem('customerId');
+        const customerId = sessionStorage.getItem('customerId');
+        console.log('🔍 Auth initialization - customerId from sessionStorage:', customerId);
+        
+        // If we have a customerId, assume user is authenticated
+        // The middleware will handle the actual token validation and redirect if needed
+        if (customerId) {
+          console.log('✅ Auth initialization - customerId found, user appears authenticated');
+          setAuthState({
+            isAuthenticated: true,
+            customerId: customerId,
+            isLoading: false,
+          });
+        } else {
+          console.log('❌ Auth initialization - no customerId, user not authenticated');
           setAuthState({
             isAuthenticated: false,
             customerId: null,
@@ -79,7 +51,7 @@ export const useAuth = () => {
       const response = await authService.login({ email });
       
       if (response.success) {
-        // Store customerId and email in sessionStorage immediately after successful login
+        // Store customerId in sessionStorage immediately after successful login
         if (typeof window !== 'undefined' && response.customerId) {
           console.log('🚨 login: setting customerId', response.customerId);
           sessionStorage.setItem('customerId', response.customerId);
@@ -103,8 +75,7 @@ export const useAuth = () => {
       
       console.log('verifyCode response', response);
       if (response.success && response.customerId) {
-    
-
+        // Update auth state - the JWT cookie is set by the server
         setAuthState({
           isAuthenticated: true,
           customerId: response.customerId,
