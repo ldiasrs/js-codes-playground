@@ -80,6 +80,7 @@ export default function TopicsPage() {
   const [viewingHistories, setViewingHistories] = useState<TopicData | null>(null);
   const [topicHistories, setTopicHistories] = useState<TopicHistoryData[]>([]);
   const [loadingHistories, setLoadingHistories] = useState(false);
+  const [showInfoCard, setShowInfoCard] = useState(false);
 
   useEffect(() => {
     if (customerId) {
@@ -276,6 +277,69 @@ export default function TopicsPage() {
               Add Topic
             </Button>
           </div>
+
+          {/* Information Card */}
+          <Card className="mb-6 bg-muted/30 border-border">
+            <button
+              onClick={() => setShowInfoCard(!showInfoCard)}
+              className="w-full p-4 text-left hover:bg-muted/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground">
+                      How Topic Management Works
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Learn about limits and automatic closure
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <svg 
+                    className={`w-4 h-4 text-muted-foreground transform transition-transform duration-200 ${showInfoCard ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+            
+            {showInfoCard && (
+              <div className="px-4 pb-4">
+                <div className="space-y-2 text-xs text-foreground">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-1.5 flex-shrink-0"></div>
+                    <p>
+                      <strong>Daily Email Updates:</strong> New topic histories will be sent to your email daily, considering all previous history to provide comprehensive learning content.
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-1.5 flex-shrink-0"></div>
+                    <p>
+                      <strong>Automatic Closure &amp; Email Backup:</strong> Topics will be automatically closed after reaching the limit of learning histories. All content is safely backed up in your email, so you can delete old topics while keeping the valuable information.
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-1.5 flex-shrink-0"></div>
+                    <p>
+                      <strong>Topic Limits &amp; Upgrade Options:</strong> There&apos;s a maximum number of active topics you can have. If you need more topics, simply delete older ones you no longer need or upgrade to a higher tier for expanded capabilities.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
 
           {/* Error Display */}
           {error && (
