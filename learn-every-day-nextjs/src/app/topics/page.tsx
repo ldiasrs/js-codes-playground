@@ -205,7 +205,7 @@ export default function TopicsPage() {
   };
 
   return (
-    <AuthGuard requireAuth={true} redirectTo="/lending">
+    <AuthGuard requireAuth={true}>
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card shadow-lg border-b border-border">
