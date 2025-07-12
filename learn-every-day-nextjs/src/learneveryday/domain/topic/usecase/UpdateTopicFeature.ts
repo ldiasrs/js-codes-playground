@@ -28,19 +28,24 @@ export class UpdateTopicFeature {
       throw new Error(`Topic with ID ${id} not found`);
     }
 
-    // Step 2: Validate subject
+    // Step 2: Check if topic is closed
+    if (existingTopic.closed) {
+      throw new Error(`Cannot update topic ${id} because it is closed`);
+    }
+
+    // Step 3: Validate subject
     if (!subject || subject.trim().length === 0) {
       throw new Error('Topic subject cannot be empty');
     }
 
-    // Step 3: Check if topic with same subject already exists for this customer
+    // Step 4: Check if topic with same subject already exists for this customer
     const topicExists = await this.topicRepository.existsByCustomerIdAndSubject(existingTopic.customerId, subject.trim());
 
     if (topicExists && existingTopic.subject !== subject.trim()) {
       throw new Error(`Topic with subject "${subject}" already exists for this customer`);
     }
 
-    // Step 4: Create updated topic
+    // Step 5: Create updated topic
     const updatedTopic = new Topic(
       existingTopic.customerId,
       subject.trim(),
@@ -48,7 +53,7 @@ export class UpdateTopicFeature {
       existingTopic.dateCreated
     );
 
-    // Step 5: Save the updated topic
+    // Step 6: Save the updated topic
     const savedTopic = await this.topicRepository.save(updatedTopic);
 
     this.logger.info(`Updated topic: ${savedTopic.id}`, {
