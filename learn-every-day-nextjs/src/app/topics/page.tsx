@@ -196,6 +196,7 @@ export default function TopicsPage() {
 
   const handleExampleClick = (example: string) => {
     setFormData({ subject: example });
+    setShowExamples(false);
   };
 
   const handleViewTopicHistories = async (topic: TopicData) => {
