@@ -32,7 +32,7 @@ interface FormErrors {
 export const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     customerName: '',
-    govIdentificationType: 'CPF',
+    govIdentificationType: 'OTHER',
     govIdentificationContent: '',
     email: '',
     phoneNumber: ''
@@ -53,19 +53,16 @@ export const RegisterForm: React.FC = () => {
       newErrors.customerName = 'Customer name must be between 2 and 100 characters';
     }
 
-    // Validate government identification type
-    if (!formData.govIdentificationType) {
-      newErrors.govIdentificationType = 'Identification type is required';
-    }
+    // Government identification type is optional
 
-    // Validate government identification content
-    if (!validateRequired(formData.govIdentificationContent)) {
-      newErrors.govIdentificationContent = 'Identification content is required';
-    } else if (!validateGovIdentification(formData.govIdentificationType, formData.govIdentificationContent)) {
-      if (formData.govIdentificationType === 'CPF') {
-        newErrors.govIdentificationContent = 'Please enter a valid CPF';
-      } else {
-        newErrors.govIdentificationContent = 'Identification content must be between 3 and 50 characters';
+    // Validate government identification content (only if content is provided)
+    if (formData.govIdentificationContent && formData.govIdentificationType) {
+      if (!validateGovIdentification(formData.govIdentificationType, formData.govIdentificationContent)) {
+        if (formData.govIdentificationType === 'CPF') {
+          newErrors.govIdentificationContent = 'Please enter a valid CPF';
+        } else {
+          newErrors.govIdentificationContent = 'Identification content must be between 3 and 50 characters';
+        }
       }
     }
 
@@ -138,7 +135,7 @@ export const RegisterForm: React.FC = () => {
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-foreground">
-          Identification Type
+          Identification Type (Optional)
         </label>
         <select
           value={formData.govIdentificationType}
@@ -146,8 +143,8 @@ export const RegisterForm: React.FC = () => {
           className="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:bg-muted disabled:text-muted-foreground transition-colors duration-200"
           disabled={isLoading}
         >
-          <option value="CPF">CPF (Brazilian ID)</option>
           <option value="OTHER">Other</option>
+          <option value="CPF">CPF (Brazilian ID)</option>
         </select>
         {errors.govIdentificationType && (
           <p className="text-destructive text-sm">{errors.govIdentificationType}</p>
@@ -156,12 +153,11 @@ export const RegisterForm: React.FC = () => {
 
       <Input
         type="text"
-        label={formData.govIdentificationType === 'CPF' ? 'CPF' : 'Identification Number'}
+        label={formData.govIdentificationType === 'CPF' ? 'CPF (Optional)' : 'Identification Number (Optional)'}
         placeholder={formData.govIdentificationType === 'CPF' ? '000.000.000-00' : 'Enter your identification number'}
         value={formData.govIdentificationContent}
         onChange={(value) => handleInputChange('govIdentificationContent', value)}
         error={errors.govIdentificationContent}
-        required
         autoComplete="off"
         disabled={isLoading}
       />

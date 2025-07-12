@@ -16,9 +16,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (!govIdentification?.type || !govIdentification?.content?.trim()) {
+    // Government identification is optional, but if content is provided, type must be provided too
+    if (govIdentification?.content?.trim() && !govIdentification?.type) {
       return NextResponse.json(
-        { error: 'Government identification type and content are required' },
+        { error: 'Government identification type is required when content is provided' },
         { status: 400 }
       );
     }
