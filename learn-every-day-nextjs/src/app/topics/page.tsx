@@ -16,43 +16,32 @@ interface TopicFormData {
 
 const PROMPT_EXAMPLES = [
   {
-    category: "Health & Wellness",
+    category: "🧠 Desenvolvimento Pessoal e Produtividade",
     examples: [
-      "Create a comprehensive guide to maintaining a healthy mind through daily meditation practices, stress management techniques, and cognitive exercises that improve focus and mental clarity.",
-      "Design a 30-day meal planning system that promotes gut health, includes anti-inflammatory foods, and provides balanced nutrition for optimal physical and mental performance.",
-      "Develop a morning routine that combines physical exercise, mindfulness practices, and productivity habits to start each day with energy and purpose."
+      "Desenvolver um sistema completo de gestão do tempo que inclua técnicas de organização, priorização de tarefas e estratégias para eliminar distrações e aumentar a produtividade diária.",
+      "Criar um guia prático para desenvolver inteligência emocional, incluindo técnicas de autoconhecimento, controle emocional e habilidades de relacionamento interpessoal.",
+      "Estabelecer uma rotina de mindfulness e meditação que combine técnicas de respiração, meditação guiada e práticas de atenção plena para reduzir o estresse e melhorar o foco.",
+      "Construir um sistema de hábitos saudáveis que inclua rotinas matinais, exercícios físicos regulares, alimentação balanceada e técnicas de recuperação mental.",
+      "Desenvolver resiliência mental e foco através de estratégias de superação de adversidades, técnicas de concentração e métodos para manter a motivação em longo prazo."
     ]
   },
   {
-    category: "Culinary Arts",
+    category: "💼 Carreira e Habilidades Profissionais",
     examples: [
-      "Create a collection of quick and nutritious dinner recipes that can be prepared in under 30 minutes using seasonal ingredients and basic cooking techniques.",
-      "Design a meal prep system for busy professionals that includes shopping lists, batch cooking strategies, and storage solutions for a week's worth of healthy meals.",
-      "Develop a guide to international cuisines, exploring the history, key ingredients, and cooking methods of traditional dishes from different cultures."
+      "Aperfeiçoar habilidades de comunicação eficaz, incluindo técnicas de oratória, escrita profissional, escuta ativa e comunicação não-verbal para diferentes contextos empresariais.",
+      "Desenvolver competências de liderança e gestão de equipes, abordando estilos de liderança, técnicas de motivação, resolução de conflitos e desenvolvimento de talentos.",
+      "Dominar técnicas de negociação e persuasão, incluindo estratégias de argumentação, leitura de linguagem corporal e criação de acordos win-win em diferentes cenários.",
+      "Fortalecer o pensamento crítico e habilidades de resolução de problemas através de metodologias estruturadas, análise de dados e tomada de decisões baseada em evidências.",
+      "Aprender e aplicar Design Thinking como metodologia de inovação, incluindo técnicas de empatia, definição de problemas, ideação, prototipagem e teste de soluções."
     ]
   },
   {
-    category: "History & Culture",
+    category: "🌍 Idiomas",
     examples: [
-      "Explore the rise and fall of ancient civilizations, examining their technological achievements, social structures, and lasting impact on modern society.",
-      "Create a timeline of major historical events that shaped the modern world, including key figures, political movements, and technological breakthroughs.",
-      "Investigate the cultural exchange between different regions throughout history, focusing on trade routes, migration patterns, and the spread of ideas and innovations."
-    ]
-  },
-  {
-    category: "Personal Development",
-    examples: [
-      "Design a personal finance system that includes budgeting strategies, investment basics, and long-term wealth building principles for financial independence.",
-      "Create a habit formation framework that helps build positive routines, break bad habits, and maintain consistency in personal and professional goals.",
-      "Develop effective communication skills for different contexts, including public speaking, conflict resolution, and building meaningful relationships."
-    ]
-  },
-  {
-    category: "Technology & Innovation",
-    examples: [
-      "Explore the fundamentals of artificial intelligence and machine learning, including their applications, ethical considerations, and future implications.",
-      "Create a guide to sustainable technology practices, covering renewable energy, green computing, and eco-friendly digital habits.",
-      "Investigate the history of computing and the internet, tracing the evolution from early computers to modern cloud computing and the Internet of Things."
+      "Desenvolver fluência em inglês através de um programa estruturado que inclua gramática avançada, vocabulário especializado, conversação prática e compreensão cultural para contextos profissionais e pessoais.",
+      "Aprender espanhol de forma progressiva, focando em conversação cotidiana, gramática essencial, expressões idiomáticas e diferenças culturais dos países hispanofalantes.",
+      "Dominar o francês através de um método que combine estudo da gramática, prática de pronúncia, vocabulário contextualizado e imersão cultural na francofonia.",
+      "Adquirir competência em alemão, incluindo estruturas gramaticais complexas, vocabulário técnico, compreensão auditiva e expressão escrita para contextos acadêmicos e profissionais."
     ]
   }
 ];
