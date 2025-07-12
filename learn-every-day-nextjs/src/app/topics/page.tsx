@@ -235,9 +235,14 @@ export default function TopicsPage() {
         <header className="bg-card shadow-lg border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/logo2.png" 
+                  alt="Logo" 
+                  className="w-8 h-8 object-contain"
+                />
                 <h1 className="text-xl font-semibold text-foreground bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  Topic Management
+                  LED - Learn Every Day
                 </h1>
               </div>
               <div className="flex items-center space-x-4">
@@ -264,7 +269,7 @@ export default function TopicsPage() {
                 Your Topics
               </h2>
               <p className="text-muted-foreground">
-                Manage your learning topics and track your progress.
+                Add topics of interest to start your personalized learning journey and receive daily educational content.
               </p>
             </div>
             <Button
