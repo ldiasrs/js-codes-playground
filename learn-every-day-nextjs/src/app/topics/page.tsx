@@ -8,7 +8,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { AuthGuard } from '../../components/auth/AuthGuard';
-import type { TopicData } from '../../services/topics/types';
+import type { TopicData, TopicHistoryData } from '../../services/topics/types';
 
 interface TopicFormData {
   subject: string;
@@ -68,6 +68,7 @@ export default function TopicsPage() {
     updateTopic, 
     closeTopic,
     deleteTopic,
+    getTopicHistories,
     clearError 
   } = useTopics();
   const router = useRouter();
@@ -76,6 +77,9 @@ export default function TopicsPage() {
   const [formData, setFormData] = useState<TopicFormData>({ subject: '' });
   const [submitting, setSubmitting] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const [viewingHistories, setViewingHistories] = useState<TopicData | null>(null);
+  const [topicHistories, setTopicHistories] = useState<TopicHistoryData[]>([]);
+  const [loadingHistories, setLoadingHistories] = useState(false);
 
   useEffect(() => {
     if (customerId) {
@@ -202,6 +206,25 @@ export default function TopicsPage() {
 
   const handleExampleClick = (example: string) => {
     setFormData({ subject: example });
+  };
+
+  const handleViewTopicHistories = async (topic: TopicData) => {
+    try {
+      setLoadingHistories(true);
+      setViewingHistories(topic);
+      
+      const histories = await getTopicHistories({ topicId: topic.id });
+      setTopicHistories(histories);
+    } catch (err) {
+      console.error('Error fetching topic histories:', err);
+    } finally {
+      setLoadingHistories(false);
+    }
+  };
+
+  const handleCloseHistories = () => {
+    setViewingHistories(null);
+    setTopicHistories([]);
   };
 
   return (
@@ -381,6 +404,79 @@ export default function TopicsPage() {
             </Card>
           )}
 
+          {/* Topic Histories Modal */}
+          {viewingHistories && (
+            <Card className="mb-8 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Topic Histories - {viewingHistories.subject}
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCloseHistories}
+                  disabled={loadingHistories}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close
+                </Button>
+              </div>
+
+              {loadingHistories && (
+                <div className="text-center py-8">
+                  <LoadingSpinner size="lg" className="mx-auto mb-4" />
+                  <p className="text-muted-foreground">Loading topic histories...</p>
+                </div>
+              )}
+
+              {!loadingHistories && topicHistories.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-foreground mb-2">No histories yet</h4>
+                  <p className="text-muted-foreground">
+                    This topic hasn&apos;t generated any histories yet. Check back later.
+                  </p>
+                </div>
+              )}
+
+              {!loadingHistories && topicHistories.length > 0 && (
+                <div className="space-y-4">
+                  {topicHistories.map((history, index) => (
+                    <div key={history.id} className="border border-border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            #{index + 1}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(history.dateCreated).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="prose prose-sm max-w-none">
+                        <div className="text-foreground whitespace-pre-wrap">
+                          {history.content}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
@@ -429,6 +525,17 @@ export default function TopicsPage() {
                       )}
                     </div>
                     <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewTopicHistories(topic)}
+                        disabled={submitting}
+                        className="text-blue-600 hover:text-blue-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"

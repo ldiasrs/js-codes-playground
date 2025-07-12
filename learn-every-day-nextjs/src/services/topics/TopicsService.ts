@@ -13,6 +13,8 @@ import {
   DeleteTopicResponse,
   SearchTopicsRequest,
   SearchTopicsResponse,
+  GetTopicHistoriesRequest,
+  GetTopicHistoriesResponse,
 } from './types';
 
 export interface TopicsService {
@@ -50,4 +52,9 @@ export interface TopicsService {
    * Searches topics by query
    */
   searchTopics(request: SearchTopicsRequest): Promise<SearchTopicsResponse>;
+
+  /**
+   * Retrieves topic histories for a specific topic
+   */
+  getTopicHistories(request: GetTopicHistoriesRequest): Promise<GetTopicHistoriesResponse>;
 } 

@@ -14,6 +14,8 @@ import {
   DeleteTopicResponse,
   SearchTopicsRequest,
   SearchTopicsResponse,
+  GetTopicHistoriesRequest,
+  GetTopicHistoriesResponse,
 } from './types';
 
 export class RealTopicsService implements TopicsService {
@@ -344,6 +346,40 @@ export class RealTopicsService implements TopicsService {
       return {
         success: false,
         message: 'An error occurred while searching topics. Please try again.',
+      };
+    }
+  }
+
+  /**
+   * Retrieves topic histories for a specific topic
+   */
+  async getTopicHistories(request: GetTopicHistoriesRequest): Promise<GetTopicHistoriesResponse> {
+    try {
+      const response = await fetch(`/api/topics/${request.topicId}/histories`, {
+        method: 'GET',
+        headers: this.createHeaders(),
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        return {
+          success: true,
+          message: result.message,
+          topicHistories: result.topicHistories,
+        };
+      } else {
+        return {
+          success: false,
+          message: result.message,
+        };
+      }
+    } catch (error) {
+      console.error('Get topic histories error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching topic histories. Please try again.',
       };
     }
   }

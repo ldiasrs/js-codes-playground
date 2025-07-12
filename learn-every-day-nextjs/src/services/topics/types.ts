@@ -83,4 +83,14 @@ export interface SearchTopicsResponse {
   success: boolean;
   message: string;
   topics?: TopicData[];
+}
+
+export interface GetTopicHistoriesRequest {
+  topicId: string;
+}
+
+export interface GetTopicHistoriesResponse {
+  success: boolean;
+  message: string;
+  topicHistories?: TopicHistoryData[];
 } 

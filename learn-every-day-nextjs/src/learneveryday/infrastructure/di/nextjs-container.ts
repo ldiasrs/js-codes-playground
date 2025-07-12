@@ -25,6 +25,7 @@ import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeatur
 import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
+import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
 // Runners
@@ -47,6 +48,7 @@ import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/t
 import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
+import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
@@ -138,6 +140,12 @@ export class NextJSContainer implements Container {
     this.registerSingleton('GetAllTopicsFeature', () => new GetAllTopicsFeature(
       this.get('TopicRepository'),
       this.get('CustomerRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('GetTopicHistoriesFeature', () => new GetTopicHistoriesFeature(
+      this.get('TopicHistoryRepository'),
+      this.get('TopicRepository'),
       this.get('Logger')
     ));
 
@@ -245,6 +253,10 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('SearchTopicsQuery', () => new SearchTopicsQuery(
       this.get('TopicRepository')
+    ));
+
+    this.registerSingleton('GetTopicHistoriesQuery', () => new GetTopicHistoriesQuery(
+      this.get('GetTopicHistoriesFeature')
     ));
 
   }

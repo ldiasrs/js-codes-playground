@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { RealTopicsService } from '../services/topics/RealTopicsService';
 import type {
   TopicData,
+  TopicHistoryData,
   GetAllTopicsRequest,
   GetTopicByIdRequest,
   CreateTopicRequest,
@@ -9,6 +10,7 @@ import type {
   CloseTopicRequest,
   DeleteTopicRequest,
   SearchTopicsRequest,
+  GetTopicHistoriesRequest,
 } from '../services/topics/types';
 
 export function useTopics() {
@@ -189,6 +191,28 @@ export function useTopics() {
     }
   }, [topicsService]);
 
+  const getTopicHistories = useCallback(async (request: GetTopicHistoriesRequest): Promise<TopicHistoryData[]> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await topicsService.getTopicHistories(request);
+      
+      if (response.success && response.topicHistories) {
+        return response.topicHistories;
+      } else {
+        setError(response.message);
+        return [];
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching topic histories';
+      setError(errorMessage);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [topicsService]);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -204,6 +228,7 @@ export function useTopics() {
     closeTopic,
     deleteTopic,
     searchTopics,
+    getTopicHistories,
     clearError,
   };
 } 
