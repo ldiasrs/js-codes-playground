@@ -30,7 +30,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     
     const topic = await this.validateAndGetTopic(topicId);
     const newHistory = await this.generateAndSaveTopicHistory(topic);
-    await this.scheduleSendTask(newHistory, topic);
+    await this.scheduleSendTaskIfNeeded(newHistory, topic);
     await this.scheduleRegenerateTaskIfNeeded(topic);
     await this.scheduleCloseTopicTaskIfNeeded(topic);
   }
@@ -88,23 +88,19 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   }
 
   /**
-   * Schedules a send task for the generated topic history
+   * Schedules a send task for the generated topic history if no pending one exists
    * @param newHistory The newly created topic history
    * @param topic The topic associated with the history
    */
-  private async scheduleSendTask(newHistory: TopicHistory, topic: Topic): Promise<void> {
-    const scheduledTimeSend = this.calculateSendScheduledTime();
+  private async scheduleSendTaskIfNeeded(newHistory: TopicHistory, topic: Topic): Promise<void> {
+    const hasPendingSendTask = await this.hasPendingSendTask(newHistory.id);
     
-    const newSendTaskProcess = this.createSendTaskProcess(newHistory, topic, scheduledTimeSend);
-    await this.taskProcessRepository.save(newSendTaskProcess);
+    if (hasPendingSendTask) {
+      this.logSkippedSendTask(newHistory, topic);
+      return;
+    }
 
-    this.logger.info(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topic.id}`, {
-      topicId: topic.id,
-      customerId: topic.customerId,
-      historyId: newHistory.id,
-      scheduledTime: scheduledTimeSend.toISOString(),
-      taskType: TaskProcess.SEND_TOPIC_HISTORY
-    });
+    await this.createSendTask(newHistory, topic);
   }
 
   /**
@@ -120,6 +116,54 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     }
 
     await this.createRegenerateTask(topic);
+  }
+
+  /**
+   * Checks if there's a pending send task for the topic history
+   * @param topicHistoryId The topic history ID to check
+   * @returns Promise<boolean> True if a pending task exists
+   */
+  private async hasPendingSendTask(topicHistoryId: string): Promise<boolean> {
+    const existingSendTasks = await this.taskProcessRepository.searchProcessedTasks({
+      entityId: topicHistoryId,
+      type: TaskProcess.SEND_TOPIC_HISTORY,
+      status: 'pending'
+    });
+    
+    return existingSendTasks.length > 0;
+  }
+
+  /**
+   * Creates and saves a new send task for the topic history
+   * @param newHistory The topic history to create send task for
+   * @param topic The topic associated with the history
+   */
+  private async createSendTask(newHistory: TopicHistory, topic: Topic): Promise<void> {
+    const scheduledTimeSend = this.calculateSendScheduledTime();
+    
+    const newSendTaskProcess = this.createSendTaskProcess(newHistory, topic, scheduledTimeSend);
+    await this.taskProcessRepository.save(newSendTaskProcess);
+
+    this.logger.info(`Scheduled topic history send task for customer ${topic.customerId} using topic ${topic.id}`, {
+      topicId: topic.id,
+      customerId: topic.customerId,
+      historyId: newHistory.id,
+      scheduledTime: scheduledTimeSend.toISOString(),
+      taskType: TaskProcess.SEND_TOPIC_HISTORY
+    });
+  }
+
+  /**
+   * Logs when send task creation is skipped
+   * @param newHistory The topic history for which send task was skipped
+   * @param topic The topic associated with the history
+   */
+  private logSkippedSendTask(newHistory: TopicHistory, topic: Topic): void {
+    this.logger.info(`Skipped creating send topic history task for history ${newHistory.id} - pending task already exists`, {
+      topicId: topic.id,
+      customerId: topic.customerId,
+      historyId: newHistory.id
+    });
   }
 
   /**
