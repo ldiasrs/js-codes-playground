@@ -32,6 +32,7 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/CloseTopicsTaskRunner';
+import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/ProcessFailedTopicsTaskRunner';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -158,6 +159,7 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessTopicHistoryWorkflowFeature(
       this.get('TaskProcessRepository'),
+      this.get('ProcessFailedTopicsTaskRunner'),
       this.get('CloseTopicsTaskRunner'),
       this.get('ReGenerateTopicHistoryTaskRunner'),
       this.get('GenerateTopicHistoryTaskRunner'),
@@ -194,6 +196,11 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CloseTopicFeature'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
+      this.get('TaskProcessRepository'),
       this.get('Logger')
     ));
 

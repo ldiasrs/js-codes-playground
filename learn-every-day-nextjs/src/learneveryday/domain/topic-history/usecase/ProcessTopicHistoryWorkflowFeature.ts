@@ -5,6 +5,7 @@ import { GenerateTopicHistoryTaskRunner } from './GenerateTopicHistoryTaskRunner
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from './CloseTopicsTaskRunner';
+import { ProcessFailedTopicsTaskRunner } from './ProcessFailedTopicsTaskRunner';
 import { TasksProcessExecutor } from '../../taskprocess';
 
 export interface ProcessTopicHistoryWorkflowFeatureData {
@@ -16,6 +17,7 @@ export class ProcessTopicHistoryWorkflowFeature {
 
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly processFailedTopicsTaskRunner: ProcessFailedTopicsTaskRunner,
     private readonly closeTopicsTaskRunner: CloseTopicsTaskRunner,
     private readonly reGenerateTopicHistoryTaskRunner: ReGenerateTopicHistoryTaskRunner,
     private readonly generateTopicHistoryTaskRunner: GenerateTopicHistoryTaskRunner,
@@ -36,9 +38,24 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     const executor = new TasksProcessExecutor(this.taskProcessRepository, this.logger);
     
-    // Phase 1: Execute close topics tasks first
+    // Phase 0: Process failed topics first to reprocess recoverable failures
     if (Date.now() - startTime > maxExecutionTimeMs) {
       this.logger.warn('Execution time limit exceeded before starting workflow phases');
+      return;
+    }
+
+    await executor.execute(
+      {
+        processType: TaskProcess.PROCESS_FAILED_TOPICS,
+        limit,
+        maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
+      },
+      this.processFailedTopicsTaskRunner
+    );
+
+    // Phase 1: Execute close topics tasks
+    if (Date.now() - startTime > maxExecutionTimeMs) {
+      this.logger.warn('Execution time limit exceeded after process failed topics phase');
       return;
     }
 
