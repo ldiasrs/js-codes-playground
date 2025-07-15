@@ -33,6 +33,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     await this.scheduleSendTaskIfNeeded(newHistory, topic);
     await this.scheduleRegenerateTaskIfNeeded(topic);
     await this.scheduleCloseTopicTaskIfNeeded(topic);
+    await this.scheduleProcessFailedTopicTaskIfNeeded(topic);
   }
 
   /**
@@ -339,6 +340,82 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
    */
   private logSkippedCloseTopicTask(topic: Topic): void {
     this.logger.info(`Skipped creating close topic task for customer ${topic.customerId} - pending task already exists`, {
+      topicId: topic.id,
+      customerId: topic.customerId
+    });
+  }
+
+  /**
+   * Schedules a process failed topic task if no pending one exists for the customer
+   * @param topic The topic to potentially schedule process failed topic task for
+   */
+  private async scheduleProcessFailedTopicTaskIfNeeded(topic: Topic): Promise<void> {
+    const hasPendingProcessFailedTopicTask = await this.hasPendingProcessFailedTopicTask(topic.customerId);
+    
+    if (hasPendingProcessFailedTopicTask) {
+      this.logSkippedProcessFailedTopicTask(topic);
+      return;
+    }
+
+    await this.createProcessFailedTopicTask(topic);
+  }
+
+  /**
+   * Checks if there's a pending process failed topic task for the customer
+   * @param customerId The customer ID to check
+   * @returns Promise<boolean> True if a pending task exists
+   */
+  private async hasPendingProcessFailedTopicTask(customerId: string): Promise<boolean> {
+    const existingProcessFailedTopicTasks = await this.taskProcessRepository.searchProcessedTasks({
+      customerId,
+      type: TaskProcess.PROCESS_FAILED_TOPICS,
+      status: 'pending'
+    });
+    
+    return existingProcessFailedTopicTasks.length > 0;
+  }
+
+  /**
+   * Creates and saves a new process failed topic task for the customer
+   * @param topic The topic to create process failed topic task for
+   */
+  private async createProcessFailedTopicTask(topic: Topic): Promise<void> {
+    const scheduledTimeProcessFailedTopics = new Date();
+    const newProcessFailedTopicTaskProcess = this.createProcessFailedTopicTaskProcess(topic, scheduledTimeProcessFailedTopics);
+    await this.taskProcessRepository.save(newProcessFailedTopicTaskProcess);
+
+    this.logger.info(`Scheduled process failed topic task for customer ${topic.customerId}`, {
+      topicId: topic.id,
+      customerId: topic.customerId,
+      scheduledTime: scheduledTimeProcessFailedTopics.toISOString(),
+      taskType: TaskProcess.PROCESS_FAILED_TOPICS
+    });
+  }
+
+  /**
+   * Creates a process failed topic task process
+   * @param topic The topic to create process failed topic task for
+   * @param scheduledTime The scheduled time for the task
+   * @returns TaskProcess The created task process
+   */
+  private createProcessFailedTopicTaskProcess(topic: Topic, scheduledTime: Date): TaskProcess {
+    return new TaskProcess(
+      topic.id,
+      topic.customerId,
+      TaskProcess.PROCESS_FAILED_TOPICS,
+      'pending',
+      undefined,
+      undefined,
+      scheduledTime
+    );
+  }
+
+  /**
+   * Logs when process failed topic task creation is skipped
+   * @param topic The topic for which process failed topic task was skipped
+   */
+  private logSkippedProcessFailedTopicTask(topic: Topic): void {
+    this.logger.info(`Skipped creating process failed topic task for customer ${topic.customerId} - pending task already exists`, {
       topicId: topic.id,
       customerId: topic.customerId
     });
