@@ -36,13 +36,17 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
       if (reprocessableTasks.length > 0) {
         await this.reprocessFailedTasks(reprocessableTasks);
       } else {
-        this.logger.info("No failed tasks found for reprocessing");
+        this.logger.info("No failed tasks found for reprocessing", {
+          customerId: "not-provided"
+        });
       }
 
       this.logExecutionCompletion(startTime, reprocessableTasks.length);
     } catch (error) {
       this.logger.error("Failed to execute ProcessFailedTopicsTaskRunner", 
-        error instanceof Error ? error : new Error(String(error)));
+        error instanceof Error ? error : new Error(String(error)), {
+          customerId: "not-provided"
+        });
       throw error;
     }
   }
@@ -55,12 +59,15 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
     try {
       const failedTasks = await this.taskProcessRepository.findFailedTasks();
       this.logger.info(`Found ${failedTasks.length} failed tasks`, {
+        customerId: "not-provided",
         failedTasksCount: failedTasks.length
       });
       return failedTasks;
     } catch (error) {
       this.logger.error("Error retrieving failed tasks", 
-        error instanceof Error ? error : new Error(String(error)));
+        error instanceof Error ? error : new Error(String(error)), {
+          customerId: "not-provided"
+        });
       return [];
     }
   }
@@ -76,6 +83,7 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
     );
 
     this.logger.info(`Found ${reprocessableTasks.length} reprocessable tasks out of ${failedTasks.length} failed tasks`, {
+      customerId: "not-provided",
       totalFailedTasks: failedTasks.length,
       reprocessableTasksCount: reprocessableTasks.length,
       reprocessableTaskTypes: this.getTaskTypesCount(reprocessableTasks)
@@ -162,6 +170,7 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
    */
   private logReprocessingResults(totalReprocessable: number, successful: number, failed: number): void {
     this.logger.info("Reprocessing completed", {
+      customerId: "not-provided",
       totalReprocessable,
       successfullyReprocessed: successful,
       failedToReprocess: failed,
@@ -177,6 +186,7 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   private logExecutionCompletion(startTime: number, reprocessedCount: number): void {
     const totalExecutionTime = Date.now() - startTime;
     this.logger.info("ProcessFailedTopicsTaskRunner completed", {
+      customerId: "not-provided",
       executionTimeMs: totalExecutionTime,
       reprocessedTasksCount: reprocessedCount
     });

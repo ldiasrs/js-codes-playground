@@ -49,6 +49,7 @@ export class DeleteTopicFeature {
     }
 
     this.logger.info(`Deleted ${generationTasks.length} generation tasks and related send tasks for topic: ${id}`, {
+      customerId: existingTopic.customerId,
       topicId: id,
       deletedGenerationTasks: generationTasks.length,
       deletedSendTasks: topicHistories.length
@@ -62,6 +63,7 @@ export class DeleteTopicFeature {
     } catch (error) {
       // If deleteByTopicId is not implemented, we'll continue
       this.logger.warn('Could not delete topic history', { 
+        customerId: existingTopic.customerId,
         topicId: id, 
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined

@@ -27,6 +27,7 @@ export class TasksProcessExecutor {
     const startTime = Date.now();
 
     this.logger.info(`Starting task process execution for type: ${processType}`, {
+      customerId: "not-provided",
       processType,
       limit,
       maxExecutionTimeMs
@@ -35,6 +36,7 @@ export class TasksProcessExecutor {
     // Check execution time limit early
     if (Date.now() - startTime > maxExecutionTimeMs) {
       this.logger.warn(`Execution time limit exceeded for process type: ${processType}`, {
+        customerId: "not-provided",
         processType,
         executionTimeMs: Date.now() - startTime,
         maxExecutionTimeMs
@@ -46,11 +48,15 @@ export class TasksProcessExecutor {
     const pendingTasks = await this.taskProcessRepository.findPendingTaskProcessByStatusAndType('pending', processType, limit);
 
     if (pendingTasks.length === 0) {
-      this.logger.info(`No pending tasks found for type: ${processType}`);
+      this.logger.info(`No pending tasks found for type: ${processType}`, {
+        customerId: "not-provided",
+        processType
+      });
       return;
     }
 
     this.logger.info(`Found ${pendingTasks.length} pending tasks to process`, {
+      customerId: "not-provided",
       processType,
       limit,
       taskCount: pendingTasks.length
@@ -61,6 +67,7 @@ export class TasksProcessExecutor {
       // Check execution time limit before processing each task
       if (Date.now() - startTime > maxExecutionTimeMs) {
         this.logger.warn(`Execution time limit exceeded, stopping task processing for type: ${processType}`, {
+          customerId: "not-provided",
           processType,
           executionTimeMs: Date.now() - startTime,
           maxExecutionTimeMs,
@@ -106,6 +113,7 @@ export class TasksProcessExecutor {
 
     const totalExecutionTime = Date.now() - startTime;
     this.logger.info(`Completed task process execution for type: ${processType}`, {
+      customerId: "not-provided",
       processType,
       processedTasks: pendingTasks.length,
       executionTimeMs: totalExecutionTime,

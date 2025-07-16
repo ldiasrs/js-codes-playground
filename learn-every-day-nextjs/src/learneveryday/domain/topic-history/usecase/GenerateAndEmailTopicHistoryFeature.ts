@@ -50,7 +50,8 @@ export class GenerateAndEmailTopicHistoryFeature {
     await this.sendTopicHistoryPort.send({
       email: data.recipientEmail,
       topicHistory: latestTopicHistory,
-      topicSubject: topic.subject
+      topicSubject: topic.subject,
+      customerId: topic.customerId
     });
 
     return latestTopicHistory;

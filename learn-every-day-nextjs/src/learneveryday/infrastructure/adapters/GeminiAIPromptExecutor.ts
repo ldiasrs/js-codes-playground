@@ -20,9 +20,10 @@ export class GeminiAIPromptExecutor implements AIPromptExecutorPort {
     });
   }
 
-  async execute(prompt: string): Promise<string> {
+  async execute(prompt: string, customerId?: string): Promise<string> {
     try {
       this.logger.info('Executing AI prompt using Gemini', { 
+        customerId: customerId || "not-provided",
         promptLength: prompt.length 
       });
 
@@ -35,6 +36,7 @@ export class GeminiAIPromptExecutor implements AIPromptExecutorPort {
       }
 
       this.logger.info('AI prompt executed successfully', { 
+        customerId: customerId || "not-provided",
         contentLength: generatedContent.length 
       });
 
@@ -42,6 +44,7 @@ export class GeminiAIPromptExecutor implements AIPromptExecutorPort {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Error executing AI prompt with Gemini', error instanceof Error ? error : new Error(errorMessage), { 
+        customerId: customerId || "not-provided",
         error: errorMessage
       });
       throw new Error(`Failed to execute AI prompt: ${errorMessage}`);

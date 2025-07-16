@@ -5,6 +5,7 @@ import moment from 'moment';
 export interface PromptBuilderData {
   topicSubject: string;
   history: TopicHistory[];
+  customerId?: string;
 }
 
 export class PromptBuilder {
@@ -29,6 +30,7 @@ export class PromptBuilder {
       if (data.topicSubject.includes('#discard-history')) {
         const prompt = data.topicSubject;
         this.logger.info('Prompt completo construído', { 
+          customerId: data.customerId || "not-provided",
           prompt, 
           type: 'clean-prompt-discard-history',
           topicSubject: data.topicSubject
@@ -37,6 +39,7 @@ export class PromptBuilder {
       }
       const prompt = `Esse é meu histórico anterior:\n\n ${data.topicSubject}`;
       this.logger.info('Prompt completo construído', { 
+        customerId: data.customerId || "not-provided",
         prompt, 
         type: 'clean-prompt',
         topicSubject: data.topicSubject
@@ -57,6 +60,7 @@ export class PromptBuilder {
 `;
 
     this.logger.info('Prompt completo construído', { 
+      customerId: data.customerId || "not-provided",
       prompt, 
       type: 'standard',
       topicSubject: data.topicSubject,

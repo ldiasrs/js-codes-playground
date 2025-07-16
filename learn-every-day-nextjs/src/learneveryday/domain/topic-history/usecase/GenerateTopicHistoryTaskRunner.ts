@@ -70,10 +70,11 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     
     const prompt = this.promptBuilder.build({
       topicSubject: topic.subject,
-      history: existingHistory
+      history: existingHistory,
+      customerId: topic.customerId
     });
 
-    const generatedContent = await this.aiPromptExecutorPort.execute(prompt);
+    const generatedContent = await this.aiPromptExecutorPort.execute(prompt, topic.customerId);
 
     const newHistory = new TopicHistory(topic.id, generatedContent);
     await this.topicHistoryRepository.save(newHistory);

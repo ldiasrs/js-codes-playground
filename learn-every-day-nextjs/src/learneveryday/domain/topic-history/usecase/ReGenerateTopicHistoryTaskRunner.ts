@@ -67,7 +67,9 @@ export class ReGenerateTopicHistoryTaskRunner {
   private async validateAndGetCustomer(customerId: string): Promise<Customer | null> {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
-      this.logger.error(`Customer with ID ${customerId} not found`);
+      this.logger.error(`Customer with ID ${customerId} not found`, undefined, {
+        customerId: customerId
+      });
       return null;
     }
     return customer;
@@ -164,7 +166,9 @@ export class ReGenerateTopicHistoryTaskRunner {
     const topics = await this.getCustomerTopics(customerId);
     
     if (topics.length === 0) {
-      this.logger.info(`No topics found for customer ${customerId}`);
+      this.logger.info(`No topics found for customer ${customerId}`, {
+        customerId: customerId
+      });
       return;
     }
 
@@ -199,7 +203,9 @@ export class ReGenerateTopicHistoryTaskRunner {
     const openTopics = topics.filter(topic => !topic.closed);
     
     if (openTopics.length === 0) {
-      this.logger.info('No open topics available for processing');
+      this.logger.info('No open topics available for processing', {
+        customerId: "not-provided"
+      });
       return [];
     }
 
@@ -248,7 +254,9 @@ export class ReGenerateTopicHistoryTaskRunner {
       
       return results;
     } catch (error) {
-      this.logger.error('Error getting topic history counts', error instanceof Error ? error : new Error(String(error)));
+      this.logger.error('Error getting topic history counts', error instanceof Error ? error : new Error(String(error)), {
+        customerId: "not-provided"
+      });
       return this.createFallbackTopicsWithZeroHistory(topics);
     }
   }
@@ -272,14 +280,19 @@ export class ReGenerateTopicHistoryTaskRunner {
       await this.saveTasksIndividually(tasksToCreate);
       this.logScheduledTasks(tasksToCreate.length, customerId);
     } catch (error) {
-      this.logger.error('Error scheduling tasks', error instanceof Error ? error : new Error(String(error)));
+      this.logger.error('Error scheduling tasks', error instanceof Error ? error : new Error(String(error)), {
+        customerId: customerId
+      });
       throw error;
     }
   }
 
   private createTaskProcesses(topics: Topic[], customerId: string, nextScheduleTime: Date): TaskProcess[] {
     return topics.map(topic => {
-      this.logger.info(`Scheduling GENERATE_TOPIC_HISTORY task for topic ${topic.id} at ${nextScheduleTime}`);
+      this.logger.info(`Scheduling GENERATE_TOPIC_HISTORY task for topic ${topic.id} at ${nextScheduleTime}`, {
+        customerId: customerId,
+        topicId: topic.id
+      });
       return new TaskProcess(
         topic.id, // entityId
         customerId,
@@ -299,7 +312,10 @@ export class ReGenerateTopicHistoryTaskRunner {
         await this.taskProcessRepository.save(task);
       } catch (error) {
         this.logger.error(`Failed to save task for topic ${task.entityId}`, 
-          error instanceof Error ? error : new Error(String(error)));
+          error instanceof Error ? error : new Error(String(error)), {
+            customerId: task.customerId,
+            topicId: task.entityId
+          });
         // Continue with other tasks even if one fails
       }
     }

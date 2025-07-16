@@ -28,7 +28,9 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
     const customerId = taskProcess.customerId;
 
     try {
-      this.logger.info(`Starting CloseTopicsTaskRunner for customer ${customerId}`);
+      this.logger.info(`Starting CloseTopicsTaskRunner for customer ${customerId}`, {
+        customerId: customerId
+      });
 
       // Step 1: Check and close topics with more than 5 histories
       await this.checkAndCloseTopicsWithManyHistories(customerId);
@@ -54,7 +56,9 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
       const openTopics = topics.filter(topic => !topic.closed);
 
       if (openTopics.length === 0) {
-        this.logger.info(`No open topics found for customer ${customerId}`);
+        this.logger.info(`No open topics found for customer ${customerId}`, {
+          customerId: customerId
+        });
         return;
       }
 
@@ -83,7 +87,10 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
               subject: topic.subject
             });
           } catch (error) {
-            this.logger.error(`Failed to close topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)));
+            this.logger.error(`Failed to close topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)), {
+              customerId: customerId,
+              topicId: topic.id
+            });
           }
         }
       }
@@ -156,7 +163,10 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
           });
         } catch (error) {
           this.logger.error(`Failed to cancel tasks for closed topic ${closedTopic.id}`, 
-            error instanceof Error ? error : new Error(String(error)));
+            error instanceof Error ? error : new Error(String(error)), {
+              customerId: customerId,
+              topicId: closedTopic.id
+            });
         }
       }
     } catch (error) {

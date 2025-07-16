@@ -38,6 +38,7 @@ export class GetTopicHistoriesFeature {
     );
 
     this.logger.info(`Retrieved ${sortedHistories.length} topic histories for topic ${topicId}`, {
+      customerId: topic.customerId || "not-provided",
       topicId: topicId,
       topicSubject: topic.subject,
       historiesCount: sortedHistories.length

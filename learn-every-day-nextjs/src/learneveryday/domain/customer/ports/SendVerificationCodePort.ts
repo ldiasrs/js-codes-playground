@@ -2,6 +2,7 @@ export interface SendVerificationCodePortData {
   email: string;
   customerName: string;
   verificationCode: string;
+  customerId: string;
 }
 
 export interface SendVerificationCodePort {

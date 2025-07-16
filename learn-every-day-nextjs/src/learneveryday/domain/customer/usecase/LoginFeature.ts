@@ -55,7 +55,8 @@ export class LoginFeature {
       await this.sendVerificationCodePort.send({
         email: customer.email,
         customerName: customer.customerName,
-        verificationCode
+        verificationCode,
+        customerId: customer.id || "not-provided"
       });
 
       // Step 5: Save authentication attempt with encrypted verification code

@@ -59,7 +59,8 @@ export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
     await this.sendTopicHistoryByEmailPort.send({
       email: customer.email,
       topicHistory: topicHistory,
-      topicSubject: topic.subject
+      topicSubject: topic.subject,
+      customerId: customer.id || "not-provided"
     });
 
     this.logger.info(`Sent topic history ${topicHistoryId} to customer ${customer.email} for topic: ${topic.subject}`, {

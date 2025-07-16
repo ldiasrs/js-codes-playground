@@ -23,6 +23,7 @@ export class NodemailerVerificationCodeSender implements SendVerificationCodePor
   async send(data: SendVerificationCodePortData): Promise<void> {
     try {
       this.logger.info('Sending verification code email', { 
+        customerId: data.customerId,
         recipientEmail: data.email,
         customerName: data.customerName
       });
@@ -37,11 +38,13 @@ export class NodemailerVerificationCodeSender implements SendVerificationCodePor
       const result = await this.transporter.sendMail(mailOptions);
       
       this.logger.info('Verification code email sent successfully', { 
+        customerId: data.customerId,
         recipientEmail: data.email,
         messageId: result.messageId 
       });
     } catch (error) {
       this.logger.error('Error sending verification code email', error as Error, { 
+        customerId: data.customerId,
         recipientEmail: data.email,
         customerName: data.customerName,
         error: error instanceof Error ? error.message : String(error) 

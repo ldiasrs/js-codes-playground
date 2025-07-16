@@ -4,6 +4,7 @@ export interface SendTopicHistoryByEmailPortData {
   email: string;
   topicHistory: TopicHistory;
   topicSubject?: string;
+  customerId: string;
 }
 
 export interface SendTopicHistoryByEmailPort {

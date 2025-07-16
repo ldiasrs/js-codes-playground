@@ -32,6 +32,7 @@ export class ProcessTopicHistoryWorkflowFeature {
     const startTime = Date.now();
 
     this.logger.info('Starting topic history workflow execution', {
+      customerId: "not-provided",
       limit,
       maxExecutionTimeMs
     });
@@ -40,7 +41,9 @@ export class ProcessTopicHistoryWorkflowFeature {
     
     // Phase 0: Process failed topics first to reprocess recoverable failures
     if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded before starting workflow phases');
+      this.logger.warn('Execution time limit exceeded before starting workflow phases', {
+        customerId: "not-provided"
+      });
       return;
     }
 
@@ -55,7 +58,9 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     // Phase 1: Execute close topics tasks
     if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after process failed topics phase');
+      this.logger.warn('Execution time limit exceeded after process failed topics phase', {
+        customerId: "not-provided"
+      });
       return;
     }
 
@@ -70,7 +75,9 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     // Phase 2: Regenerate topics histories
     if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after close topics phase');
+      this.logger.warn('Execution time limit exceeded after close topics phase', {
+        customerId: "not-provided"
+      });
       return;
     }
 
@@ -85,7 +92,9 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     // Phase 3: Generate topic history
     if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after regenerate phase');
+      this.logger.warn('Execution time limit exceeded after regenerate phase', {
+        customerId: "not-provided"
+      });
       return;
     }
 
@@ -100,7 +109,9 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     // Phase 4: Send topic history
     if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after generate phase');
+      this.logger.warn('Execution time limit exceeded after generate phase', {
+        customerId: "not-provided"
+      });
       return;
     }
 
@@ -115,6 +126,7 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     const totalExecutionTime = Date.now() - startTime;
     this.logger.info('Topic history workflow execution completed', {
+      customerId: "not-provided",
       executionTimeMs: totalExecutionTime,
       maxExecutionTimeMs
     });

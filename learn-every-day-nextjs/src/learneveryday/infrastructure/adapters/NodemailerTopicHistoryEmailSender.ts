@@ -23,6 +23,7 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
   async send(data: SendTopicHistoryByEmailPortData): Promise<void> {
     try {
       this.logger.info('Sending topic history email', { 
+        customerId: data.customerId,
         topicId: data.topicHistory.topicId, 
         recipientEmail: data.email 
       });
@@ -37,11 +38,13 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
       const result = await this.transporter.sendMail(mailOptions);
       
       this.logger.info('Topic history email sent successfully', { 
+        customerId: data.customerId,
         topicId: data.topicHistory.topicId, 
         messageId: result.messageId 
       });
     } catch (error) {
       this.logger.error('Error sending topic history email', error as Error,  { 
+        customerId: data.customerId,
         topicId: data.topicHistory.topicId, 
         recipientEmail: data.email,
         error: error instanceof Error ? error.message : String(error) 
