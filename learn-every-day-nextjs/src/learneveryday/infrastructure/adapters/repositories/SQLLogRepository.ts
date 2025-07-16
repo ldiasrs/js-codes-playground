@@ -1,4 +1,4 @@
-import { Log } from '@/learneveryday/domain';
+import { Log } from '../../../domain/logs/entities/Log';
 import { LogRepositoryPort, LogSearchCriteria } from '../../../domain/logs/ports/LogRepositoryPort';
 import { LogLevel } from '../../../domain/shared/ports/LoggerPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
