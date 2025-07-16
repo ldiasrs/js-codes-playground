@@ -13,4 +13,7 @@ export * from './topic';
 export * from './topic-history';
 
 // TaskProcess Domain
-export * from './taskprocess'; 
+export * from './taskprocess';
+
+// Logs Domain
+export * from './logs'; 

@@ -9,6 +9,7 @@ import { SQLTopicRepository } from '../adapters/repositories/SQLTopicRepository'
 import { SQLTopicHistoryRepository } from '../adapters/repositories/SQLTopicHistoryRepository';
 import { SQLTaskProcessRepository } from '../adapters/repositories/SQLTaskProcessRepository';
 import { SQLAuthenticationAttemptRepository } from '../adapters/repositories/SQLAuthenticationAttemptRepository';
+import { SQLLogRepository } from '../adapters/repositories/SQLLogRepository';
 
 // Ports
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
@@ -78,6 +79,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('TopicHistoryRepository', () => new SQLTopicHistoryRepository());
     this.registerSingleton('TaskProcessRepository', () => new SQLTaskProcessRepository());
     this.registerSingleton('AuthenticationAttemptRepository', () => new SQLAuthenticationAttemptRepository());
+    this.registerSingleton('LogRepository', () => new SQLLogRepository());
 
     // Register ports
     this.registerSingleton('AIPromptExecutorPort', () => AIPromptExecutorFactory.createGeminiExecutor(this.get('Logger')));

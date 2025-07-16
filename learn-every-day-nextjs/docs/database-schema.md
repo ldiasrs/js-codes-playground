@@ -10,6 +10,7 @@ The application uses a relational database design with the following core entiti
 - **Topic Histories** - Generated content for topics
 - **Task Processes** - Background task management
 - **Authentication Attempts** - Verification code management
+- **Logs** - Application logs for monitoring and debugging
 
 ## Database Tables
 
@@ -101,6 +102,28 @@ Manages verification codes for customer authentication.
 - `idx_auth_attempts_customer_id` - For customer-specific auth queries
 - `idx_auth_attempts_expires_at` - For expiration-based queries
 - `idx_auth_attempts_is_used` - For usage status queries
+
+### 6. logs
+
+Stores application logs for monitoring, debugging, and audit trails.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Unique log entry identifier |
+| level | VARCHAR(10) | NOT NULL | Log level (debug, info, warn, error) |
+| message | TEXT | NOT NULL | The log message content |
+| context | TEXT | NOT NULL, DEFAULT '{}' | JSON context data associated with the log |
+| error_message | TEXT | NULL | Error message if this is an error log |
+| error_stack | TEXT | NULL | Stack trace if this is an error log |
+| timestamp | TIMESTAMP WITH TIME ZONE | NOT NULL | When the log entry was created |
+
+**Indexes:**
+- `idx_logs_level` - For level-based log queries
+- `idx_logs_timestamp` - For time-based log queries
+- `idx_logs_level_timestamp` - For combined level and time queries
+- `idx_logs_error_message` - For error log queries
+- `idx_logs_message_search` - For full-text search in log messages
+- `idx_logs_timestamp_desc` - For recent logs retrieval
 
 ## Foreign Key Relationships
 
