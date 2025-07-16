@@ -1,7 +1,7 @@
 import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/LoggerPort';
 import { LogRepositoryPort } from '../../../domain/logs/ports/LogRepositoryPort';
-import { Log } from '../../../domain/logs/entities/Log';
 import { v4 as uuidv4 } from 'uuid';
+import { Log } from '@/learneveryday/domain';
 
 /**
  * Database logger that persists logs to the database
