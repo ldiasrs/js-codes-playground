@@ -54,6 +54,10 @@ import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopic
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
+// Infrastructure Services
+import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';
+import { CleanOldLogsProcess } from '../adapters/loggers/CleanOldLogsProcess';
+
 export interface Container {
   get<T>(token: string): T;
   has(token: string): boolean;
@@ -89,6 +93,17 @@ export class NextJSContainer implements Container {
 
     // Register shared services
     this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromConfig());
+
+    // Register infrastructure services
+    this.registerSingleton('CleanOldLogsProcess', () => new CleanOldLogsProcess(
+      this.get('LogRepository'),
+      this.get('Logger')
+    ));
+
+    this.registerSingleton('ProcessInfrastuctureWorkflow', () => new ProcessInfrastuctureWorkflow(
+      this.get('CleanOldLogsProcess'),
+      this.get('Logger')
+    ));
 
     // Register use cases
     this.registerSingleton('CreateCustomerFeature', () => new CreateCustomerFeature(
@@ -248,7 +263,8 @@ export class NextJSContainer implements Container {
     ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowCommand', () => new ProcessTopicHistoryWorkflowCommand(
-      this.get('ProcessTopicHistoryWorkflowFeature')
+      this.get('ProcessTopicHistoryWorkflowFeature'),
+      this.get('ProcessInfrastuctureWorkflow')
     ));
 
     // Register query factories
