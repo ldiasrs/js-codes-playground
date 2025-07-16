@@ -1,7 +1,7 @@
 import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/LoggerPort';
-import { LogRepositoryPort } from '../../../domain/logs/ports/LogRepositoryPort';
 import { v4 as uuidv4 } from 'uuid';
-import { Log } from '@/learneveryday/domain';
+import { Log } from './Log';
+import { SQLLogRepository } from '../repositories/SQLLogRepository';
 
 /**
  * Database logger that persists logs to the database
@@ -10,7 +10,7 @@ export class DBLogger implements LoggerPort {
   private context: LogContext;
 
   constructor(
-    private readonly logRepository: LogRepositoryPort,
+    private readonly logRepository: SQLLogRepository,
     context: LogContext = {}
   ) {
     this.context = context;

@@ -1,5 +1,4 @@
-import { Log } from '@/learneveryday/domain';
-import { LogRepositoryPort, LogSearchCriteria } from '../../../domain/logs/ports/LogRepositoryPort';
+import { Log } from '../loggers/Log';
 import { LogLevel } from '../../../domain/shared/ports/LoggerPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 
@@ -13,7 +12,16 @@ interface LogData {
   timestamp: string;
 }
 
-export class SQLLogRepository implements LogRepositoryPort {
+export interface LogSearchCriteria {
+  level?: LogLevel;
+  dateFrom?: Date;
+  dateTo?: Date;
+  message?: string;
+  hasError?: boolean;
+  limit?: number;
+  offset?: number;
+}
+export class SQLLogRepository  {
   private dbManager: DatabaseManager;
 
   constructor() {
