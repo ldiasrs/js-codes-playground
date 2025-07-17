@@ -14,9 +14,9 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   ) {}
 
   /**
-   * Executes the failed topics processing task
+   * Executes the failed and stuck topics processing task
    * @param taskProcess The task process that triggered this execution
-   * @returns Promise<void> Resolves when failed tasks are processed
+   * @returns Promise<void> Resolves when failed and stuck tasks are processed
    */
   async execute(taskProcess: TaskProcess): Promise<void> {
     const startTime = Date.now();
@@ -30,62 +30,87 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
         }
       });
 
-      const failedTasks = await this.getFailedTasks();
-      const reprocessableTasks = this.filterReprocessableTasks(failedTasks);
+      const stuckTasks = await this.getStuckTasks(taskProcess.customerId);
+      const reprocessableTasks = this.filterReprocessableTasks(stuckTasks);
       
       if (reprocessableTasks.length > 0) {
-        await this.reprocessFailedTasks(reprocessableTasks);
+        await this.reprocessStuckTasks(reprocessableTasks);
       } else {
-        this.logger.info("No failed tasks found for reprocessing", {
-          customerId: "not-provided"
+        this.logger.info("No stuck tasks found for reprocessing", {
+          customerId: taskProcess.customerId
         });
       }
 
-      this.logExecutionCompletion(startTime, reprocessableTasks.length);
+      this.logExecutionCompletion(startTime, reprocessableTasks.length, taskProcess.customerId);
     } catch (error) {
       this.logger.error("Failed to execute ProcessFailedTopicsTaskRunner", 
         error instanceof Error ? error : new Error(String(error)), {
-          customerId: "not-provided"
+          customerId: taskProcess.customerId
         });
       throw error;
     }
   }
 
   /**
-   * Retrieves all failed tasks from the repository
-   * @returns Promise<TaskProcess[]> Array of failed task processes
+   * Retrieves all stuck tasks (both failed and running) for a specific customer
+   * @param customerId The customer ID to filter tasks for
+   * @returns Promise<TaskProcess[]> Array of stuck task processes for the customer
    */
-  private async getFailedTasks(): Promise<TaskProcess[]> {
+  private async getStuckTasks(customerId: string): Promise<TaskProcess[]> {
     try {
-      const failedTasks = await this.taskProcessRepository.findFailedTasks();
-      this.logger.info(`Found ${failedTasks.length} failed tasks`, {
-        customerId: "not-provided",
-        failedTasksCount: failedTasks.length
+      const customerTasks = await this.taskProcessRepository.findByCustomerId(customerId);
+      
+      const failedTasks = customerTasks.filter(task => task.status === 'failed');
+      const runningTasks = customerTasks.filter(task => task.status === 'running');
+      const allStuckTasks = [...failedTasks, ...runningTasks];
+      
+      this.logger.info(`Found ${allStuckTasks.length} stuck tasks for customer (${failedTasks.length} failed, ${runningTasks.length} running)`, {
+        customerId,
+        failedTasksCount: failedTasks.length,
+        runningTasksCount: runningTasks.length,
+        totalStuckTasksCount: allStuckTasks.length
       });
-      return failedTasks;
+      
+      return allStuckTasks;
     } catch (error) {
-      this.logger.error("Error retrieving failed tasks", 
+      this.logger.error("Error retrieving stuck tasks", 
         error instanceof Error ? error : new Error(String(error)), {
-          customerId: "not-provided"
+          customerId
         });
       return [];
     }
   }
 
   /**
-   * Filters failed tasks to only include those with reprocessable error messages
-   * @param failedTasks Array of failed task processes
+   * Filters stuck tasks to only include those that can be reprocessed
+   * - Failed tasks: only those with reprocessable error messages
+   * - Running tasks: all running tasks (assumed to be stuck)
+   * @param stuckTasks Array of stuck task processes
+   * @param customerId The customer ID for logging purposes
    * @returns TaskProcess[] Array of tasks that can be reprocessed
    */
-  private filterReprocessableTasks(failedTasks: TaskProcess[]): TaskProcess[] {
-    const reprocessableTasks = failedTasks.filter(task => 
-      this.isErrorReprocessable(task.errorMsg)
-    );
+  private filterReprocessableTasks(stuckTasks: TaskProcess[]): TaskProcess[] {
+    const reprocessableTasks = stuckTasks.filter(task => {
+      // Running tasks are always considered reprocessable (assumed stuck)
+      if (task.status === 'running') {
+        return true;
+      }
+      // Failed tasks only if they have reprocessable errors
+      if (task.status === 'failed') {
+        return this.isErrorReprocessable(task.errorMsg);
+      }
+      return false;
+    });
 
-    this.logger.info(`Found ${reprocessableTasks.length} reprocessable tasks out of ${failedTasks.length} failed tasks`, {
-      customerId: "not-provided",
-      totalFailedTasks: failedTasks.length,
+    const failedReprocessable = reprocessableTasks.filter(t => t.status === 'failed').length;
+    const runningReprocessable = reprocessableTasks.filter(t => t.status === 'running').length;
+
+    this.logger.info(`Found ${reprocessableTasks.length} reprocessable tasks out of ${stuckTasks.length} stuck tasks`, {
+      customerId: reprocessableTasks[0]?.customerId,
+      totalStuckTasks: stuckTasks.length,
       reprocessableTasksCount: reprocessableTasks.length,
+      failedReprocessableCount: failedReprocessable,
+      runningReprocessableCount: runningReprocessable,
       reprocessableTaskTypes: this.getTaskTypesCount(reprocessableTasks)
     });
 
@@ -108,12 +133,14 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   }
 
   /**
-   * Reprocesses failed tasks by updating their status to pending
+   * Reprocesses stuck tasks by updating their status to pending
    * @param reprocessableTasks Array of tasks to reprocess
+   * @param customerId The customer ID for logging purposes
    */
-  private async reprocessFailedTasks(reprocessableTasks: TaskProcess[]): Promise<void> {
+  private async reprocessStuckTasks(reprocessableTasks: TaskProcess[]): Promise<void> {
     let successfullyReprocessed = 0;
     let failedToReprocess = 0;
+    const customerId = reprocessableTasks[0]?.customerId;
 
     for (const task of reprocessableTasks) {
       try {
@@ -125,27 +152,29 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
           error instanceof Error ? error : new Error(String(error)), {
           taskId: task.id,
           taskType: task.type,
-          customerId: task.customerId
+          customerId: task.customerId,
+          originalStatus: task.status
         });
       }
     }
 
-    this.logReprocessingResults(reprocessableTasks.length, successfullyReprocessed, failedToReprocess);
+    this.logReprocessingResults(reprocessableTasks.length, successfullyReprocessed, failedToReprocess, customerId);
   }
 
   /**
-   * Reprocesses a single failed task by updating its status to pending
+   * Reprocesses a single stuck task by updating its status to pending
    * @param task The task to reprocess
    */
   private async reprocessSingleTask(task: TaskProcess): Promise<void> {
     const reprocessedTask = task.updateStatus('pending');
     await this.taskProcessRepository.save(reprocessedTask);
 
-    this.logger.info(`Reprocessed failed task ${task.id}`, {
+    this.logger.info(`Reprocessed stuck task ${task.id}`, {
       taskId: task.id,
       taskType: task.type,
       customerId: task.customerId,
-      originalError: task.errorMsg,
+      originalStatus: task.status,
+      originalError: task.errorMsg || 'No error (was running)',
       newStatus: 'pending'
     });
   }
@@ -167,10 +196,11 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
    * @param totalReprocessable Total number of reprocessable tasks
    * @param successful Number of successfully reprocessed tasks
    * @param failed Number of tasks that failed to reprocess
+   * @param customerId The customer ID for logging purposes
    */
-  private logReprocessingResults(totalReprocessable: number, successful: number, failed: number): void {
+  private logReprocessingResults(totalReprocessable: number, successful: number, failed: number, customerId: string): void {
     this.logger.info("Reprocessing completed", {
-      customerId: "not-provided",
+      customerId,
       totalReprocessable,
       successfullyReprocessed: successful,
       failedToReprocess: failed,
@@ -182,11 +212,12 @@ export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
    * Logs the completion of the execution
    * @param startTime The start time of the execution
    * @param reprocessedCount Number of tasks that were reprocessed
+   * @param customerId The customer ID for logging purposes
    */
-  private logExecutionCompletion(startTime: number, reprocessedCount: number): void {
+  private logExecutionCompletion(startTime: number, reprocessedCount: number, customerId: string): void {
     const totalExecutionTime = Date.now() - startTime;
     this.logger.info("ProcessFailedTopicsTaskRunner completed", {
-      customerId: "not-provided",
+      customerId,
       executionTimeMs: totalExecutionTime,
       reprocessedTasksCount: reprocessedCount
     });

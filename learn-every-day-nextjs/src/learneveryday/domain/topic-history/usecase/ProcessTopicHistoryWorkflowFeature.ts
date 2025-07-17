@@ -39,13 +39,7 @@ export class ProcessTopicHistoryWorkflowFeature {
 
     const executor = new TasksProcessExecutor(this.taskProcessRepository, this.logger);
     
-    // Phase 0: Process failed topics first to reprocess recoverable failures
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded before starting workflow phases', {
-        customerId: "not-provided"
-      });
-      return;
-    }
+   
 
     await executor.execute(
       {
@@ -56,13 +50,6 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.processFailedTopicsTaskRunner
     );
 
-    // Phase 1: Execute close topics tasks
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after process failed topics phase', {
-        customerId: "not-provided"
-      });
-      return;
-    }
 
     await executor.execute(
       {
@@ -73,13 +60,6 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.closeTopicsTaskRunner
     );
 
-    // Phase 2: Regenerate topics histories
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after close topics phase', {
-        customerId: "not-provided"
-      });
-      return;
-    }
 
     await executor.execute(
       {
@@ -90,14 +70,6 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.reGenerateTopicHistoryTaskRunner
     );
 
-    // Phase 3: Generate topic history
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after regenerate phase', {
-        customerId: "not-provided"
-      });
-      return;
-    }
-
     await executor.execute(
       {
         processType: TaskProcess.GENERATE_TOPIC_HISTORY,
@@ -107,13 +79,6 @@ export class ProcessTopicHistoryWorkflowFeature {
       this.generateTopicHistoryTaskRunner
     );
 
-    // Phase 4: Send topic history
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn('Execution time limit exceeded after generate phase', {
-        customerId: "not-provided"
-      });
-      return;
-    }
 
     await executor.execute(
       {

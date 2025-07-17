@@ -33,16 +33,6 @@ export class TasksProcessExecutor {
       maxExecutionTimeMs
     });
 
-    // Check execution time limit early
-    if (Date.now() - startTime > maxExecutionTimeMs) {
-      this.logger.warn(`Execution time limit exceeded for process type: ${processType}`, {
-        customerId: "not-provided",
-        processType,
-        executionTimeMs: Date.now() - startTime,
-        maxExecutionTimeMs
-      });
-      return;
-    }
 
     // Get pending tasks of the specified type
     const pendingTasks = await this.taskProcessRepository.findPendingTaskProcessByStatusAndType('pending', processType, limit);
@@ -65,16 +55,6 @@ export class TasksProcessExecutor {
     // Process each task with timeout protection
     for (const task of pendingTasks) {
       // Check execution time limit before processing each task
-      if (Date.now() - startTime > maxExecutionTimeMs) {
-        this.logger.warn(`Execution time limit exceeded, stopping task processing for type: ${processType}`, {
-          customerId: "not-provided",
-          processType,
-          executionTimeMs: Date.now() - startTime,
-          maxExecutionTimeMs,
-          processedTasks: pendingTasks.indexOf(task)
-        });
-        break;
-      }
 
       try {
         // Mark task as running
