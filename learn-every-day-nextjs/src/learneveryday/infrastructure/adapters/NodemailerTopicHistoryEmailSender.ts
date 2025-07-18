@@ -79,6 +79,7 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
           <div class="header">
             <h1>📚 Aprendizado Diário</h1>
             <p><strong>Tópico:</strong> ${topicSubject || 'Aprendizado Diário'}</p>
+            <p><strong>Confira no App:</strong> <a href="https://learn-every-day-nextjs.vercel.app/">Learn Everyday</a></p>
             <p><strong>Data:</strong> ${topicHistory.createdAt.toLocaleDateString('pt-BR')}</p>
           </div>
           

@@ -98,6 +98,7 @@ export class NodemailerVerificationCodeSender implements SendVerificationCodePor
           <div class="header">
             <h1>🔐 Learn Every Day</h1>
             <p><strong>Hello ${customerName},</strong></p>
+            <p><strong>Confira no App:</strong> <a href="https://learn-every-day-nextjs.vercel.app/">Learn Everyday</a></p>
             <p>You requested a verification code to access your account.</p>
           </div>
           
