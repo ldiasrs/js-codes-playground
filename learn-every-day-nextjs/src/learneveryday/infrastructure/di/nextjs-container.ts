@@ -14,6 +14,7 @@ import { SQLLogRepository } from '../adapters/repositories/SQLLogRepository';
 // Ports
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
 import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
+import { NodemailerTopicClosedEmailSender } from '../adapters/NodemailerTopicClosedEmailSender';
 
 // Use Cases
 import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
@@ -90,6 +91,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('PromptBuilder', () => new PromptBuilder(this.get('Logger')));
     this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
     this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
+    this.registerSingleton('SendTopicClosedEmailPort', () => new NodemailerTopicClosedEmailSender(this.get('Logger')));
 
     // Register shared services
     this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromConfig());
@@ -213,7 +215,9 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CloseTopicFeature'),
-      this.get('Logger')
+      this.get('Logger'),
+      this.get('CustomerRepository'),
+      this.get('SendTopicClosedEmailPort'),
     ));
 
     this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(

@@ -6,6 +6,8 @@ import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort"
 import { LoggerPort } from "../../shared/ports/LoggerPort";
 import { Topic } from "../../topic/entities/Topic";
 import { CloseTopicFeature } from "../../topic/usecase/CloseTopicFeature";
+import { CustomerRepositoryPort } from "../../customer/ports/CustomerRepositoryPort";
+import { SendTopicClosedEmailPort } from "../../topic/ports/SendTopicClosedEmailPort";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   private static readonly MAX_HISTORIES_BEFORE_CLOSE = 4;
@@ -15,7 +17,9 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly closeTopicFeature: CloseTopicFeature,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly customerRepository: CustomerRepositoryPort,
+    private readonly sendTopicClosedEmailPort: SendTopicClosedEmailPort,
   ) {}
 
   /**
@@ -86,6 +90,26 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
               customerId,
               subject: topic.subject
             });
+
+            // Send email notification
+            try {
+              const customer = await this.customerRepository.findById(customerId);
+              if (customer) {
+                await this.sendTopicClosedEmailPort.send({
+                  customerId: customerId,
+                  email: customer.email,
+                  topicSubject: topic.subject,
+                });
+              }
+            } catch (emailError) {          
+              this.logger.error(`Failed to send topic closed email for topic ${topic.id}`, 
+                emailError instanceof Error ? emailError : new Error(String(emailError)), {
+                customerId: customerId,
+                topicId: topic.id,
+                topicSubject: topic.subject
+              });
+              throw new Error(`Failed to send topic closed email: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`);
+            } 
           } catch (error) {
             this.logger.error(`Failed to close topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)), {
               customerId: customerId,
