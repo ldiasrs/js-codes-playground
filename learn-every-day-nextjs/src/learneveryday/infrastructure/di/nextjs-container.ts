@@ -146,8 +146,9 @@ export class NextJSContainer implements Container {
 
     this.registerSingleton('CloseTopicFeature', () => new CloseTopicFeature(
       this.get('TopicRepository'),
-      this.get('TaskProcessRepository'),
-      this.get('Logger')
+      this.get('Logger'),
+      this.get('CustomerRepository'),
+      this.get('SendTopicClosedEmailPort')
     ));
 
     this.registerSingleton('DeleteTopicFeature', () => new DeleteTopicFeature(
@@ -216,8 +217,6 @@ export class NextJSContainer implements Container {
       this.get('TaskProcessRepository'),
       this.get('CloseTopicFeature'),
       this.get('Logger'),
-      this.get('CustomerRepository'),
-      this.get('SendTopicClosedEmailPort'),
     ));
 
     this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(

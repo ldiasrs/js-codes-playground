@@ -1,18 +1,23 @@
 import { Topic } from '../entities/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
+import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
+import { SendTopicClosedEmailPort } from '../ports/SendTopicClosedEmailPort';
 
 export interface CloseTopicFeatureData {
   id: string;
 }
 
 export class CloseTopicFeature {
+
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly taskProcessRepository: TaskProcessRepositoryPort,
-    private readonly logger: LoggerPort
-  ) {}
+    private readonly logger: LoggerPort,
+    private readonly customerRepository: CustomerRepositoryPort,
+    private readonly sendTopicClosedEmailPort: SendTopicClosedEmailPort,
+  ) {
+  }
+
 
   /**
    * Executes the CloseTopic feature with validation
@@ -46,6 +51,10 @@ export class CloseTopicFeature {
     // Step 4: Save the updated topic
     const savedTopic = await this.topicRepository.save(closedTopic);
 
+    // Step 5: Send notification email
+    await this.sendTopicClosedNotification(savedTopic.customerId, savedTopic);
+
+    // Step 6: Log the closure
     this.logger.info(`Closed topic: ${savedTopic.id}`, {
       topicId: savedTopic.id,
       customerId: savedTopic.customerId,
@@ -56,4 +65,22 @@ export class CloseTopicFeature {
     return savedTopic;
   }
 
-} 
+  async sendTopicClosedNotification(customerId: string, topic: Topic): Promise<void> {
+    try {
+      const customer = await this.customerRepository.findById(customerId);
+      if (customer) {
+        await this.sendTopicClosedEmailPort.send({
+          customerId: customerId,
+          email: customer.email,
+          topicSubject: topic.subject,
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Failed to send topic closed email for topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)), {
+        customerId: customerId,
+        topicId: topic.id,
+        topicSubject: topic.subject,
+      });
+    }
+  }
+}
