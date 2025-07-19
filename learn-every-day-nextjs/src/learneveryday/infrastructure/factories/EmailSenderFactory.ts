@@ -2,24 +2,22 @@ import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/Se
 import { SendVerificationCodePort } from '../../domain/customer/ports/SendVerificationCodePort';
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
 import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
-import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { LoggerFactory } from './LoggerFactory';
 
 export class EmailSenderFactory {
   /**
    * Creates a nodemailer-based email sender for topic history
-   * @param logger The logger instance to use
    * @returns SendTopicHistoryByEmailPort implementation
    */
-  static createNodemailerSender(logger: LoggerPort): SendTopicHistoryByEmailPort {
-    return new NodemailerTopicHistoryEmailSender(logger);
+  static createNodemailerSender(): SendTopicHistoryByEmailPort {
+    return new NodemailerTopicHistoryEmailSender(LoggerFactory.createLoggerForClass('NodemailerTopicHistoryEmailSender'));
   }
 
   /**
    * Creates a nodemailer-based verification code sender
-   * @param logger The logger instance to use
    * @returns SendVerificationCodePort implementation
    */
-  static createVerificationCodeSender(logger: LoggerPort): SendVerificationCodePort {
-    return new NodemailerVerificationCodeSender(logger);
+  static createVerificationCodeSender(): SendVerificationCodePort {
+    return new NodemailerVerificationCodeSender(LoggerFactory.createLoggerForClass('NodemailerVerificationCodeSender'));
   }
 } 

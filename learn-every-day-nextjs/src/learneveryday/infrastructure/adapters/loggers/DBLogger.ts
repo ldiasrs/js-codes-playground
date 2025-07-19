@@ -8,37 +8,44 @@ import { SQLLogRepository } from '../repositories/SQLLogRepository';
  */
 export class DBLogger implements LoggerPort {
   private context: LogContext;
+  private className?: string;
 
   constructor(
     private readonly logRepository: SQLLogRepository,
-    context: LogContext = {}
+    context: LogContext = {},
+    className?: string
   ) {
     this.context = context;
+    this.className = className;
   }
 
   debug(message: string, context?: LogContext): void {
-    this.persistLog(LogLevel.DEBUG, message, context);
+    this.persistLog(LogLevel.DEBUG, this.formatMessage(message), context);
   }
 
   info(message: string, context?: LogContext): void {
-    this.persistLog(LogLevel.INFO, message, context);
+    this.persistLog(LogLevel.INFO, this.formatMessage(message), context);
   }
 
   warn(message: string, context?: LogContext): void {
-    this.persistLog(LogLevel.WARN, message, context);
+    this.persistLog(LogLevel.WARN, this.formatMessage(message), context);
   }
 
   error(message: string, error?: Error, context?: LogContext): void {
-    this.persistErrorLog(message, error, context);
+    this.persistErrorLog(this.formatMessage(message), error, context);
   }
 
   log(level: LogLevel, message: string, context?: LogContext): void {
-    this.persistLog(level, message, context);
+    this.persistLog(level, this.formatMessage(message), context);
   }
 
   child(context: LogContext): LoggerPort {
     const mergedContext = this.mergeContexts(this.context, context);
-    return new DBLogger(this.logRepository, mergedContext);
+    return new DBLogger(this.logRepository, mergedContext, this.className);
+  }
+
+  private formatMessage(message: string): string {
+    return this.className ? `${this.className}: ${message}` : message;
   }
 
   private persistLog(level: LogLevel, message: string, context?: LogContext): void {

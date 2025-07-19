@@ -11,6 +11,7 @@ export interface LoggerConfig {
   includeConsole?: boolean;
   includeDatabase?: boolean;
   context?: Record<string, unknown>;
+  className?: string;
 }
 
 export class LoggerFactory {
@@ -21,15 +22,16 @@ export class LoggerFactory {
    */
   static createLogger(config: LoggerConfig): LoggerPort {
     const context = config.context || {};
+    const className = config.className;
 
     switch (config.type) {
       case 'console':
-        return new ConsoleLogger(context);
+        return new ConsoleLogger(context, className);
       case 'database':
-        return this.createDatabaseLogger(context);
+        return this.createDatabaseLogger(context, className);
       case 'composite':
       default:
-        return this.createCompositeLogger(config, context);
+        return this.createCompositeLogger(config, context, className);
     }
   }
 
@@ -42,22 +44,32 @@ export class LoggerFactory {
   }
 
   /**
+   * Creates a logger for a specific class
+   * @param className The name of the class
+   * @returns A logger instance
+   */
+  static createLoggerForClass(className: string): LoggerPort {
+    return this.createLogger({ ...loggerConfig, className });
+  }
+
+  /**
    * Creates a composite logger with multiple loggers
    * @param config The logger configuration
    * @param context The logger context
+   * @param className The name of the class
    * @returns A composite logger instance
    */
-  private static createCompositeLogger(config: LoggerConfig, context: Record<string, unknown>): LoggerPort {
+  private static createCompositeLogger(config: LoggerConfig, context: Record<string, unknown>, className?: string): LoggerPort {
     const loggers: LoggerPort[] = [];
 
     // Always include console logger unless explicitly disabled
     if (config.includeConsole !== false) {
-      loggers.push(new ConsoleLogger(context));
+      loggers.push(new ConsoleLogger(context, className));
     }
 
     // Include database logger if enabled
     if (config.includeDatabase !== false) {
-      loggers.push(this.createDatabaseLogger(context));
+      loggers.push(this.createDatabaseLogger(context, className));
     }
 
     return new CompositeLogger(loggers);
@@ -66,10 +78,11 @@ export class LoggerFactory {
   /**
    * Creates a database logger
    * @param context The logger context
+   * @param className The name of the class
    * @returns A database logger instance
    */
-  private static createDatabaseLogger(context: Record<string, unknown>): LoggerPort {
+  private static createDatabaseLogger(context: Record<string, unknown>, className?: string): LoggerPort {
     const logRepository = new SQLLogRepository();
-    return new DBLogger(logRepository, context);
+    return new DBLogger(logRepository, context, className);
   }
 } 

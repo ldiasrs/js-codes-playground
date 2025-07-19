@@ -5,21 +5,23 @@ import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/L
  */
 export class ConsoleLogger implements LoggerPort {
   private context: LogContext;
+  private className?: string;
 
-  constructor(context: LogContext = {}) {
+  constructor(context: LogContext = {}, className?: string) {
     this.context = context;
+    this.className = className;
   }
 
   debug(message: string, context?: LogContext): void {
-    this.log(LogLevel.DEBUG, message, context);
+    this.log(LogLevel.DEBUG, this.formatMessage(message), context);
   }
 
   info(message: string, context?: LogContext): void {
-    this.log(LogLevel.INFO, message, context);
+    this.log(LogLevel.INFO, this.formatMessage(message), context);
   }
 
   warn(message: string, context?: LogContext): void {
-    this.log(LogLevel.WARN, message, context);
+    this.log(LogLevel.WARN, this.formatMessage(message), context);
   }
 
   error(message: string, error?: Error, context?: LogContext): void {
@@ -29,7 +31,7 @@ export class ConsoleLogger implements LoggerPort {
     const logEntry = {
       timestamp,
       level: 'ERROR',
-      message,
+      message: this.formatMessage(message),
       error: error?.message,
       stack: error?.stack,
       ...mergedContext
@@ -45,7 +47,7 @@ export class ConsoleLogger implements LoggerPort {
     const logEntry = {
       timestamp,
       level: level.toUpperCase(),
-      message,
+      message: this.formatMessage(message),
       ...mergedContext
     };
 
@@ -68,6 +70,10 @@ export class ConsoleLogger implements LoggerPort {
   }
 
   child(context: LogContext): LoggerPort {
-    return new ConsoleLogger({ ...this.context, ...context });
+    return new ConsoleLogger({ ...this.context, ...context }, this.className);
+  }
+
+  private formatMessage(message: string): string {
+    return this.className ? `${this.className}: ${message}` : message;
   }
 } 

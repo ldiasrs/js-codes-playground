@@ -87,31 +87,29 @@ export class NextJSContainer implements Container {
     this.registerSingleton('LogRepository', () => new SQLLogRepository());
 
     // Register ports
-    this.registerSingleton('AIPromptExecutorPort', () => AIPromptExecutorFactory.createGeminiExecutor(this.get('Logger')));
-    this.registerSingleton('PromptBuilder', () => new PromptBuilder(this.get('Logger')));
-    this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(this.get('Logger')));
-    this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(this.get('Logger')));
-    this.registerSingleton('SendTopicClosedEmailPort', () => new NodemailerTopicClosedEmailSender(this.get('Logger')));
+    this.registerSingleton('AIPromptExecutorPort', () => AIPromptExecutorFactory.createGeminiExecutor(LoggerFactory.createLoggerForClass('AIPromptExecutor')));
+    this.registerSingleton('PromptBuilder', () => new PromptBuilder(LoggerFactory.createLoggerForClass('PromptBuilder')));
+    this.registerSingleton('SendTopicHistoryByEmailPort', () => new NodemailerTopicHistoryEmailSender(LoggerFactory.createLoggerForClass('NodemailerTopicHistoryEmailSender')));
+    this.registerSingleton('VerificationCodeSender', () => new NodemailerVerificationCodeSender(LoggerFactory.createLoggerForClass('NodemailerVerificationCodeSender')));
+    this.registerSingleton('SendTopicClosedEmailPort', () => new NodemailerTopicClosedEmailSender(LoggerFactory.createLoggerForClass('NodemailerTopicClosedEmailSender')));
 
-    // Register shared services
-    this.registerSingleton('Logger', () => LoggerFactory.createLoggerFromConfig());
 
     // Register infrastructure services
     this.registerSingleton('CleanOldLogsProcess', () => new CleanOldLogsProcess(
       this.get('LogRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('CleanOldLogsProcess')
     ));
 
     this.registerSingleton('ProcessInfrastuctureWorkflow', () => new ProcessInfrastuctureWorkflow(
       this.get('CleanOldLogsProcess'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('ProcessInfrastuctureWorkflow')
     ));
 
     // Register use cases
     this.registerSingleton('CreateCustomerFeature', () => new CreateCustomerFeature(
       this.get('CustomerRepository'),
       this.get('TopicRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('CreateCustomerFeature')
     ));
 
     this.registerSingleton('DeleteCustomerFeature', () => new DeleteCustomerFeature(
@@ -123,30 +121,30 @@ export class NextJSContainer implements Container {
       this.get('CustomerRepository'),
       this.get('VerificationCodeSender'),
       this.get('AuthenticationAttemptRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('LoginFeature')
     ));
 
     this.registerSingleton('VerifyAuthCodeFeature', () => new VerifyAuthCodeFeature(
       this.get('CustomerRepository'),
       this.get('AuthenticationAttemptRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('VerifyAuthCodeFeature')
     ));
 
     this.registerSingleton('AddTopicFeature', () => new AddTopicFeature(
       this.get('TopicRepository'),
       this.get('CustomerRepository'),
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('AddTopicFeature')
     ));
 
     this.registerSingleton('UpdateTopicFeature', () => new UpdateTopicFeature(
       this.get('TopicRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('UpdateTopicFeature')
     ));
 
     this.registerSingleton('CloseTopicFeature', () => new CloseTopicFeature(
       this.get('TopicRepository'),
-      this.get('Logger'),
+      LoggerFactory.createLoggerForClass('CloseTopicFeature'),
       this.get('CustomerRepository'),
       this.get('SendTopicClosedEmailPort')
     ));
@@ -155,19 +153,19 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('DeleteTopicFeature')
     ));
 
     this.registerSingleton('GetAllTopicsFeature', () => new GetAllTopicsFeature(
       this.get('TopicRepository'),
       this.get('CustomerRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('GetAllTopicsFeature')
     ));
 
     this.registerSingleton('GetTopicHistoriesFeature', () => new GetTopicHistoriesFeature(
       this.get('TopicHistoryRepository'),
       this.get('TopicRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('GetTopicHistoriesFeature')
     ));
 
     this.registerSingleton('GenerateAndEmailTopicHistoryFeature', () => new GenerateAndEmailTopicHistoryFeature(
@@ -184,12 +182,12 @@ export class NextJSContainer implements Container {
       this.get('ReGenerateTopicHistoryTaskRunner'),
       this.get('GenerateTopicHistoryTaskRunner'),
       this.get('SendTopicHistoryTaskRunner'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('ProcessTopicHistoryWorkflowFeature')
     ));
 
     this.registerSingleton('TasksProcessExecutor', () => new TasksProcessExecutor(
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('TasksProcessExecutor')
     ));
 
     // Register runners
@@ -199,7 +197,7 @@ export class NextJSContainer implements Container {
       this.get('AIPromptExecutorPort'),
       this.get('PromptBuilder'),
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('SendTopicHistoryTaskRunner')
     ));
 
     this.registerSingleton('SendTopicHistoryTaskRunner', () => new SendTopicHistoryTaskRunner(
@@ -208,7 +206,7 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('SendTopicHistoryByEmailPort'),
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner')
     ));
 
     this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
@@ -216,12 +214,12 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CloseTopicFeature'),
-      this.get('Logger'),
+      LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner'),
     ));
 
     this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
       this.get('TaskProcessRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('ReGenerateTopicHistoryTaskRunner')
     ));
 
     this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
@@ -229,7 +227,7 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
       this.get('CustomerRepository'),
-      this.get('Logger')
+      LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
     ));
 
     // Register commands

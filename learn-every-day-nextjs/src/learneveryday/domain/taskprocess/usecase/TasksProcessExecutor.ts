@@ -68,7 +68,7 @@ export class TasksProcessExecutor {
         const completedTask = runningTask.updateStatus('completed');
         await this.taskProcessRepository.save(completedTask);
 
-        this.logger.info(`Successfully processed task: ${task.id}`, {
+        this.logger.info(`Successfully processed task: ${task.type}`, {
           taskId: task.id,
           processType: task.type,
           customerId: task.customerId,
