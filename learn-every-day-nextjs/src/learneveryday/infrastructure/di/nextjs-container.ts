@@ -206,7 +206,7 @@ export class NextJSContainer implements Container {
       this.get('TopicHistoryRepository'),
       this.get('SendTopicHistoryByEmailPort'),
       this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner')
+      LoggerFactory.createLoggerForClass('SendTopicHistoryTaskRunner')
     ));
 
     this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
