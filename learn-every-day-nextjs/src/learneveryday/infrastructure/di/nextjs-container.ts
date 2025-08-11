@@ -29,6 +29,10 @@ import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/
 import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
 import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/generate-topic-history/GenerateAndSaveTopicHistoryFeature';
+import { SendTopicHistoryTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
+import { ReGenerateTopicsTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/ReGenerateTopicsTaskScheduler';
+import { CloseTopicTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/CloseTopicTaskScheduler';
+import { ProcessFailedTopicsTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/ProcessFailedTopicsTaskScheduler';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
 // Runners
@@ -199,10 +203,31 @@ export class NextJSContainer implements Container {
     ));
 
     // Register runners
+    // Register schedulers used by GenerateTopicHistoryTaskRunner
+    this.registerSingleton('SendTopicHistoryTaskScheduler', () => new SendTopicHistoryTaskScheduler(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('SendTopicHistoryTaskScheduler')
+    ));
+    this.registerSingleton('ReGenerateTopicsTaskScheduler', () => new ReGenerateTopicsTaskScheduler(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('ReGenerateTopicsTaskScheduler')
+    ));
+    this.registerSingleton('CloseTopicTaskScheduler', () => new CloseTopicTaskScheduler(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('CloseTopicTaskScheduler')
+    ));
+    this.registerSingleton('ProcessFailedTopicsTaskScheduler', () => new ProcessFailedTopicsTaskScheduler(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskScheduler')
+    ));
+
     this.registerSingleton('GenerateTopicHistoryTaskRunner', () => new GenerateTopicHistoryTaskRunner(
       this.get('TopicRepository'),
       this.get('GenerateAndSaveTopicHistoryFeature'),
-      this.get('TaskProcessRepository'),
+      this.get('SendTopicHistoryTaskScheduler'),
+      this.get('ReGenerateTopicsTaskScheduler'),
+      this.get('CloseTopicTaskScheduler'),
+      this.get('ProcessFailedTopicsTaskScheduler'),
       LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
     ));
 
