@@ -1,7 +1,7 @@
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { GenerateTopicHistoryTaskRunner } from './GenerateTopicHistoryTaskRunner';
+import { GenerateTopicHistoryTaskRunner } from './generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 

@@ -1,10 +1,10 @@
-import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
-import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
-import { TopicHistory } from '../entities/TopicHistory';
-import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
-import { Topic } from '../../topic/entities/Topic';
+import { TaskProcess } from '../../../taskprocess/entities/TaskProcess';
+import { TaskProcessRunner } from '../../../taskprocess/ports/TaskProcessRunner';
+import { TopicHistory } from '../../entities/TopicHistory';
+import { TopicRepositoryPort } from '../../../topic/ports/TopicRepositoryPort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { TaskProcessRepositoryPort } from '../../../taskprocess/ports/TaskProcessRepositoryPort';
+import { Topic } from '../../../topic/entities/Topic';
 import { GenerateAndSaveTopicHistoryFeature } from './GenerateAndSaveTopicHistoryFeature';
 
 export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {

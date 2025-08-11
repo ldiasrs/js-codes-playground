@@ -1,9 +1,9 @@
-import { TopicHistory } from '../entities/TopicHistory';
-import { Topic } from '../../topic/entities/Topic';
-import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { AIPromptExecutorPort } from '../ports/AIPromptExecutorPort';
-import { PromptBuilder, MainTopicsPromptData, DetailedContentPromptData } from '../services/PromptBuilder';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
+import { TopicHistory } from '../../entities/TopicHistory';
+import { Topic } from '../../../topic/entities/Topic';
+import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
+import { AIPromptExecutorPort } from '../../ports/AIPromptExecutorPort';
+import { PromptBuilder, MainTopicsPromptData, DetailedContentPromptData } from '../../services/PromptBuilder';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
 
 /**
  * Feature responsible for generating and saving topic history content

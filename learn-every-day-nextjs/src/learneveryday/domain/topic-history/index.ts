@@ -12,5 +12,5 @@ export { PromptBuilder } from './services/PromptBuilder';
 export type { PromptBuilderData } from './services/PromptBuilder';
 
 // Runners
-export { GenerateTopicHistoryTaskRunner } from './usecase/GenerateTopicHistoryTaskRunner';
+export { GenerateTopicHistoryTaskRunner } from './usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
 export { SendTopicHistoryTaskRunner } from './usecase/SendTopicHistoryTaskRunner'; 
