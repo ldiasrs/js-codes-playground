@@ -2,19 +2,15 @@ import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { TaskProcessRunner } from '../../taskprocess/ports/TaskProcessRunner';
 import { TopicHistory } from '../entities/TopicHistory';
 import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { AIPromptExecutorPort } from '../ports/AIPromptExecutorPort';
-import { PromptBuilder } from '../services/PromptBuilder';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { Topic } from '../../topic/entities/Topic';
+import { GenerateAndSaveTopicHistoryFeature } from './GenerateAndSaveTopicHistoryFeature';
 
 export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    private readonly aiPromptExecutorPort: AIPromptExecutorPort,
-    private readonly promptBuilder: PromptBuilder,
+    private readonly generateAndSaveTopicHistoryFeature: GenerateAndSaveTopicHistoryFeature,
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort
   ) {}
@@ -29,7 +25,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     const topicId = taskProcess.entityId;
     
     const topic = await this.validateAndGetTopic(topicId);
-    const newHistory = await this.generateAndSaveTopicHistory(topic);
+    const newHistory = await this.generateAndSaveTopicHistoryFeature.execute(topic);
     await this.scheduleSendTaskIfNeeded(newHistory, topic);
     await this.scheduleRegenerateTaskIfNeeded(topic);
     await this.scheduleCloseTopicTaskIfNeeded(topic);
@@ -60,34 +56,7 @@ export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
     return topic;
   }
 
-  /**
-   * Generates and saves new topic history content
-   * @param topic The topic to generate history for
-   * @returns Promise<TopicHistory> The newly created topic history
-   */
-  private async generateAndSaveTopicHistory(topic: Topic): Promise<TopicHistory> {
-    const existingHistory = await this.topicHistoryRepository.findByTopicId(topic.id);
-    
-    const prompt = this.promptBuilder.build({
-      topicSubject: topic.subject,
-      history: existingHistory,
-      customerId: topic.customerId
-    });
 
-    const generatedContent = await this.aiPromptExecutorPort.execute(prompt, topic.customerId);
-
-    const newHistory = new TopicHistory(topic.id, generatedContent);
-    await this.topicHistoryRepository.save(newHistory);
-
-    this.logger.info(`Generated topic history for topic: ${topic.id}`, {
-      topicId: topic.id,
-      topicSubject: topic.subject,
-      customerId: topic.customerId,
-      historyId: newHistory.id
-    });
-
-    return newHistory;
-  }
 
   /**
    * Schedules a send task for the generated topic history if no pending one exists

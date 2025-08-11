@@ -28,6 +28,7 @@ import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeat
 import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
+import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndSaveTopicHistoryFeature';
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
 // Runners
@@ -168,6 +169,13 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('GetTopicHistoriesFeature')
     ));
 
+    this.registerSingleton('GenerateAndSaveTopicHistoryFeature', () => new GenerateAndSaveTopicHistoryFeature(
+      this.get('TopicHistoryRepository'),
+      this.get('AIPromptExecutorPort'),
+      this.get('PromptBuilder'),
+      LoggerFactory.createLoggerForClass('GenerateAndSaveTopicHistoryFeature')
+    ));
+
     this.registerSingleton('GenerateAndEmailTopicHistoryFeature', () => new GenerateAndEmailTopicHistoryFeature(
       this.get('GenerateTopicHistoryTaskRunner'),
       this.get('TopicRepository'),
@@ -193,11 +201,9 @@ export class NextJSContainer implements Container {
     // Register runners
     this.registerSingleton('GenerateTopicHistoryTaskRunner', () => new GenerateTopicHistoryTaskRunner(
       this.get('TopicRepository'),
-      this.get('TopicHistoryRepository'),
-      this.get('AIPromptExecutorPort'),
-      this.get('PromptBuilder'),
+      this.get('GenerateAndSaveTopicHistoryFeature'),
       this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('SendTopicHistoryTaskRunner')
+      LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
     ));
 
     this.registerSingleton('SendTopicHistoryTaskRunner', () => new SendTopicHistoryTaskRunner(
