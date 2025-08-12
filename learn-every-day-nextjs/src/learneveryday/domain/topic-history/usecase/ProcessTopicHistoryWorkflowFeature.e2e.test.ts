@@ -55,6 +55,8 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
   const customerId = 'cust-e2e-1';
   const topicId = 'topic-e2e-1';
   const secondTopicId = 'topic-e2e-2';
+  const DEFAULT_LIMIT = 10;
+  const DEFAULT_MAX_EXECUTION_TIME_MS = 10000;
 
   beforeEach(() => {
     // Logger
@@ -233,8 +235,7 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
     } as unknown as jest.Mocked<SendTopicHistoryByEmailPort>;
   });
 
-  it('should execute all processes end-to-end with only ports mocked', async () => {
-    // Compose real features/runners
+  function buildWorkflow(): ProcessTopicHistoryWorkflowFeature {
     const getStuck = new GetStuckTasksProcessor(taskProcessRepository, logger);
     const filterReprocess = new FilterReprocessableTasksProcessor(logger);
     const reprocess = new ReprocessStuckTasksProcessor(taskProcessRepository, logger);
@@ -284,7 +285,7 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
       logger
     );
 
-    const workflow = new ProcessTopicHistoryWorkflowFeature(
+    return new ProcessTopicHistoryWorkflowFeature(
       taskProcessRepository,
       processFailedRunner,
       closeTopicsRunner,
@@ -293,41 +294,66 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
       sendRunner,
       logger
     );
+  }
 
-    // Add some stuck tasks to be reprocessed by the first step
+  it('reprocesses stuck tasks in process-failed-topics step', async () => {
+    const workflow = buildWorkflow();
     const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
     const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
     tasksStore.push(failedTask, runningTask);
-
-    // Execute workflow
-    await workflow.execute({ limit: 10, maxExecutionTimeMs: 10000 });
-
-    // Verify process-failed-topics step reprocessed stuck tasks (at least once to pending)
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ id: failedTask.id, status: 'pending' }));
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ id: runningTask.id, status: 'pending' }));
+  });
 
-    // Verify close-topic step closed eligible topic and cancelled tasks
-    // secondTopicId has 4 histories => should be closed by CloseTopicFeature
+  it('closes eligible topics and cancels related tasks', async () => {
+    const workflow = buildWorkflow();
+    const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
+    const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
+    tasksStore.push(failedTask, runningTask);
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(topicRepository.save).toHaveBeenCalledWith(expect.objectContaining({ id: secondTopicId, closed: true }));
     expect(sendTopicClosedEmailPort.send).toHaveBeenCalled();
-    // Cancellation saves should have happened for tasks of closed topics
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'cancelled' }));
+  });
 
-    // Verify re-generate step scheduled new generate tasks (based on Standard tier 3 per 24h, with 1 pending)
+  it('schedules new generate tasks during re-generate step (tier limits respected)', async () => {
+    const workflow = buildWorkflow();
+    const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
+    const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
+    tasksStore.push(failedTask, runningTask);
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(taskProcessRepository.searchProcessedTasks).toHaveBeenCalledWith(expect.objectContaining({ customerId }));
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ type: TaskProcess.GENERATE_TOPIC_HISTORY, status: 'pending' }));
+  });
 
-    // Verify generate-topic-history step created a new history and scheduled subsequent tasks
+  it('generates a topic history and schedules subsequent tasks', async () => {
+    const workflow = buildWorkflow();
+    const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
+    const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
+    tasksStore.push(failedTask, runningTask);
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(topicHistoryRepository.save).toHaveBeenCalled();
-    // Send scheduler should have created and the executor should have processed SEND tasks
     const hasSendTaskAny = tasksStore.some(t => t.type === TaskProcess.SEND_TOPIC_HISTORY);
     expect(hasSendTaskAny).toBe(true);
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ type: TaskProcess.SEND_TOPIC_HISTORY, status: 'completed' }));
+  });
 
-    // Verify send-topic-history step sent the email
+  it('sends the topic history email', async () => {
+    const workflow = buildWorkflow();
+    const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
+    const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
+    tasksStore.push(failedTask, runningTask);
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(sendTopicHistoryByEmailPort.send).toHaveBeenCalled();
+  });
 
-    // Ensure each process type executed: look for saves to 'completed' for each type
+  it('marks each process type as completed', async () => {
+    const workflow = buildWorkflow();
+    const failedTask = new TaskProcess(topicId, customerId, TaskProcess.GENERATE_TOPIC_HISTORY, 'failed', undefined, 'The model is overloaded. Please try again later.');
+    const runningTask = new TaskProcess(topicId, customerId, TaskProcess.SEND_TOPIC_HISTORY, 'running');
+    tasksStore.push(failedTask, runningTask);
+    await workflow.execute({ limit: DEFAULT_LIMIT, maxExecutionTimeMs: DEFAULT_MAX_EXECUTION_TIME_MS });
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ type: TaskProcess.PROCESS_FAILED_TOPICS, status: 'completed' }));
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ type: TaskProcess.CLOSE_TOPIC, status: 'completed' }));
     expect(taskProcessRepository.save).toHaveBeenCalledWith(expect.objectContaining({ type: TaskProcess.REGENERATE_TOPICS_HISTORIES, status: 'completed' }));
