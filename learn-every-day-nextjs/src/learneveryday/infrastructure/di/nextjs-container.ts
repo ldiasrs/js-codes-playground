@@ -27,7 +27,7 @@ import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeatur
 import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
 import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
-import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/generate-topic-history/GenerateAndSaveTopicHistoryFeature';
+import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/generate-topic-history/GenerateAndSaveTopicHistory';
 import { SendTopicHistoryTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
 import { ReGenerateTopicsTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/ReGenerateTopicsTaskScheduler';
 import { CloseTopicTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/CloseTopicTaskScheduler';
@@ -38,12 +38,12 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
-import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesFeature';
-import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopics';
+import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesProcessor';
+import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsProcessor';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksFeature';
-import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasks';
-import { ReprocessStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksFeature';
+import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksProcessor';
+import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasksProcessor';
+import { ReprocessStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksProcessor';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -62,11 +62,11 @@ import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQ
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
-import { ValidateCustomerFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerFeature';
-import { CreateConfigFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigFeature';
-import { AnalyzeTasksFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/AnalyzeTasksFeature';
-import { SelectTopicsForProcessingFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsForProcessingFeature';
-import { ScheduleGenerateTasksBatchFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchFeature';
+import { ValidateCustomerFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerProcessor';
+import { CreateConfigFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigProcessor';
+import { AnalyzeTasksFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/AnalyzeTasksProcessor';
+import { SelectTopicsForProcessingFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchProcessor';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
 // Infrastructure Services

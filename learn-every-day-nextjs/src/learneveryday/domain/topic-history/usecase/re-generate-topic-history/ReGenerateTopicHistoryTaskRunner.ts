@@ -1,10 +1,10 @@
 import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { ValidateCustomerFeature } from "./ValidateCustomerFeature";
-import { CreateConfigFeature, ReGenerateTopicHistoryConfig } from "./CreateConfigFeature";
-import { AnalyzeTasksFeature, TaskAnalysis } from "./AnalyzeTasksFeature";
-import { SelectTopicsForProcessingFeature } from "./SelectTopicsForProcessingFeature";
-import { ScheduleGenerateTasksBatchFeature } from "./ScheduleGenerateTasksBatchFeature";
+import { ValidateCustomerFeature } from "./ValidateCustomerProcessor";
+import { CreateConfigFeature, ReGenerateTopicHistoryConfig } from "./CreateConfigProcessor";
+import { AnalyzeTasksFeature, TaskAnalysis } from "./AnalyzeTasksProcessor";
+import { SelectTopicsForProcessingFeature } from "./SelectTopicsProcessor";
+import { ScheduleGenerateTasksBatchFeature } from "./ScheduleGenerateTasksBatchProcessor";
 
 // Interfaces moved to dedicated features
 
