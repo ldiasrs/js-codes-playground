@@ -39,10 +39,10 @@ import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/useca
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '../../domain/topic-history/usecase/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
-import { RemoveTasksFromClosedTopicsProcessor } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsProcessor';
+import { RemoveTasksFromClosedTopicsProcessor } from '../../domain/topic-history/usecase/close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { GetStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksProcessor';
-import { ReprocessStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksProcessor';
+import { GetStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/processor/GetStuckTasksProcessor';
+import { ReprocessStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/processor/ReprocessStuckTasksProcessor';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -66,12 +66,12 @@ import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usec
 import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsProcessor';
 import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchProcessor';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
+import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/AnalyzeTasksProcessor';
+import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
 
 // Infrastructure Services
 import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';
 import { CleanOldLogsProcess } from '../adapters/loggers/CleanOldLogsProcess';
-import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase';
-import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
 
 export interface Container {
   get<T>(token: string): T;
