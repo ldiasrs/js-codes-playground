@@ -41,6 +41,9 @@ import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-
 import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesFeature';
 import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsFeature';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
+import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksFeature';
+import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasksFeature';
+import { ReprocessStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksFeature';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -255,9 +258,24 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner'),
     ));
 
-    this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
+    // Process-failed-topics features
+    this.registerSingleton('GetStuckTasksFeature', () => new GetStuckTasksFeature(
       this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('ReGenerateTopicHistoryTaskRunner')
+      LoggerFactory.createLoggerForClass('GetStuckTasksFeature')
+    ));
+    this.registerSingleton('FilterReprocessableTasksFeature', () => new FilterReprocessableTasksFeature(
+      LoggerFactory.createLoggerForClass('FilterReprocessableTasksFeature')
+    ));
+    this.registerSingleton('ReprocessStuckTasksFeature', () => new ReprocessStuckTasksFeature(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('ReprocessStuckTasksFeature')
+    ));
+
+    this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
+      this.get('GetStuckTasksFeature'),
+      this.get('FilterReprocessableTasksFeature'),
+      this.get('ReprocessStuckTasksFeature'),
+      LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskRunner')
     ));
 
     this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
