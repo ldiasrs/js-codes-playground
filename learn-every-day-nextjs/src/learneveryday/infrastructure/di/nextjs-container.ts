@@ -244,13 +244,13 @@ export class NextJSContainer implements Container {
     ));
 
     // Close-topic features
-    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesFeature', () => new CheckAndCloseTopicsWithManyHistoriesProcessor(
+    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesProcessor', () => new CheckAndCloseTopicsWithManyHistoriesProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('CloseTopicFeature'),
       LoggerFactory.createLoggerForClass('CheckAndCloseTopicsWithManyHistoriesFeature')
     ));
-    this.registerSingleton('RemoveTasksFromClosedTopicsFeature', () => new RemoveTasksFromClosedTopicsProcessor(
+    this.registerSingleton('RemoveTasksFromClosedTopicsProcessor', () => new RemoveTasksFromClosedTopicsProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
@@ -258,62 +258,62 @@ export class NextJSContainer implements Container {
     ));
 
     this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
-      this.get('CheckAndCloseTopicsWithManyHistoriesFeature'),
-      this.get('RemoveTasksFromClosedTopicsFeature'),
+      this.get('CheckAndCloseTopicsWithManyHistoriesProcessor'),
+      this.get('RemoveTasksFromClosedTopicsProcessor'),
       LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner'),
     ));
 
     // Process-failed-topics features
-    this.registerSingleton('GetStuckTasksFeature', () => new GetStuckTasksProcessor(
+    this.registerSingleton('GetStuckTasksProcessor', () => new GetStuckTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('GetStuckTasksFeature')
     ));
-    this.registerSingleton('FilterReprocessableTasksFeature', () => new FilterReprocessableTasksProcessor(
+    this.registerSingleton('FilterReprocessableTasksProcessor', () => new FilterReprocessableTasksProcessor(
       LoggerFactory.createLoggerForClass('FilterReprocessableTasksFeature')
     ));
-    this.registerSingleton('ReprocessStuckTasksFeature', () => new ReprocessStuckTasksProcessor(
+    this.registerSingleton('ReprocessStuckTasksProcessor', () => new ReprocessStuckTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('ReprocessStuckTasksFeature')
     ));
 
     this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
-      this.get('GetStuckTasksFeature'),
-      this.get('FilterReprocessableTasksFeature'),
-      this.get('ReprocessStuckTasksFeature'),
+      this.get('GetStuckTasksProcessor'),
+      this.get('FilterReprocessableTasksProcessor'),
+      this.get('ReprocessStuckTasksProcessor'),
       LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskRunner')
     ));
 
     // Re-generate-topic-history features
-    this.registerSingleton('ValidateCustomerFeature', () => new ValidateCustomerProcessor(
+    this.registerSingleton('ValidateCustomerProcessor', () => new ValidateCustomerProcessor(
       this.get('CustomerRepository'),
       LoggerFactory.createLoggerForClass('ValidateCustomerFeature')
     ));
-    this.registerSingleton('CreateConfigFeature', () => new CreateConfigProcessor(
+    this.registerSingleton('CreateConfigProcessor', () => new CreateConfigProcessor(
       LoggerFactory.createLoggerForClass('CreateConfigFeature'),
       50
     ));
-    this.registerSingleton('AnalyzeTasksFeature', () => new AnalyzeTasksProcessor(
+    this.registerSingleton('AnalyzeTasksProcessor', () => new AnalyzeTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('AnalyzeTasksFeature')
     ));
-    this.registerSingleton('SelectTopicsForProcessingFeature', () => new SelectTopicsProcessor(
+    this.registerSingleton('SelectTopicsProcessor', () => new SelectTopicsProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       LoggerFactory.createLoggerForClass('SelectTopicsForProcessingFeature'),
       5,
       5
     ));
-    this.registerSingleton('ScheduleGenerateTasksBatchFeature', () => new ScheduleGenerateTasksBatchProcessor(
+    this.registerSingleton('ScheduleGenerateTasksBatchProcessor', () => new ScheduleGenerateTasksBatchProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('ScheduleGenerateTasksBatchFeature')
     ));
 
     this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
-      this.get('ValidateCustomerFeature'),
-      this.get('CreateConfigFeature'),
-      this.get('AnalyzeTasksFeature'),
-      this.get('SelectTopicsForProcessingFeature'),
-      this.get('ScheduleGenerateTasksBatchFeature'),
+      this.get('ValidateCustomerProcessor'),
+      this.get('CreateConfigProcessor'),
+      this.get('AnalyzeTasksProcessor'),
+      this.get('SelectTopicsProcessor'),
+      this.get('ScheduleGenerateTasksBatchProcessor'),
       LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
     ));
 
