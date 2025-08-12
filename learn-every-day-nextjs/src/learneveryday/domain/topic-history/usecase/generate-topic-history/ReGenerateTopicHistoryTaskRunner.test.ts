@@ -119,10 +119,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       mockTopicHistoryRepository,
       mockTaskProcessRepository,
       mockCustomerRepository,
-      mockLogger,
-      ReGenerateTopicHistoryTaskRunner.BATCH_SIZE_LIMIT,
-      ReGenerateTopicHistoryTaskRunner.CONCURRENCY_LIMIT,
-      ReGenerateTopicHistoryTaskRunner.MAX_HISTORIES_BEFORE_CLOSE
+      mockLogger
     );
   });
 
