@@ -4,7 +4,7 @@ import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRe
 import { GenerateTopicHistoryTaskRunner } from './generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
-import { CloseTopicsTaskRunner } from './CloseTopicsTaskRunner';
+import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 import { ProcessFailedTopicsTaskRunner } from './ProcessFailedTopicsTaskRunner';
 import { TasksProcessExecutor } from '../../taskprocess';
 

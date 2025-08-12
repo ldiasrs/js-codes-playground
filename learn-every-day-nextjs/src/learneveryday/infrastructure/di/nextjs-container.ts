@@ -38,7 +38,7 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 // Runners
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/CloseTopicsTaskRunner';
+import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/ProcessFailedTopicsTaskRunner';
 
 // Commands

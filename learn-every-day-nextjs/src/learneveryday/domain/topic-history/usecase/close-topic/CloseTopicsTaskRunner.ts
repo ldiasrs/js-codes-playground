@@ -1,11 +1,11 @@
-import { TaskProcess, TaskProcessType } from "../../taskprocess/entities/TaskProcess";
-import { TaskProcessRunner } from "../../taskprocess/ports/TaskProcessRunner";
-import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRepositoryPort";
-import { TopicRepositoryPort } from "../../topic/ports/TopicRepositoryPort";
-import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
-import { LoggerPort } from "../../shared/ports/LoggerPort";
-import { Topic } from "../../topic/entities/Topic";
-import { CloseTopicFeature } from "../../topic/usecase/CloseTopicFeature";
+import { TaskProcess, TaskProcessType } from "../../../taskprocess/entities/TaskProcess";
+import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
+import { TaskProcessRepositoryPort } from "../../../taskprocess/ports/TaskProcessRepositoryPort";
+import { TopicRepositoryPort } from "../../../topic/ports/TopicRepositoryPort";
+import { TopicHistoryRepositoryPort } from "../../ports/TopicHistoryRepositoryPort";
+import { LoggerPort } from "../../../shared/ports/LoggerPort";
+import { Topic } from "../../../topic/entities/Topic";
+import { CloseTopicFeature } from "../../../topic/usecase/CloseTopicFeature";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   private static readonly MAX_HISTORIES_BEFORE_CLOSE = 4;
