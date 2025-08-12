@@ -61,10 +61,10 @@ import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQ
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
-import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerProcessor';
-import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigProcessor';
-import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchProcessor';
+import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/ValidateCustomerProcessor';
+import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/CreateConfigProcessor';
+import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/ScheduleGenerateTasksBatchProcessor';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/AnalyzeTasksProcessor';
 import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
