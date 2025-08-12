@@ -1,7 +1,7 @@
-import { TaskProcess } from "../../taskprocess/entities/TaskProcess";
-import { TaskProcessRunner } from "../../taskprocess/ports/TaskProcessRunner";
-import { TaskProcessRepositoryPort } from "../../taskprocess/ports/TaskProcessRepositoryPort";
-import { LoggerPort } from "../../shared/ports/LoggerPort";
+import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
+import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
+import { TaskProcessRepositoryPort } from "../../../taskprocess/ports/TaskProcessRepositoryPort";
+import { LoggerPort } from "../../../shared/ports/LoggerPort";
 
 export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   private static readonly ALLOW_REPROCESS_ERRORS = [

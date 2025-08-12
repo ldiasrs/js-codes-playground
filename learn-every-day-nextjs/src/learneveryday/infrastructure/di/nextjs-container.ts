@@ -40,7 +40,7 @@ import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/S
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesFeature';
 import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsFeature';
-import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/ProcessFailedTopicsTaskRunner';
+import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';

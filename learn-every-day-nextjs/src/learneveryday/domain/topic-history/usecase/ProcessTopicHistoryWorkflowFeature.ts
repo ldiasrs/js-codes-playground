@@ -5,7 +5,7 @@ import { GenerateTopicHistoryTaskRunner } from './generate-topic-history/Generat
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
-import { ProcessFailedTopicsTaskRunner } from './ProcessFailedTopicsTaskRunner';
+import { ProcessFailedTopicsTaskRunner } from './process-failed-topics/ProcessFailedTopicsTaskRunner';
 import { TasksProcessExecutor } from '../../taskprocess';
 
 export interface ProcessTopicHistoryWorkflowFeatureData {
