@@ -39,7 +39,7 @@ import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/useca
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesFeature';
-import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsFeature';
+import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopics';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
 import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksFeature';
 import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasks';

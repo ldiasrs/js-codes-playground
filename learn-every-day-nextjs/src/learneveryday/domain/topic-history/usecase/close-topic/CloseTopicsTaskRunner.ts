@@ -2,7 +2,7 @@ import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
 import { CheckAndCloseTopicsWithManyHistoriesFeature } from "./CheckAndCloseTopicsWithManyHistoriesFeature";
-import { RemoveTasksFromClosedTopicsFeature } from "./RemoveTasksFromClosedTopicsFeature";
+import { RemoveTasksFromClosedTopicsFeature } from "./RemoveTasksFromClosedTopics";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   constructor(
