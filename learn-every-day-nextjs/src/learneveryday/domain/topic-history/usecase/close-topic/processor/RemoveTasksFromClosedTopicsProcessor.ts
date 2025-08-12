@@ -1,9 +1,8 @@
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
-import { Topic } from '../../../topic/entities/Topic';
-import { TopicRepositoryPort } from '../../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { TaskProcess, TaskProcessType } from '../../../taskprocess/entities/TaskProcess';
-import { TaskProcessRepositoryPort } from '../../../taskprocess/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from "@/learneveryday/domain/shared";
+import { TaskProcessRepositoryPort, TaskProcess, TaskProcessType } from "@/learneveryday/domain/taskprocess";
+import { Topic } from "@/learneveryday/domain/topic/entities/Topic";
+import { TopicRepositoryPort } from "@/learneveryday/domain/topic/ports/TopicRepositoryPort";
+import { TopicHistoryRepositoryPort } from "../../../ports/TopicHistoryRepositoryPort";
 
 /**
  * Cancels pending tasks related to closed topics for a customer.

@@ -1,8 +1,8 @@
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
-import { Topic } from '../../../topic/entities/Topic';
-import { TopicRepositoryPort } from '../../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { CloseTopicFeature } from '../../../topic/usecase/CloseTopicFeature';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { Topic } from '../../../../topic/entities/Topic';
+import { TopicRepositoryPort } from '../../../../topic/ports/TopicRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../../../ports/TopicHistoryRepositoryPort';
+import { CloseTopicFeature } from '../../../../topic/usecase/CloseTopicFeature';
 
 const MAX_HISTORIES_BEFORE_CLOSE = 4 as const;
 

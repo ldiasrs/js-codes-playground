@@ -2,7 +2,7 @@ import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
 import { GetStuckTasksProcessor } from "./GetStuckTasksProcessor";
-import { FilterReprocessableTasksProcessor } from "./FilterReprocessableTasksProcessor";
+import { FilterReprocessableTasksProcessor } from "./processor/FilterReprocessableTasksProcessor";
 import { ReprocessStuckTasksProcessor } from "./ReprocessStuckTasksProcessor";
 
 export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {

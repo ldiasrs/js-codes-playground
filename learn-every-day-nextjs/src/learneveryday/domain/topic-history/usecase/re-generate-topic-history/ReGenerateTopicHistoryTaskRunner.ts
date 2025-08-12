@@ -2,9 +2,9 @@ import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
 import { ValidateCustomerProcessor } from "./ValidateCustomerProcessor";
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from "./CreateConfigProcessor";
-import { AnalyzeTasksProcessor, TaskAnalysis } from "./AnalyzeTasksProcessor";
-import { SelectTopicsProcessor } from "./SelectTopicsProcessor";
-import { ScheduleGenerateTasksBatchProcessor } from "./ScheduleGenerateTasksBatchProcessor";
+import { AnalyzeTasksProcessor, TaskAnalysis } from "./processor/AnalyzeTasksProcessor";
+import { SelectTopicsProcessor } from "./processor/SelectTopicsProcessor";
+import { ScheduleGenerateTasksBatchProcessor } from "./processor/ScheduleGenerateTasksBatchProcessor";
 
 // Interfaces moved to dedicated features
 

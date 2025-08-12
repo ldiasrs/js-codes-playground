@@ -1,13 +1,13 @@
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
 import { ValidateCustomerProcessor } from './ValidateCustomerProcessor';
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './CreateConfigProcessor';
-import { AnalyzeTasksProcessor, TaskAnalysis } from './AnalyzeTasksProcessor';
-import { SelectTopicsProcessor } from './SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from './ScheduleGenerateTasksBatchProcessor';
-import { TaskProcess } from '../../../taskprocess/entities/TaskProcess';
-import { Topic } from '../../../topic/entities/Topic';
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
-import { Customer, CustomerTier } from '../../../customer/entities/Customer';
+import { AnalyzeTasksProcessor, TaskAnalysis } from './processor/AnalyzeTasksProcessor';
+import { SelectTopicsProcessor } from './processor/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from './processor/ScheduleGenerateTasksBatchProcessor';
+import { TaskProcess } from '@/learneveryday/domain/taskprocess';
+import { Topic } from '@/learneveryday/domain/topic/entities/Topic';
+import { LoggerPort } from '@/learneveryday/domain/shared';
+import { Customer, CustomerTier } from '@/learneveryday/domain/customer';
 
 describe('ReGenerateTopicHistoryTaskRunner', () => {
   let taskRunner: ReGenerateTopicHistoryTaskRunner;

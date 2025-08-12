@@ -1,7 +1,7 @@
-import { TopicRepositoryPort } from '../../../topic/ports/TopicRepositoryPort';
-import { Topic } from '../../../topic/entities/Topic';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { LoggerPort } from "@/learneveryday/domain/shared";
+import { Topic } from "@/learneveryday/domain/topic/entities/Topic";
+import { TopicRepositoryPort } from "@/learneveryday/domain/topic/ports/TopicRepositoryPort";
+import { TopicHistoryRepositoryPort } from "../../../ports/TopicHistoryRepositoryPort";
 
 interface TopicWithHistoryCount {
   topic: Topic;

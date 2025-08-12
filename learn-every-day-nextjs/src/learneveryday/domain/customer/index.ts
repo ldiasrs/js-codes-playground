@@ -1,7 +1,7 @@
 // Customer Domain Exports
 
 // Entities
-export type { Customer } from './entities/Customer';
+export  { Customer } from './entities/Customer';
 export { CustomerTier } from './entities/Customer';
 export type { GovIdentification, GovIdentificationType } from './entities/GovIdentification';
 export type { AuthenticationAttempt } from './entities/AuthenticationAttempt';
