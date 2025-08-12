@@ -3,7 +3,7 @@ import { LoggerPort } from "@/learneveryday/domain/shared";
 import { TaskProcessRepositoryPort, TaskProcess } from "@/learneveryday/domain/taskprocess";
 import { Topic } from "@/learneveryday/domain/topic/entities/Topic";
 import { TopicRepositoryPort } from "@/learneveryday/domain/topic/ports/TopicRepositoryPort";
-import { ReGenerateTopicHistoryTaskRunner } from "..";
+import { ReGenerateTopicHistoryTaskRunner } from "./ReGenerateTopicHistoryTaskRunner";
 import { TopicHistoryRepositoryPort } from "../../ports/TopicHistoryRepositoryPort";
 
 describe('ReGenerateTopicHistoryTaskRunner', () => {
@@ -272,7 +272,9 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       // Assert - Should return early without scheduling tasks
       expect(mockTaskProcessRepository.save).not.toHaveBeenCalled();
       expect(mockLogger.error).toHaveBeenCalledWith(
-        `Customer with ID ${customerId} not found`
+        `Customer with ID ${customerId} not found`,
+        undefined,
+        expect.objectContaining({ customerId })
       );
     });
 
