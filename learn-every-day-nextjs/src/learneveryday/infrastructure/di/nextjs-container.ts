@@ -25,7 +25,6 @@ import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeatur
 import { CloseTopicFeature } from '../../domain/topic/usecase/CloseTopicFeature';
 import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
 import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
-import { GenerateAndEmailTopicHistoryFeature } from '../../domain/topic-history/usecase/GenerateAndEmailTopicHistoryFeature';
 import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
 import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
 import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/generate-topic-history/GenerateAndSaveTopicHistoryFeature';
@@ -182,12 +181,6 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('GenerateAndSaveTopicHistoryFeature')
     ));
 
-    this.registerSingleton('GenerateAndEmailTopicHistoryFeature', () => new GenerateAndEmailTopicHistoryFeature(
-      this.get('GenerateTopicHistoryTaskRunner'),
-      this.get('TopicRepository'),
-      this.get('TopicHistoryRepository'),
-      this.get('SendTopicHistoryByEmailPort')
-    ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessTopicHistoryWorkflowFeature(
       this.get('TaskProcessRepository'),
