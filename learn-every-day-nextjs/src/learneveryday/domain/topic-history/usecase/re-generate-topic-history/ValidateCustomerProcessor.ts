@@ -5,7 +5,7 @@ import { Customer } from '../../../customer/entities/Customer';
 /**
  * Validates and loads the customer or returns null and logs when not found.
  */
-export class ValidateCustomerFeature {
+export class ValidateCustomerProcessor {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
     private readonly logger: LoggerPort

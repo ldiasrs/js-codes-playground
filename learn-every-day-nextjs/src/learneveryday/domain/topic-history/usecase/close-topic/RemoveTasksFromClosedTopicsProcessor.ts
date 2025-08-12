@@ -8,7 +8,7 @@ import { TaskProcessRepositoryPort } from '../../../taskprocess/ports/TaskProces
 /**
  * Cancels pending tasks related to closed topics for a customer.
  */
-export class RemoveTasksFromClosedTopicsFeature {
+export class RemoveTasksFromClosedTopicsProcessor {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,

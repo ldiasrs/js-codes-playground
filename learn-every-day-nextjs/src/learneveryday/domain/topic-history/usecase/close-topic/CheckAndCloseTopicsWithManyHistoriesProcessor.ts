@@ -9,7 +9,7 @@ const MAX_HISTORIES_BEFORE_CLOSE = 4 as const;
 /**
  * Checks customer's topics and closes those that reached the maximum histories.
  */
-export class CheckAndCloseTopicsWithManyHistoriesFeature {
+export class CheckAndCloseTopicsWithManyHistoriesProcessor {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,

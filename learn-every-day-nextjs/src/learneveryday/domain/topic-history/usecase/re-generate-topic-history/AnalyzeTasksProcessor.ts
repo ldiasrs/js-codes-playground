@@ -12,7 +12,7 @@ export interface TaskAnalysis {
 /**
  * Loads tasks and builds an analysis memo for the re-generation decision process.
  */
-export class AnalyzeTasksFeature {
+export class AnalyzeTasksProcessor {
   private static readonly HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
 
   constructor(
@@ -21,7 +21,7 @@ export class AnalyzeTasksFeature {
   ) {}
 
   async execute(customerId: string): Promise<TaskAnalysis> {
-    const twentyFourHoursAgo = new Date(Date.now() - AnalyzeTasksFeature.HOURS_24_IN_MS);
+    const twentyFourHoursAgo = new Date(Date.now() - AnalyzeTasksProcessor.HOURS_24_IN_MS);
     const allTasks = await this.getTasksFromLast24Hours(customerId, twentyFourHoursAgo);
     const generateTasks = allTasks.filter(task => task.type === TaskProcess.GENERATE_TOPIC_HISTORY);
     const pendingTasksCount = generateTasks.filter(task => task.status === 'pending').length;

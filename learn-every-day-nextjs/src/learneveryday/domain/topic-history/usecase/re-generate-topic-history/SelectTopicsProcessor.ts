@@ -11,7 +11,7 @@ interface TopicWithHistoryCount {
 /**
  * Selects eligible topics to process next, considering limits and history counts.
  */
-export class SelectTopicsForProcessingFeature {
+export class SelectTopicsProcessor {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,

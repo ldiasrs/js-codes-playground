@@ -38,12 +38,12 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
-import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesProcessor';
-import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsProcessor';
+import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesProcessor';
+import { RemoveTasksFromClosedTopicsProcessor } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsProcessor';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksProcessor';
-import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasksProcessor';
-import { ReprocessStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksProcessor';
+import { GetStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksProcessor';
+import { FilterReprocessableTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasksProcessor';
+import { ReprocessStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksProcessor';
 
 // Commands
 import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
@@ -62,11 +62,11 @@ import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQ
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
 import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
-import { ValidateCustomerFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerProcessor';
-import { CreateConfigFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigProcessor';
-import { AnalyzeTasksFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/AnalyzeTasksProcessor';
-import { SelectTopicsForProcessingFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchProcessor';
+import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerProcessor';
+import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigProcessor';
+import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/AnalyzeTasksProcessor';
+import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchProcessor';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
 // Infrastructure Services
@@ -244,13 +244,13 @@ export class NextJSContainer implements Container {
     ));
 
     // Close-topic features
-    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesFeature', () => new CheckAndCloseTopicsWithManyHistoriesFeature(
+    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesFeature', () => new CheckAndCloseTopicsWithManyHistoriesProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('CloseTopicFeature'),
       LoggerFactory.createLoggerForClass('CheckAndCloseTopicsWithManyHistoriesFeature')
     ));
-    this.registerSingleton('RemoveTasksFromClosedTopicsFeature', () => new RemoveTasksFromClosedTopicsFeature(
+    this.registerSingleton('RemoveTasksFromClosedTopicsFeature', () => new RemoveTasksFromClosedTopicsProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
@@ -264,14 +264,14 @@ export class NextJSContainer implements Container {
     ));
 
     // Process-failed-topics features
-    this.registerSingleton('GetStuckTasksFeature', () => new GetStuckTasksFeature(
+    this.registerSingleton('GetStuckTasksFeature', () => new GetStuckTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('GetStuckTasksFeature')
     ));
-    this.registerSingleton('FilterReprocessableTasksFeature', () => new FilterReprocessableTasksFeature(
+    this.registerSingleton('FilterReprocessableTasksFeature', () => new FilterReprocessableTasksProcessor(
       LoggerFactory.createLoggerForClass('FilterReprocessableTasksFeature')
     ));
-    this.registerSingleton('ReprocessStuckTasksFeature', () => new ReprocessStuckTasksFeature(
+    this.registerSingleton('ReprocessStuckTasksFeature', () => new ReprocessStuckTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('ReprocessStuckTasksFeature')
     ));
@@ -284,26 +284,26 @@ export class NextJSContainer implements Container {
     ));
 
     // Re-generate-topic-history features
-    this.registerSingleton('ValidateCustomerFeature', () => new ValidateCustomerFeature(
+    this.registerSingleton('ValidateCustomerFeature', () => new ValidateCustomerProcessor(
       this.get('CustomerRepository'),
       LoggerFactory.createLoggerForClass('ValidateCustomerFeature')
     ));
-    this.registerSingleton('CreateConfigFeature', () => new CreateConfigFeature(
+    this.registerSingleton('CreateConfigFeature', () => new CreateConfigProcessor(
       LoggerFactory.createLoggerForClass('CreateConfigFeature'),
       50
     ));
-    this.registerSingleton('AnalyzeTasksFeature', () => new AnalyzeTasksFeature(
+    this.registerSingleton('AnalyzeTasksFeature', () => new AnalyzeTasksProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('AnalyzeTasksFeature')
     ));
-    this.registerSingleton('SelectTopicsForProcessingFeature', () => new SelectTopicsForProcessingFeature(
+    this.registerSingleton('SelectTopicsForProcessingFeature', () => new SelectTopicsProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       LoggerFactory.createLoggerForClass('SelectTopicsForProcessingFeature'),
       5,
       5
     ));
-    this.registerSingleton('ScheduleGenerateTasksBatchFeature', () => new ScheduleGenerateTasksBatchFeature(
+    this.registerSingleton('ScheduleGenerateTasksBatchFeature', () => new ScheduleGenerateTasksBatchProcessor(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('ScheduleGenerateTasksBatchFeature')
     ));

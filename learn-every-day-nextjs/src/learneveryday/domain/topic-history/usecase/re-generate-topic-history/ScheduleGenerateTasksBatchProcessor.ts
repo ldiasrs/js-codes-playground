@@ -6,7 +6,7 @@ import { LoggerPort } from '../../../shared/ports/LoggerPort';
 /**
  * Creates and saves GENERATE_TOPIC_HISTORY tasks for selected topics.
  */
-export class ScheduleGenerateTasksBatchFeature {
+export class ScheduleGenerateTasksBatchProcessor {
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort

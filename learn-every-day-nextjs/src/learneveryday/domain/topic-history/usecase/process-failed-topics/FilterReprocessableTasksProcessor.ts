@@ -4,7 +4,7 @@ import { LoggerPort } from '../../../shared/ports/LoggerPort';
 /**
  * Filters stuck tasks to find which ones are eligible for reprocessing.
  */
-export class FilterReprocessableTasksFeature {
+export class FilterReprocessableTasksProcessor {
   private static readonly ALLOW_REPROCESS_ERRORS: ReadonlyArray<string> = [
     'The model is overloaded. Please try again later.',
   ] as const;
@@ -41,7 +41,7 @@ export class FilterReprocessableTasksFeature {
     if (!errorMsg) {
       return false;
     }
-    return FilterReprocessableTasksFeature.ALLOW_REPROCESS_ERRORS.some(msg => errorMsg.includes(msg));
+    return FilterReprocessableTasksProcessor.ALLOW_REPROCESS_ERRORS.some(msg => errorMsg.includes(msg));
   }
 
   private getTaskTypesCount(tasks: TaskProcess[]): Record<string, number> {

@@ -1,15 +1,15 @@
 import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { GetStuckTasksFeature } from "./GetStuckTasksProcessor";
-import { FilterReprocessableTasksFeature } from "./FilterReprocessableTasksProcessor";
-import { ReprocessStuckTasksFeature } from "./ReprocessStuckTasksProcessor";
+import { GetStuckTasksProcessor } from "./GetStuckTasksProcessor";
+import { FilterReprocessableTasksProcessor } from "./FilterReprocessableTasksProcessor";
+import { ReprocessStuckTasksProcessor } from "./ReprocessStuckTasksProcessor";
 
 export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   constructor(
-    private readonly getStuckTasksFeature: GetStuckTasksFeature,
-    private readonly filterReprocessableTasksFeature: FilterReprocessableTasksFeature,
-    private readonly reprocessStuckTasksFeature: ReprocessStuckTasksFeature,
+    private readonly getStuckTasksFeature: GetStuckTasksProcessor,
+    private readonly filterReprocessableTasksFeature: FilterReprocessableTasksProcessor,
+    private readonly reprocessStuckTasksFeature: ReprocessStuckTasksProcessor,
     private readonly logger: LoggerPort
   ) {}
 

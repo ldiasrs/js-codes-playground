@@ -10,7 +10,7 @@ export interface ReGenerateTopicHistoryConfig {
 /**
  * Builds the configuration for the re-generation process from the customer's tier.
  */
-export class CreateConfigFeature {
+export class CreateConfigProcessor {
   constructor(private readonly logger: LoggerPort, private readonly batchSizeLimit: number) {}
 
   execute(customer: Customer): ReGenerateTopicHistoryConfig {

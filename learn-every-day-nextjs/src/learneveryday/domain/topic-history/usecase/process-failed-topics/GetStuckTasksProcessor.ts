@@ -5,7 +5,7 @@ import { LoggerPort } from '../../../shared/ports/LoggerPort';
 /**
  * Retrieves all stuck tasks (failed or running) for a customer.
  */
-export class GetStuckTasksFeature {
+export class GetStuckTasksProcessor {
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort

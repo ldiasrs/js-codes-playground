@@ -1,13 +1,13 @@
 import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { CheckAndCloseTopicsWithManyHistoriesFeature } from "./CheckAndCloseTopicsWithManyHistoriesProcessor";
-import { RemoveTasksFromClosedTopicsFeature } from "./RemoveTasksFromClosedTopicsProcessor";
+import { CheckAndCloseTopicsWithManyHistoriesProcessor } from "./CheckAndCloseTopicsWithManyHistoriesProcessor";
+import { RemoveTasksFromClosedTopicsProcessor } from "./RemoveTasksFromClosedTopicsProcessor";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   constructor(
-    private readonly checkAndCloseTopicsFeature: CheckAndCloseTopicsWithManyHistoriesFeature,
-    private readonly removeTasksFromClosedTopicsFeature: RemoveTasksFromClosedTopicsFeature,
+    private readonly checkAndCloseTopicsFeature: CheckAndCloseTopicsWithManyHistoriesProcessor,
+    private readonly removeTasksFromClosedTopicsFeature: RemoveTasksFromClosedTopicsProcessor,
     private readonly logger: LoggerPort,
   ) {}
 

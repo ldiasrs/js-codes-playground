@@ -1,10 +1,10 @@
 import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { ValidateCustomerFeature } from "./ValidateCustomerProcessor";
-import { CreateConfigFeature, ReGenerateTopicHistoryConfig } from "./CreateConfigProcessor";
-import { AnalyzeTasksFeature, TaskAnalysis } from "./AnalyzeTasksProcessor";
-import { SelectTopicsForProcessingFeature } from "./SelectTopicsProcessor";
-import { ScheduleGenerateTasksBatchFeature } from "./ScheduleGenerateTasksBatchProcessor";
+import { ValidateCustomerProcessor } from "./ValidateCustomerProcessor";
+import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from "./CreateConfigProcessor";
+import { AnalyzeTasksProcessor, TaskAnalysis } from "./AnalyzeTasksProcessor";
+import { SelectTopicsProcessor } from "./SelectTopicsProcessor";
+import { ScheduleGenerateTasksBatchProcessor } from "./ScheduleGenerateTasksBatchProcessor";
 
 // Interfaces moved to dedicated features
 
@@ -15,11 +15,11 @@ export class ReGenerateTopicHistoryTaskRunner {
   private static readonly MAX_HISTORIES_BEFORE_CLOSE = 5;
 
   constructor(
-    private readonly validateCustomerFeature: ValidateCustomerFeature,
-    private readonly createConfigFeature: CreateConfigFeature,
-    private readonly analyzeTasksFeature: AnalyzeTasksFeature,
-    private readonly selectTopicsForProcessingFeature: SelectTopicsForProcessingFeature,
-    private readonly scheduleGenerateTasksBatchFeature: ScheduleGenerateTasksBatchFeature,
+    private readonly validateCustomerFeature: ValidateCustomerProcessor,
+    private readonly createConfigFeature: CreateConfigProcessor,
+    private readonly analyzeTasksFeature: AnalyzeTasksProcessor,
+    private readonly selectTopicsForProcessingFeature: SelectTopicsProcessor,
+    private readonly scheduleGenerateTasksBatchFeature: ScheduleGenerateTasksBatchProcessor,
     private readonly logger: LoggerPort
   ) {}
 
