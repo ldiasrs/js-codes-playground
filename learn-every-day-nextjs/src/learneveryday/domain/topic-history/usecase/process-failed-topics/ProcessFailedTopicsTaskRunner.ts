@@ -1,9 +1,9 @@
 import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
 import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
 import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { GetStuckTasksProcessor } from "./GetStuckTasksProcessor";
+import { GetStuckTasksProcessor } from "./processor/GetStuckTasksProcessor";
 import { FilterReprocessableTasksProcessor } from "./processor/FilterReprocessableTasksProcessor";
-import { ReprocessStuckTasksProcessor } from "./ReprocessStuckTasksProcessor";
+import { ReprocessStuckTasksProcessor } from "./processor/ReprocessStuckTasksProcessor";
 
 export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   constructor(
