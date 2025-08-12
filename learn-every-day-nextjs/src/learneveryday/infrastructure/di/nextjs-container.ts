@@ -39,6 +39,8 @@ import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProc
 import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
+import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-history/usecase/close-topic/CheckAndCloseTopicsWithManyHistoriesFeature';
+import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsFeature';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/ProcessFailedTopicsTaskRunner';
 
 // Commands
@@ -240,11 +242,23 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('SendTopicHistoryTaskRunner')
     ));
 
-    this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
+    // Close-topic features
+    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesFeature', () => new CheckAndCloseTopicsWithManyHistoriesFeature(
+      this.get('TopicRepository'),
+      this.get('TopicHistoryRepository'),
+      this.get('CloseTopicFeature'),
+      LoggerFactory.createLoggerForClass('CheckAndCloseTopicsWithManyHistoriesFeature')
+    ));
+    this.registerSingleton('RemoveTasksFromClosedTopicsFeature', () => new RemoveTasksFromClosedTopicsFeature(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
-      this.get('CloseTopicFeature'),
+      LoggerFactory.createLoggerForClass('RemoveTasksFromClosedTopicsFeature')
+    ));
+
+    this.registerSingleton('CloseTopicsTaskRunner', () => new CloseTopicsTaskRunner(
+      this.get('CheckAndCloseTopicsWithManyHistoriesFeature'),
+      this.get('RemoveTasksFromClosedTopicsFeature'),
       LoggerFactory.createLoggerForClass('CloseTopicsTaskRunner'),
     ));
 
