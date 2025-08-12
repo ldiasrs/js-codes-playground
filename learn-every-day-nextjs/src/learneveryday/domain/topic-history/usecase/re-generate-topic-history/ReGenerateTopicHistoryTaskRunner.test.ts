@@ -1,12 +1,12 @@
 import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
-import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
-import { Topic } from '../../topic/entities/Topic';
-import { TopicRepositoryPort } from '../../topic/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { CustomerRepositoryPort } from '../../customer/ports/CustomerRepositoryPort';
-import { Customer, CustomerTier } from '../../customer/entities/Customer';
+import { TaskProcess } from '../../../taskprocess/entities/TaskProcess';
+import { Topic } from '../../../topic/entities/Topic';
+import { TopicRepositoryPort } from '../../../topic/ports/TopicRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../../taskprocess/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { CustomerRepositoryPort } from '../../../customer/ports/CustomerRepositoryPort';
+import { Customer, CustomerTier } from '../../../customer/entities/Customer';
 
 describe('ReGenerateTopicHistoryTaskRunner', () => {
   let taskRunner: ReGenerateTopicHistoryTaskRunner;

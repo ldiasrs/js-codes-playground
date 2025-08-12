@@ -42,7 +42,7 @@ import { CheckAndCloseTopicsWithManyHistoriesFeature } from '../../domain/topic-
 import { RemoveTasksFromClosedTopicsFeature } from '../../domain/topic-history/usecase/close-topic/RemoveTasksFromClosedTopicsFeature';
 import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
 import { GetStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/GetStuckTasksFeature';
-import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasksFeature';
+import { FilterReprocessableTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/FilterReprocessableTasks';
 import { ReprocessStuckTasksFeature } from '../../domain/topic-history/usecase/process-failed-topics/ReprocessStuckTasksFeature';
 
 // Commands
@@ -61,7 +61,12 @@ import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQ
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
-import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/ReGenerateTopicHistoryTaskRunner';
+import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
+import { ValidateCustomerFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ValidateCustomerFeature';
+import { CreateConfigFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/CreateConfigFeature';
+import { AnalyzeTasksFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/AnalyzeTasksFeature';
+import { SelectTopicsForProcessingFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/SelectTopicsForProcessingFeature';
+import { ScheduleGenerateTasksBatchFeature } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleGenerateTasksBatchFeature';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 
 // Infrastructure Services
@@ -278,11 +283,37 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskRunner')
     ));
 
-    this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
+    // Re-generate-topic-history features
+    this.registerSingleton('ValidateCustomerFeature', () => new ValidateCustomerFeature(
+      this.get('CustomerRepository'),
+      LoggerFactory.createLoggerForClass('ValidateCustomerFeature')
+    ));
+    this.registerSingleton('CreateConfigFeature', () => new CreateConfigFeature(
+      LoggerFactory.createLoggerForClass('CreateConfigFeature'),
+      50
+    ));
+    this.registerSingleton('AnalyzeTasksFeature', () => new AnalyzeTasksFeature(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('AnalyzeTasksFeature')
+    ));
+    this.registerSingleton('SelectTopicsForProcessingFeature', () => new SelectTopicsForProcessingFeature(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
+      LoggerFactory.createLoggerForClass('SelectTopicsForProcessingFeature'),
+      5,
+      5
+    ));
+    this.registerSingleton('ScheduleGenerateTasksBatchFeature', () => new ScheduleGenerateTasksBatchFeature(
       this.get('TaskProcessRepository'),
-      this.get('CustomerRepository'),
+      LoggerFactory.createLoggerForClass('ScheduleGenerateTasksBatchFeature')
+    ));
+
+    this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
+      this.get('ValidateCustomerFeature'),
+      this.get('CreateConfigFeature'),
+      this.get('AnalyzeTasksFeature'),
+      this.get('SelectTopicsForProcessingFeature'),
+      this.get('ScheduleGenerateTasksBatchFeature'),
       LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
     ));
 

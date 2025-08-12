@@ -1,6 +1,11 @@
 export { GenerateTopicHistoryTaskRunner } from './generate-topic-history/GenerateTopicHistoryTaskRunner';
 export { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
-export { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
+export { ReGenerateTopicHistoryTaskRunner } from './re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
+export { ValidateCustomerFeature } from './re-generate-topic-history/ValidateCustomerFeature';
+export { CreateConfigFeature } from './re-generate-topic-history/CreateConfigFeature';
+export { AnalyzeTasksFeature } from './re-generate-topic-history/AnalyzeTasksFeature';
+export { SelectTopicsForProcessingFeature } from './re-generate-topic-history/SelectTopicsForProcessingFeature';
+export { ScheduleGenerateTasksBatchFeature } from './re-generate-topic-history/ScheduleGenerateTasksBatchFeature';
 export { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 export { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistoryFeature';
 export { ProcessTopicHistoryWorkflowFeature } from './ProcessTopicHistoryWorkflowFeature';
