@@ -16,7 +16,7 @@ export class ReGenerateTopicHistoryTaskRunner {
 
   constructor(
     private readonly validateCustomerFeature: ValidateCustomerProcessor,
-    private readonly createConfigFeature: CreateConfigProcessor,
+    private readonly createConfigProcessor: CreateConfigProcessor,
     private readonly analyzeTasksFeature: AnalyzeTasksProcessor,
     private readonly selectTopicsForProcessingFeature: SelectTopicsProcessor,
     private readonly scheduleGenerateTasksBatchFeature: ScheduleGenerateTasksBatchProcessor,
@@ -31,7 +31,7 @@ export class ReGenerateTopicHistoryTaskRunner {
       const customer = await this.validateCustomerFeature.execute(customerId);
       if (!customer) return;
 
-      const config = this.createConfigFeature.execute(customer);
+      const config = this.createConfigProcessor.execute(customer);
       const taskAnalysis = await this.analyzeTasksFeature.execute(customerId);
 
       if (this.shouldGenerateMoreTasks(taskAnalysis, config)) {

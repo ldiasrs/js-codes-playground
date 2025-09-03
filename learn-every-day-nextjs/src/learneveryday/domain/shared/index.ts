@@ -8,3 +8,4 @@ export type { LoggerPort, LogLevel, LogContext } from './ports/LoggerPort';
 
 // Shared Utilities
 export { TierLimits } from './TierLimits';
+export { DomainError } from './errors/DomainError';

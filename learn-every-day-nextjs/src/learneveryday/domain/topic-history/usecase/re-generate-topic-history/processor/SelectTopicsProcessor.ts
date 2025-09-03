@@ -2,6 +2,7 @@ import { LoggerPort } from "@/learneveryday/domain/shared";
 import { Topic } from "@/learneveryday/domain/topic/entities/Topic";
 import { TopicRepositoryPort } from "@/learneveryday/domain/topic/ports/TopicRepositoryPort";
 import { TopicHistoryRepositoryPort } from "../../../ports/TopicHistoryRepositoryPort";
+import { CreateNewSimilarTopicsProcessor } from "./CreateNewSimilarTopicsProcessor";
 
 interface TopicWithHistoryCount {
   topic: Topic;
@@ -17,7 +18,8 @@ export class SelectTopicsProcessor {
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly logger: LoggerPort,
     private readonly concurrencyLimit: number,
-    private readonly maxHistoriesBeforeClose: number
+    private readonly maxHistoriesBeforeClose: number,
+    private readonly createNewSimilarTopicsProcessor: CreateNewSimilarTopicsProcessor
   ) {}
 
   async execute(customerId: string, topicsNeeded: number, maxTopicsToProcess: number): Promise<Topic[]> {
@@ -25,15 +27,26 @@ export class SelectTopicsProcessor {
     const openTopics = topics.filter(topic => !topic.closed);
     if (openTopics.length === 0) {
       this.logger.info('No open topics available for processing', { customerId });
-      return [];
+      const created = await this.createNewSimilarTopicsProcessor.execute(customerId, topicsNeeded);
+      if (created.length === 0) {
+        return [];
+      }
+      // Created topics are new and eligible (no histories). Return up to topicsNeeded.
+      return created.slice(0, topicsNeeded);
     }
     const limitedTopics = openTopics.slice(0, maxTopicsToProcess);
     const topicsWithHistoryCount = await this.getTopicsWithHistoryCountBatch(limitedTopics);
     const eligibleTopics = topicsWithHistoryCount.filter(item => item.historyCount <= this.maxHistoriesBeforeClose);
-    return eligibleTopics
+    const selected = eligibleTopics
       .sort((a, b) => a.historyCount - b.historyCount)
       .slice(0, topicsNeeded)
       .map(item => item.topic);
+    if (selected.length === 0) {
+      // No eligible topics, try creating new similar topics and return them
+      const created = await this.createNewSimilarTopicsProcessor.execute(customerId, topicsNeeded);
+      return created.slice(0, topicsNeeded);
+    }
+    return selected;
   }
 
   private async getTopicsWithHistoryCountBatch(topics: Topic[]): Promise<TopicWithHistoryCount[]> {

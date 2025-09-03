@@ -68,6 +68,7 @@ import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topi
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
 import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/AnalyzeTasksProcessor';
 import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
+import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/CreateNewSimilarTopicsProcessor';
 
 // Infrastructure Services
 import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';
@@ -296,12 +297,21 @@ export class NextJSContainer implements Container {
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('AnalyzeTasksFeature')
     ));
+    this.registerSingleton('CreateNewSimilarTopicsProcessor', () => new CreateNewSimilarTopicsProcessor(
+      this.get('AIPromptExecutorPort'),
+      this.get('TopicRepository'),
+      this.get('CustomerRepository'),
+      this.get('AddTopicFeature'),
+      this.get('DeleteTopicFeature'),
+      LoggerFactory.createLoggerForClass('CreateNewSimilarTopicsProcessor')
+    ));
     this.registerSingleton('SelectTopicsProcessor', () => new SelectTopicsProcessor(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       LoggerFactory.createLoggerForClass('SelectTopicsForProcessingFeature'),
       5,
-      5
+      5,
+      this.get('CreateNewSimilarTopicsProcessor')
     ));
     this.registerSingleton('ScheduleGenerateTasksBatchProcessor', () => new ScheduleGenerateTasksBatchProcessor(
       this.get('TaskProcessRepository'),

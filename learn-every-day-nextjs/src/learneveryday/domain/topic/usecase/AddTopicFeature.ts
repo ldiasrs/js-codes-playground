@@ -5,6 +5,7 @@ import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRe
 import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
 import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TierLimits } from '../../shared/TierLimits';
+import { DomainError } from '../../shared';
 
 export interface AddTopicFeatureData {
   customerId: string;
@@ -31,7 +32,7 @@ export class AddTopicFeature {
     // Step 1: Verify customer exists
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
-      throw new Error(`Customer with ID ${customerId} not found`);
+      throw new DomainError(DomainError.CUSTOMER_NOT_FOUND, `Customer with ID ${customerId} not found`);
     }
 
     // Step 2: Check tier-based topic limits
@@ -40,7 +41,8 @@ export class AddTopicFeature {
     
     if (!canAddMore) {
       const maxTopics = TierLimits.getMaxTopicsForTier(customer.tier);
-      throw new Error(
+      throw new DomainError(
+        DomainError.TOPIC_LIMIT_REACHED,
         `Customer ${customer.customerName} (${customer.tier} tier) has reached the maximum limit of ${maxTopics} topics. ` +
         `Current topics: ${currentTopicCount}. Please upgrade your tier to add more topics.`
       );
@@ -50,7 +52,7 @@ export class AddTopicFeature {
     const topicExists = await this.topicRepository.existsByCustomerIdAndSubject(customerId, subject);
 
     if (topicExists) {
-      throw new Error(`Topic with subject "${subject}" already exists for customer ${customer.customerName}`);
+      throw new DomainError(DomainError.TOPIC_ALREADY_EXISTS, `Topic with subject "${subject}" already exists for customer ${customer.customerName}`);
     }
 
     // Step 4: Create and save the new topic
