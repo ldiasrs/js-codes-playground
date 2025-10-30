@@ -45,7 +45,7 @@ export class GeminiConfiguration {
     }
 
     const apiKey = configFromEnv.gemini?.apiKey || process.env.GEMINI_API_KEY;
-    const model = configFromEnv.gemini?.model || process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const model = configFromEnv.gemini?.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
     const maxTokens = configFromEnv.gemini?.maxTokens || parseInt(process.env.GEMINI_MAX_TOKENS || '2000');
     const temperature = configFromEnv.gemini?.temperature || parseFloat(process.env.GEMINI_TEMPERATURE || '0.7');
 
