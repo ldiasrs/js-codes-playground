@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { marked } from 'marked';
 import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 import { EmailConfiguration } from '../config/email.config';
@@ -59,6 +60,7 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
 
   private buildEmailContent(data: SendTopicHistoryByEmailPortData): string {
     const { topicHistory, topicSubject } = data;
+    const htmlContent = this.convertMarkdownToHtml(topicHistory.content);
     
     return `
       <!DOCTYPE html>
@@ -71,6 +73,12 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
           .content { background-color: #ffffff; padding: 20px; border-radius: 8px; }
+          .content ul, .content ol { padding-left: 20px; }
+          .content li { margin-bottom: 8px; }
+          .content h1, .content h2, .content h3 { margin-top: 20px; margin-bottom: 10px; }
+          .content p { margin-bottom: 10px; }
+          .content strong { font-weight: bold; }
+          .content em { font-style: italic; }
           .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -84,7 +92,7 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
           </div>
           
           <div class="content">
-            ${topicHistory.content.replace(/\n/g, '<br>')}
+            ${htmlContent}
           </div>
           
           <div class="footer">
@@ -94,5 +102,21 @@ export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmai
       </body>
       </html>
     `;
+  }
+
+  /**
+   * Converts markdown content to HTML
+   * @param markdownContent The markdown formatted content
+   * @returns string The HTML formatted content
+   */
+  private convertMarkdownToHtml(markdownContent: string): string {
+    try {
+      return marked.parse(markdownContent) as string;
+    } catch (error) {
+      this.logger.error('Error converting markdown to HTML', error as Error, {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return markdownContent.replace(/\n/g, '<br>');
+    }
   }
 } 
