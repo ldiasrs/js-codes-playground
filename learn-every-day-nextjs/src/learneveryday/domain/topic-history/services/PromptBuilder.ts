@@ -65,7 +65,8 @@ export class PromptBuilder {
         - Eu quero aprender sobre ${topicSubject}, recebendo informações a cada interação.
         - Quero receber a informação em uma lista numerada com 3 itens
         - A informação que já foi processada não deve ser re-envida
-        - Quero a informação de maneira bem sucinta 
+        - Quero a informação de maneira bem sucinta e clara
+        - Formate o texto para ler em email.
         - Ao final coloque algumas referencias de livros e links de youtube sobre o assunto
 
         Esse é meu histórico anterior:\n\n
