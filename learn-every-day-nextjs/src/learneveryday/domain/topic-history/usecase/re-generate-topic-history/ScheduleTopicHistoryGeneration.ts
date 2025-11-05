@@ -8,7 +8,7 @@ import { ScheduleGenerateTasksBatchProcessor } from "./processor/ScheduleGenerat
 
 // Interfaces moved to dedicated features
 
-export class ReGenerateTopicHistoryTaskRunner {
+export class ScheduleTopicHistoryGeneration {
   private static readonly BATCH_SIZE_LIMIT = 50;
   private static readonly CONCURRENCY_LIMIT = 5;
   private static readonly HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
@@ -42,7 +42,7 @@ export class ReGenerateTopicHistoryTaskRunner {
 
       this.logExecutionCompletion(customerId, startTime);
     } catch (error) {
-      this.logger.error(`Failed to execute ReGenerateTopicHistoryTaskRunner for customer ${customerId}`, 
+      this.logger.error(`Failed to execute ScheduleTopicHistoryGeneration for customer ${customerId}`, 
         error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
@@ -83,9 +83,9 @@ export class ReGenerateTopicHistoryTaskRunner {
 
   private calculateNextScheduleTime(lastSendTask: TaskProcess | null): Date {
     if (lastSendTask) {
-      return new Date(lastSendTask.createdAt.getTime() + ReGenerateTopicHistoryTaskRunner.HOURS_24_IN_MS);
+      return new Date(lastSendTask.createdAt.getTime() + ScheduleTopicHistoryGeneration.HOURS_24_IN_MS);
     }
-    return new Date(Date.now() + ReGenerateTopicHistoryTaskRunner.HOURS_24_IN_MS);
+    return new Date(Date.now() + ScheduleTopicHistoryGeneration.HOURS_24_IN_MS);
   }
 
   private logTaskLimitReached(customerId: string, pendingCount: number, maxTopics: number): void {
@@ -94,7 +94,7 @@ export class ReGenerateTopicHistoryTaskRunner {
 
   private logExecutionCompletion(customerId: string, startTime: number): void {
     const totalExecutionTime = Date.now() - startTime;
-    this.logger.info(`ReGenerateTopicHistoryTaskRunner completed for customer ${customerId}`, {
+    this.logger.info(`ScheduleTopicHistoryGeneration completed for customer ${customerId}`, {
       customerId,
       executionTimeMs: totalExecutionTime,
     });

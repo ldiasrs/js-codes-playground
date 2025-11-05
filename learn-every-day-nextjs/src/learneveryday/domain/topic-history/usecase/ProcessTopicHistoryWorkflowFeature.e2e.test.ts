@@ -9,13 +9,13 @@ import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from './close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from './close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
 import { CloseTopicFeature } from '../../topic/usecase/CloseTopicFeature';
-import { ReGenerateTopicHistoryTaskRunner } from './re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
+import { ScheduleTopicHistoryGeneration } from './re-generate-topic-history/ScheduleTopicHistoryGeneration';
 import { ValidateCustomerProcessor } from './re-generate-topic-history/processor/ValidateCustomerProcessor';
 import { CreateConfigProcessor } from './re-generate-topic-history/processor/CreateConfigProcessor';
 import { AnalyzeTasksProcessor } from './re-generate-topic-history/processor/AnalyzeTasksProcessor';
 import { SelectTopicsProcessor } from './re-generate-topic-history/processor/SelectTopicsProcessor';
 import { ScheduleGenerateTasksBatchProcessor } from './re-generate-topic-history/processor/ScheduleGenerateTasksBatchProcessor';
-import { GenerateTopicHistoryTaskRunner } from './generate-topic-history/GenerateTopicHistoryTaskRunner';
+import { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
 import { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistory';
 import { PromptBuilder } from '../services/PromptBuilder';
 import { SendTopicHistoryTaskScheduler } from './generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
@@ -251,7 +251,7 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
     const analyzeTasks = new AnalyzeTasksProcessor(taskProcessRepository, logger);
     const selectTopics = new SelectTopicsProcessor(topicRepository, topicHistoryRepository, logger, 5, 5);
     const scheduleBatch = new ScheduleGenerateTasksBatchProcessor(taskProcessRepository, logger);
-    const reGenerateRunner = new ReGenerateTopicHistoryTaskRunner(
+    const reGenerateRunner = new ScheduleTopicHistoryGeneration(
       validateCustomer,
       createConfig,
       analyzeTasks,
@@ -266,7 +266,7 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
     const regenerateScheduler = new ReGenerateTopicsTaskScheduler(taskProcessRepository, logger);
     const closeScheduler = new CloseTopicTaskScheduler(taskProcessRepository, logger);
     const failedScheduler = new ProcessFailedTopicsTaskScheduler(taskProcessRepository, logger);
-    const generateRunner = new GenerateTopicHistoryTaskRunner(
+    const generateRunner = new ExecuteTopicHistoryGeneration(
       topicRepository,
       generateAndSave,
       sendScheduler,

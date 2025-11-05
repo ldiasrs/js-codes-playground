@@ -9,7 +9,7 @@ import { ReGenerateTopicsTaskScheduler } from './schedulers/ReGenerateTopicsTask
 import { CloseTopicTaskScheduler } from './schedulers/CloseTopicTaskScheduler';
 import { ProcessFailedTopicsTaskScheduler } from './schedulers/ProcessFailedTopicsTaskScheduler';
 
-export class GenerateTopicHistoryTaskRunner implements TaskProcessRunner {
+export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly generateAndSaveTopicHistoryFeature: GenerateAndSaveTopicHistoryFeature,

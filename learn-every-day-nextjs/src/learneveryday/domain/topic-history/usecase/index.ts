@@ -1,6 +1,6 @@
-export { GenerateTopicHistoryTaskRunner } from './generate-topic-history/GenerateTopicHistoryTaskRunner';
+export { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
 export { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
-export { ReGenerateTopicHistoryTaskRunner } from './re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
+export { ScheduleTopicHistoryGeneration } from './re-generate-topic-history/ScheduleTopicHistoryGeneration';
 export { ValidateCustomerProcessor } from './re-generate-topic-history/processor/ValidateCustomerProcessor';
 export { CreateConfigProcessor } from './re-generate-topic-history/processor/CreateConfigProcessor';
 export { AnalyzeTasksProcessor } from './re-generate-topic-history/processor/AnalyzeTasksProcessor';

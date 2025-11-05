@@ -1,4 +1,4 @@
-import { ReGenerateTopicHistoryTaskRunner } from './ReGenerateTopicHistoryTaskRunner';
+import { ScheduleTopicHistoryGeneration } from './ScheduleTopicHistoryGeneration';
 import { ValidateCustomerProcessor } from './processor/ValidateCustomerProcessor';
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './processor/CreateConfigProcessor';
 import { AnalyzeTasksProcessor, TaskAnalysis } from './processor/AnalyzeTasksProcessor';
@@ -9,8 +9,8 @@ import { Topic } from '@/learneveryday/domain/topic/entities/Topic';
 import { LoggerPort } from '@/learneveryday/domain/shared';
 import { Customer, CustomerTier } from '@/learneveryday/domain/customer';
 
-describe('ReGenerateTopicHistoryTaskRunner', () => {
-  let taskRunner: ReGenerateTopicHistoryTaskRunner;
+describe('ScheduleTopicHistoryGeneration', () => {
+  let taskRunner: ScheduleTopicHistoryGeneration;
   let mockValidateCustomer: jest.Mocked<ValidateCustomerProcessor>;
   let mockCreateConfig: jest.Mocked<CreateConfigProcessor>;
   let mockAnalyzeTasks: jest.Mocked<AnalyzeTasksProcessor>;
@@ -41,7 +41,7 @@ describe('ReGenerateTopicHistoryTaskRunner', () => {
       child: jest.fn(),
     } as unknown) as jest.Mocked<LoggerPort>;
 
-    taskRunner = new ReGenerateTopicHistoryTaskRunner(
+    taskRunner = new ScheduleTopicHistoryGeneration(
       mockValidateCustomer,
       mockCreateConfig,
       mockAnalyzeTasks,

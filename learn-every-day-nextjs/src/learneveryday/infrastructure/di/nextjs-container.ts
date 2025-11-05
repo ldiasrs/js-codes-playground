@@ -35,7 +35,7 @@ import { ProcessFailedTopicsTaskScheduler } from '../../domain/topic-history/use
 import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
 
 // Runners
-import { GenerateTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/generate-topic-history/GenerateTopicHistoryTaskRunner';
+import { ExecuteTopicHistoryGeneration } from '../../domain/topic-history/usecase/generate-topic-history/ExecuteTopicHistoryGeneration';
 import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
 import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '../../domain/topic-history/usecase/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
@@ -60,7 +60,7 @@ import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQ
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
-import { ReGenerateTopicHistoryTaskRunner } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ReGenerateTopicHistoryTaskRunner';
+import { ScheduleTopicHistoryGeneration } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleTopicHistoryGeneration';
 import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/ValidateCustomerProcessor';
 import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/CreateConfigProcessor';
 import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/SelectTopicsProcessor';
@@ -195,8 +195,8 @@ export class NextJSContainer implements Container {
       this.get('TaskProcessRepository'),
       this.get('ProcessFailedTopicsTaskRunner'),
       this.get('CloseTopicsTaskRunner'),
-      this.get('ReGenerateTopicHistoryTaskRunner'),
-      this.get('GenerateTopicHistoryTaskRunner'),
+      this.get('ScheduleTopicHistoryGeneration'),
+      this.get('ExecuteTopicHistoryGeneration'),
       this.get('SendTopicHistoryTaskRunner'),
       LoggerFactory.createLoggerForClass('ProcessTopicHistoryWorkflowFeature')
     ));
@@ -225,14 +225,14 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskScheduler')
     ));
 
-    this.registerSingleton('GenerateTopicHistoryTaskRunner', () => new GenerateTopicHistoryTaskRunner(
+    this.registerSingleton('ExecuteTopicHistoryGeneration', () => new ExecuteTopicHistoryGeneration(
       this.get('TopicRepository'),
       this.get('GenerateAndSaveTopicHistoryFeature'),
       this.get('SendTopicHistoryTaskScheduler'),
       this.get('ReGenerateTopicsTaskScheduler'),
       this.get('CloseTopicTaskScheduler'),
       this.get('ProcessFailedTopicsTaskScheduler'),
-      LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
+      LoggerFactory.createLoggerForClass('ExecuteTopicHistoryGeneration')
     ));
 
     this.registerSingleton('SendTopicHistoryTaskRunner', () => new SendTopicHistoryTaskRunner(
@@ -318,13 +318,13 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ScheduleGenerateTasksBatchFeature')
     ));
 
-    this.registerSingleton('ReGenerateTopicHistoryTaskRunner', () => new ReGenerateTopicHistoryTaskRunner(
+    this.registerSingleton('ScheduleTopicHistoryGeneration', () => new ScheduleTopicHistoryGeneration(
       this.get('ValidateCustomerProcessor'),
       this.get('CreateConfigProcessor'),
       this.get('AnalyzeTasksProcessor'),
       this.get('SelectTopicsProcessor'),
       this.get('ScheduleGenerateTasksBatchProcessor'),
-      LoggerFactory.createLoggerForClass('GenerateTopicHistoryTaskRunner')
+      LoggerFactory.createLoggerForClass('ScheduleTopicHistoryGeneration')
     ));
 
     // Register commands
