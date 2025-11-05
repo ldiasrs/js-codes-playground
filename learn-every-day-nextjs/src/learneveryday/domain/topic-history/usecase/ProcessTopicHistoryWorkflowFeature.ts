@@ -3,7 +3,7 @@ import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
 import { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
-import { ScheduleTopicHistoryGeneration } from './re-generate-topic-history/ScheduleTopicHistoryGeneration';
+import { ScheduleTopicHistoryGeneration } from './schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
 import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 import { ProcessFailedTopicsTaskRunner } from './process-failed-topics/ProcessFailedTopicsTaskRunner';
 import { TasksProcessExecutor } from '../../taskprocess';

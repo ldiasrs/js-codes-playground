@@ -60,15 +60,15 @@ import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQ
 import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
 import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
 import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
-import { ScheduleTopicHistoryGeneration } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/ScheduleTopicHistoryGeneration';
-import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/ValidateCustomerProcessor';
-import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/CreateConfigProcessor';
-import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/ScheduleGenerateTasksBatchProcessor';
+import { ScheduleTopicHistoryGeneration } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/CreateConfigProcessor';
+import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
 import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
-import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/AnalyzeTasksProcessor';
+import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
 import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
-import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/re-generate-topic-history/processor/CreateNewSimilarTopicsProcessor';
+import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/CreateNewSimilarTopicsProcessor';
 
 // Infrastructure Services
 import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';

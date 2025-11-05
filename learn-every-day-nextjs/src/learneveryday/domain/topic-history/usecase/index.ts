@@ -1,11 +1,11 @@
 export { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
 export { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
-export { ScheduleTopicHistoryGeneration } from './re-generate-topic-history/ScheduleTopicHistoryGeneration';
-export { ValidateCustomerProcessor } from './re-generate-topic-history/processor/ValidateCustomerProcessor';
-export { CreateConfigProcessor } from './re-generate-topic-history/processor/CreateConfigProcessor';
-export { AnalyzeTasksProcessor } from './re-generate-topic-history/processor/AnalyzeTasksProcessor';
-export { SelectTopicsProcessor } from './re-generate-topic-history/processor/SelectTopicsProcessor';
-export { ScheduleGenerateTasksBatchProcessor } from './re-generate-topic-history/processor/ScheduleGenerateTasksBatchProcessor';
+export { ScheduleTopicHistoryGeneration } from './schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+export { ValidateCustomerProcessor } from './schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+export { CreateConfigProcessor } from './schedule-topic-history-generation/processor/CreateConfigProcessor';
+export { AnalyzeTasksProcessor } from './schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
+export { SelectTopicsProcessor } from './schedule-topic-history-generation/processor/SelectTopicsProcessor';
+export { ScheduleGenerateTasksBatchProcessor } from './schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
 export { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 export { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistory';
 export { ProcessTopicHistoryWorkflowFeature } from './ProcessTopicHistoryWorkflowFeature';
