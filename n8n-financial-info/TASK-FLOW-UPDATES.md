@@ -15,10 +15,13 @@
 - ✅ Supports MONTHLY tasks (with day of month validation)
 - ✅ Compares against last execution from history
 - ✅ Returns only tasks that should execute today
+- ✅ **NEW:** Enriches each task's prompt with history of last 3 executions to avoid repetition
 
 **Key Functions:**
 - `parseExecutionDate()` - Parses DD/MM/YYYY HH:MM:SS format
 - `getLastExecution()` - Finds most recent execution for each task
+- `getLastNExecutions()` - **NEW:** Retrieves last N executions with output data
+- `buildPromptWithHistory()` - **NEW:** Enriches prompt with execution history
 - `shouldExecuteDaily/Weekly/Monthly()` - Schedule validation logic
 - `shouldExecuteTask()` - Main decision logic
 
@@ -69,15 +72,49 @@ AppendExecutions
 1. **Schedule Trigger** fires on an hourly basis
 2. **GetTasks** fetches all tasks from Google Sheets (sheet "2")
 3. **GetExecutions** fetches execution history (sheet "executions")
-4. **FilterTasksToBeExecuted** accesses both previous nodes and analyzes which tasks should run TODAY based on:
-   - Task schedule type (DAILY/WEEKLY/MONTHLY)
-   - Last execution timestamp
-   - Scheduled day/period configuration
-5. **AI-Process** executes each filtered task's prompt via Google Gemini
+4. **FilterTasksToBeExecuted** accesses both previous nodes and:
+   - Analyzes which tasks should run TODAY based on:
+     - Task schedule type (DAILY/WEEKLY/MONTHLY)
+     - Last execution timestamp
+     - Scheduled day/period configuration
+   - **Enriches each task's prompt** with the last 3 execution outputs to provide context
+   - Adds instruction to avoid repeating previous responses
+5. **AI-Process** executes each filtered task's enriched prompt via Google Gemini
 6. **AppendExecutions** logs the results back to Google Sheets with:
    - Task ID
    - Execution timestamp
    - AI response
+
+## 🔄 Prompt Enrichment with History
+
+Para evitar que o AI gere respostas repetitivas, cada task tem seu prompt enriquecido automaticamente com as últimas 3 execuções:
+
+### Formato do Prompt Enriquecido:
+```
+[PROMPT ORIGINAL DA TASK]
+
+---
+
+📋 HISTÓRICO DAS ÚLTIMAS EXECUÇÕES:
+Para evitar repetição, considere as respostas anteriores abaixo:
+
+1. Execução em 07/11/2025 13:00:00:
+[Resposta anterior 1]
+
+2. Execução em 06/11/2025 13:00:00:
+[Resposta anterior 2]
+
+3. Execução em 05/11/2025 13:00:00:
+[Resposta anterior 3]
+
+⚠️ IMPORTANTE: Gere uma resposta diferente e criativa, evitando repetir as ideias acima.
+```
+
+### Benefícios:
+- ✅ Evita repetição de ideias e sugestões
+- ✅ O AI tem contexto do que já foi sugerido
+- ✅ Respostas mais variadas e criativas
+- ✅ Histórico limitado às 3 últimas execuções (não sobrecarrega o prompt)
 
 ## 📊 Example Scenarios
 
@@ -136,4 +173,7 @@ AppendExecutions
 - Execution history prevents duplicate runs within the same day
 - Timestamps use Brazilian format (DD/MM/YYYY HH:MM:SS)
 - Linear flow ensures all nodes have executed before FilterTasksToBeExecuted runs
+- **NEW:** Each task's prompt is automatically enriched with the last 3 execution outputs
+- **NEW:** The AI receives explicit instructions to avoid repeating previous responses
+- History enrichment helps generate more varied and creative responses over time
 

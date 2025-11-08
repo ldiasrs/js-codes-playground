@@ -49,6 +49,20 @@ function getLastExecution(taskId, executions) {
   return taskExecutions.length > 0 ? taskExecutions[0] : null;
 }
 
+function getLastNExecutions(taskId, executions, n = 3) {
+  const taskExecutions = executions
+    .filter(exec => exec.Id === taskId)
+    .map(exec => ({
+      date: parseExecutionDate(exec.ExecutionTime),
+      dateStr: exec.ExecutionTime,
+      output: exec.Saida
+    }))
+    .sort((a, b) => b.date - a.date)
+    .slice(0, n);
+  
+  return taskExecutions;
+}
+
 function shouldExecuteDaily(task, lastExecution, today) {
   if (!lastExecution) return true;
   if (!isToday(lastExecution, today)) return true;
@@ -105,6 +119,25 @@ function shouldExecuteTask(task, lastExecution, today = new Date()) {
   }
 }
 
+function buildPromptWithHistory(task, lastExecutions) {
+  let prompt = task.Prompt;
+  
+  if (lastExecutions.length > 0) {
+    prompt += '\n\n---\n\n';
+    prompt += '📋 HISTÓRICO DAS ÚLTIMAS EXECUÇÕES:\n';
+    prompt += 'Para evitar repetição, considere as respostas anteriores abaixo:\n\n';
+    
+    lastExecutions.forEach((exec, index) => {
+      prompt += `${index + 1}. Execução em ${exec.dateStr}:\n`;
+      prompt += `${exec.output}\n\n`;
+    });
+    
+    prompt += '⚠️ IMPORTANTE: Gere uma resposta diferente e criativa, evitando repetir as ideias acima.';
+  }
+  
+  return prompt;
+}
+
 // ============================================
 // CÓDIGO PRINCIPAL N8N
 // ============================================
@@ -139,8 +172,22 @@ const tasksToExecute = tasks.filter(task => {
 
 console.log(`\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);
 
+// Enriquecer cada task com histórico das últimas 3 execuções
+const tasksWithHistory = tasksToExecute.map(task => {
+  const lastExecutions = getLastNExecutions(task.Id, executions, 3);
+  const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);
+  
+  console.log(`\n📝 Task "${task.Subject}" - Histórico: ${lastExecutions.length} execuções anteriores`);
+  
+  return {
+    ...task,
+    Prompt: enrichedPrompt,
+    HistoryCount: lastExecutions.length
+  };
+});
+
 // Retornar no formato n8n
-return tasksToExecute.map((task, index) => ({
+return tasksWithHistory.map((task, index) => ({
   json: task,
   pairedItem: { item: index }
 }));
