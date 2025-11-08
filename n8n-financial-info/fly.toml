@@ -1,0 +1,78 @@
+# fly.toml - Configuração do Fly.io para n8n
+
+app = "n8n-financial-info"
+primary_region = "gru" # São Paulo, Brasil
+
+[build]
+  image = "n8nio/n8n:latest"
+
+[env]
+  N8N_PORT = "5678"
+  NODE_ENV = "production"
+  GENERIC_TIMEZONE = "America/Sao_Paulo"
+  TZ = "America/Sao_Paulo"
+  N8N_METRICS = "false"
+  
+  # Configurações de execução
+  EXECUTIONS_PROCESS = "main"
+  EXECUTIONS_MODE = "regular"
+  
+  # Interface
+  N8N_EDITOR_BASE_URL = "https://n8n-financial-info.fly.dev"
+
+[http_service]
+  internal_port = 5678
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Volume para persistir dados (workflows, credenciais)
+[[mounts]]
+  source = "n8n_data"
+  destination = "/home/node/.n8n"
+  initial_size = "1gb"
+
+# Verificação de saúde
+[[services]]
+  protocol = "tcp"
+  internal_port = 5678
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "2s"
+    grace_period = "10s"
+    method = "get"
+    path = "/healthz"
+    protocol = "http"
+
