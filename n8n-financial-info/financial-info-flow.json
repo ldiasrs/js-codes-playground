@@ -1,6 +1,19 @@
 {
-    "name": "My workflow",
+    "name": "Financial Info - BR & US Stocks",
     "nodes": [
+      {
+        "parameters": {
+          "jsCode": "// Para n8n - Code Node\nconst items = $input.all();\n\nconst brazilStocks = [];\nconst usStocks = [];\n\n// Iterar sobre todos os itens\nfor (const item of items) {\n  const brStock = item.json['Ação BR'];\n  const usStock = item.json['Ação US'];\n  \n  // Adicionar ação brasileira se não estiver vazia\n  if (brStock && brStock.trim() !== '') {\n    brazilStocks.push(brStock.trim());\n  }\n  \n  // Adicionar ação americana se não estiver vazia\n  if (usStock && usStock.trim() !== '') {\n    usStocks.push(usStock.trim());\n  }\n}\n\n// Gerar data/hora atual em formato brasileiro\nconst now = new Date();\nconst brazilTime = now.toLocaleString('pt-BR', { \n  timeZone: 'America/Sao_Paulo',\n  dateStyle: 'short',\n  timeStyle: 'short'\n});\n\n// Retornar no formato desejado\nreturn [{\n  json: {\n    stocks: {\n      br: brazilStocks,\n      us: usStocks\n    },\n    data_geracao: brazilTime,\n    total_brazil: brazilStocks.length,\n    total_us: usStocks.length,\n    total: brazilStocks.length + usStocks.length\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          416,
+          272
+        ],
+        "id": "7f30511d-2736-4a89-a9b8-ea40fd0784ff",
+        "name": "SplitStocksByMarket"
+      },
       {
         "parameters": {
           "sendTo": "ldias.rs@gmail.com",
@@ -11,11 +24,11 @@
         "type": "n8n-nodes-base.gmail",
         "typeVersion": 2.1,
         "position": [
-          560,
-          0
+          1408,
+          272
         ],
-        "id": "734490dc-5779-4d36-8dc9-d25e22d760bb",
-        "name": "Send a message",
+        "id": "bb12b8d0-e18d-45ce-8048-e5ac4e2737fd",
+        "name": "Send a message1",
         "webhookId": "1e9843d7-2eba-4798-a79b-72df46b1fcd8",
         "credentials": {
           "gmailOAuth2": {
@@ -42,10 +55,10 @@
         "typeVersion": 1.2,
         "position": [
           0,
-          0
+          272
         ],
-        "id": "962b7878-a892-4022-a445-b1aad01f63ec",
-        "name": "Schedule Trigger"
+        "id": "f8eaa5f9-87f0-42dd-9992-df513af963ce",
+        "name": "Schedule Trigger1"
       },
       {
         "parameters": {
@@ -58,7 +71,7 @@
           "messages": {
             "values": [
               {
-                "content": "# Prompt: Relatório de Ações Brasileiras\n\n## 🎯 INSTRUÇÃO PRINCIPAL\n\n**VOCÊ DEVE GERAR UM RELATÓRIO HTML COMPLETO E PRONTO PARA USO COM DADOS REAIS E ATUALIZADOS.**\n\n**PROIBIDO:**\n- ❌ Usar placeholders, variáveis ou templates (ex: `{{VALOR}}`, `{PERCENTUAL}`, etc.)\n- ❌ Deixar campos vazios ou com \"dados a serem preenchidos\"\n- ❌ Gerar código JavaScript para preencher dados posteriormente\n- ❌ Usar dados fictícios ou simulados sem avisar explicitamente\n\n**OBRIGATÓRIO:**\n- ✅ Buscar cotações REAIS e ATUALIZADAS de todas as ações\n- ✅ Preencher TODOS os valores com dados reais do mercado\n- ✅ Usar data e hora ATUAL do momento da geração\n- ✅ Retornar HTML 100% completo e funcional\n\n---\n\n## 📋 Objetivo\nGerar um relatório completo e atualizado sobre ações específicas da bolsa brasileira (B3), formatado em HTML para envio por e-mail, com informações relevantes para tomada de decisão de investimento.\n\n---\n\n## 🎯 Ações para Análise\n\n**Carteira de Acompanhamento:**\n- ITSA4 (Itaúsa)\n- ITUB4 (Itaú Unibanco)\n- SEER3 (Ser Educacional)\n- LOGG3 (Log Commercial Properties)\n- AGRO3 (BrasilAgro)\n- SHUL4 (Schulz)\n- GOLD11 (ETF de Ouro)\n\n---\n\n## 📊 Estrutura do Relatório\n\nPara cada ação, inclua as seguintes seções:\n\n### 1. Cabeçalho da Ação\n```\n{CÓDIGO} - {NOME COMPLETO DA EMPRESA}\nSetor: {SETOR DE ATUAÇÃO}\n```\n\n### 2. 📈 Cotações e Performance\nApresente os valores em formato tabular ou lista clara:\n\n- **Cotação Atual**: R$ {VALOR} ({DATA/HORA da última atualização})\n- **Variação no Dia**: {PERCENTUAL}% ({VALOR} pts)\n- **Último Mês (30d)**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n- **Último Ano (12m)**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n- **Últimos 3 Anos**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n\n### 3. 📊 Indicadores Fundamentalistas (se disponível)\n- **P/L** (Preço/Lucro): {VALOR}\n- **Dividend Yield**: {PERCENTUAL}% (últimos 12 meses)\n- **P/VP** (Preço/Valor Patrimonial): {VALOR}\n- **ROE**: {PERCENTUAL}%\n\n### 4. 💰 Proventos\nListar os proventos declarados e previstos:\n\n- **Tipo**: Dividendos / Juros sobre Capital Próprio (JCP) / Bonificação\n- **Valor**: R$ {VALOR} por ação\n- **Data Com**: {DATA}\n- **Data de Pagamento**: {DATA}\n- **Status**: Aprovado / Previsto / Pago\n\n*Se não houver proventos recentes ou previstos, informar: \"Nenhum provento declarado nos últimos 3 meses.\"*\n\n### 5. 📰 Notícias Relevantes (últimos 30 dias)\nListar apenas as **3-5 notícias mais relevantes** que possam impactar o preço da ação:\n\n- **[Data]** - Título resumido da notícia\n  - Breve descrição (1-2 linhas) do impacto ou relevância\n  - Fonte (opcional)\n\n*Se não houver notícias relevantes, informar: \"Sem notícias relevantes no período.\"*\n\n### 6. 🎯 Análise Técnica Resumida (opcional)\n- **Suportes**: R$ {VALOR1}, R$ {VALOR2}\n- **Resistências**: R$ {VALOR1}, R$ {VALOR2}\n- **Médias Móveis**: MM20: R$ {VALOR} | MM50: R$ {VALOR} | MM200: R$ {VALOR}\n\n---\n\n## ✨ Requisitos de Formatação\n\n1. **Tom**: Profissional, objetivo e informativo - como um briefing para investidores\n2. **Estrutura**: Use títulos, subtítulos e ícones para facilitar a leitura\n3. **Espaçamento**: Separe cada ação com linha divisória (---)\n4. **Destaques**: Use **negrito** para números importantes e *itálico* para observações\n5. **Cores no e-mail**: \n   - Verde para variações positivas 🟢\n   - Vermelho para variações negativas 🔴\n   - Azul para informações neutras 🔵\n6. **Resumo Executivo**: Adicione no início do e-mail um resumo com:\n   - Data e hora da geração do relatório\n   - Resumo geral da carteira (quantas ações subiram/caíram no dia)\n   - Destaques principais (maior alta, maior baixa, proventos importantes)\n7. **Saída em HTML**: A saída deve ser ÚNICA E EXCLUSIVAMENTE em HTML bem formatado e completo\n\n---\n\n## ⚠️ REGRAS CRÍTICAS - LEIA COM ATENÇÃO\n\n### 🚫 NUNCA FAÇA ISSO:\n\n1. **NUNCA use placeholders, variáveis ou templates** como:\n   - ❌ `{{VARIACAO_DIARIA_ITSA4}}`\n   - ❌ `{{COR_VARIACAO_DIARIA_ITSA4}}`\n   - ❌ `{{DATA_RELATORIO}}`\n   - ❌ `{{ANO_ATUAL}}`\n   - ❌ `{VALOR}`, `{PERCENTUAL}`, etc.\n\n2. **NUNCA deixe dados faltando ou incompletos**:\n   - ❌ \"Cotação Atual: R$ {{VALOR}}\"\n   - ❌ \"Variação: {{PERCENTUAL}}%\"\n   - ❌ \"Data: {{DATA}}\"\n\n3. **NUNCA gere JavaScript ou scripts para preencher dados depois**\n   - O HTML deve estar 100% completo e pronto para uso\n\n### ✅ SEMPRE FAÇA ISSO:\n\n1. **SEMPRE busque dados REAIS e ATUALIZADOS** de fontes confiáveis:\n   - Use APIs financeiras (B3, Yahoo Finance, Brapi, etc.)\n   - Consulte sites como Status Invest, InfoMoney, Fundamentus\n   - Verifique múltiplas fontes para validar os dados\n\n2. **SEMPRE preencha TODOS os valores com dados reais**:\n   - ✅ \"Cotação Atual: R$ 9.85 (07/11/2025 17:55)\"\n   - ✅ \"Variação no Dia: +1.25% (0.12 pts)\"\n   - ✅ \"Data Com: 15/03/2025\"\n\n3. **SEMPRE use a data e hora ATUAL do momento da geração**:\n   - ✅ \"Data e Hora: 07/11/2025 às 18:30 (Horário de Brasília)\"\n\n4. **SEMPRE forneça HTML completo e funcional**:\n   - HTML deve abrir diretamente no navegador\n   - Todas as cores, estilos e formatações já aplicadas\n   - Nenhuma intervenção manual necessária\n\n### 📊 Exemplo de OUTPUT CORRETO vs INCORRETO\n\n#### ❌ ERRADO (com placeholders):\n```html\n<li class=\"list-item\"><strong class=\"{{COR_VARIACAO_DIARIA_ITSA4}}\">Variação no Dia:</strong> {{VARIACAO_DIARIA_ITSA4}}% ({{VALOR_VARIACAO_DIARIA_ITSA4}} pts)</li>\n```\n\n#### ✅ CORRETO (dados reais preenchidos):\n```html\n<li class=\"list-item\"><strong class=\"green\">Variação no Dia:</strong> +1.25% (+0.12 pts)</li>\n```\n\n#### ❌ ERRADO (sem dados):\n```html\n<p><strong>Data e Hora:</strong> {{DATA_RELATORIO}} às {{HORA_RELATORIO}}</p>\n```\n\n#### ✅ CORRETO (com dados reais):\n```html\n<p><strong>Data e Hora:</strong> 07/11/2025 às 18:30 (Horário de Brasília)</p>\n```\n\n### 🔍 PROCESSO DE GERAÇÃO:\n\n1. **PASSO 1**: Busque os dados REAIS de TODAS as 7 ações nas fontes disponíveis\n2. **PASSO 2**: Organize os dados coletados (cotações, variações, proventos, notícias)\n3. **PASSO 3**: Gere o HTML COMPLETO com TODOS os dados já preenchidos\n4. **PASSO 4**: Revise para garantir que NÃO há placeholders ou dados faltando\n5. **PASSO 5**: Retorne APENAS o HTML final completo\n\n### 📝 VALIDAÇÃO FINAL:\n\nAntes de retornar o resultado, verifique:\n- [ ] Nenhum placeholder do tipo `{{VARIAVEL}}` presente no código\n- [ ] Todas as cotações estão com valores reais em R$\n- [ ] Todas as variações percentuais estão calculadas\n- [ ] Todas as datas estão no formato DD/MM/AAAA\n- [ ] Todas as classes CSS (green, red, blue) estão aplicadas corretamente\n- [ ] Todas as notícias têm datas reais dos últimos 30 dias\n- [ ] Todos os indicadores fundamentalistas têm valores numéricos\n- [ ] HTML está completo e funcional (pode ser aberto diretamente no navegador)\n\n### ⚡ SE NÃO CONSEGUIR ACESSAR DADOS REAIS:\n\n**OPÇÃO 1 (PREFERIDA)**: Informe claramente ao usuário que não consegue acessar dados em tempo real:\n```\n\"Não consigo acessar dados de mercado em tempo real. Por favor, forneça:\n1. As cotações atuais das ações\n2. As variações do dia\n3. Ou use uma API financeira (Brapi, Alpha Vantage, etc.) para obter os dados\"\n```\n\n**OPÇÃO 2**: Se for para fins demonstrativos/teste, avise EXPLICITAMENTE no início do HTML:\n```html\n<div class=\"alert\" style=\"background-color: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin-bottom: 20px;\">\n    <strong>⚠️ AVISO:</strong> Este relatório contém dados simulados/ilustrativos gerados em [DATA/HORA]. \n    NÃO use para decisões de investimento reais. Para dados atualizados, consulte fontes oficiais.\n</div>\n```\n\n**NUNCA gere dados fictícios sem avisar claramente que são simulados/ilustrativos.**\n\n---\n\n## 📅 Informações Adicionais\n\n**Frequência sugerida**: Diária ou Semanal\n**Melhor horário**: Após o fechamento do mercado (18h+)\n\n### 🔌 APIs e Fontes de Dados Recomendadas:\n\n#### APIs Gratuitas (Brasil):\n1. **Brapi** (https://brapi.dev)\n   - API gratuita com cotações B3 em tempo real\n   - Endpoint: `https://brapi.dev/api/quote/{ticker}`\n   - Exemplo: `https://brapi.dev/api/quote/ITSA4`\n\n2. **Yahoo Finance API**\n   - Use o sufixo `.SA` para ações brasileiras\n   - Exemplo: `ITSA4.SA`, `ITUB4.SA`\n\n3. **HG Brasil Finance API**\n   - API brasileira com dados do mercado\n   - Cotações, moedas e muito mais\n\n#### Sites para Web Scraping (se necessário):\n- **Status Invest** (https://statusinvest.com.br)\n- **Fundamentus** (https://www.fundamentus.com.br)\n- **InfoMoney** (https://www.infomoney.com.br)\n- **Investing.com Brasil** (https://br.investing.com)\n\n#### Para Notícias:\n- Google News API\n- InfoMoney notícias\n- Valor Econômico\n- B3 - Comunicados e Fatos Relevantes\n\n### 💡 Dica de Implementação:\n\nSe você estiver usando este prompt em uma automação (n8n, Zapier, Make):\n1. Configure um nó HTTP Request para buscar dados da Brapi antes de chamar a IA\n2. Passe os dados JSON como contexto para o modelo\n3. Instrua o modelo a usar APENAS os dados fornecidos no contexto\n4. Exemplo de contexto:\n\n```json\n{\n  \"data_geracao\": \"07/11/2025 18:30\",\n  \"acoes\": {\n    \"ITSA4\": {\n      \"cotacao\": 9.85,\n      \"variacao_dia\": 1.25,\n      \"variacao_mes\": 2.60,\n      \"nome\": \"Itaúsa S.A.\",\n      \"setor\": \"Holding Financeira\"\n    }\n  }\n}\n```\n\n---\n\n## 🔔 Alertas Importantes\n\nInclua alertas quando aplicável:\n- ⚠️ Variação superior a ±5% no dia\n- 📢 Resultados trimestrais divulgados recentemente\n- 💵 Proventos com data de pagamento próxima (próximos 7 dias)\n- 🔥 Notícias de alto impacto (fusões, aquisições, mudanças estratégicas)\n\n---\n\n## 🔴 LEMBRETE FINAL - LEIA NOVAMENTE\n\n### ESTE PROMPT EXIGE:\n\n1. **HTML COMPLETO** - Pronto para abrir no navegador e enviar por e-mail\n2. **DADOS REAIS** - Busque cotações, notícias e indicadores atualizados\n3. **ZERO PLACEHOLDERS** - Nenhum `{{VARIAVEL}}`, `{VALOR}` ou similar\n4. **SEM JAVASCRIPT** - Não gere scripts para preencher dados depois\n5. **DATA ATUAL** - Use a data e hora real do momento da geração\n\n### SE VOCÊ GERAR PLACEHOLDERS OU VARIÁVEIS NÃO PREENCHIDAS, A TAREFA SERÁ CONSIDERADA FALHADA.\n\n### FORMATO DA RESPOSTA:\n\nSua resposta deve conter APENAS:\n```html\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <!-- CSS inline completo -->\n</head>\n<body>\n    <!-- Conteúdo com TODOS os dados preenchidos -->\n</body>\n</html>\n```\n\n**NÃO inclua:**\n- Explicações antes ou depois do HTML\n- Código com placeholders\n- Instruções de \"preencha aqui\"\n- JavaScript para substituição de variáveis\n\n---\n\n**Observação Legal**: Este relatório tem fins informativos e educacionais. Não constitui recomendação de investimento, aconselhamento financeiro ou oferta de compra/venda de ativos. Consulte sempre um profissional habilitado (analista CNPI, assessor de investimentos) antes de tomar decisões financeiras. Rentabilidade passada não garante resultados futuros."
+                "content": "={{ $json.prompt }}"
               }
             ]
           },
@@ -67,37 +80,115 @@
         "type": "@n8n/n8n-nodes-langchain.googleGemini",
         "typeVersion": 1,
         "position": [
-          208,
-          0
+          880,
+          272
         ],
-        "id": "4b21bcb7-2cd7-499b-8cf0-145a8d442e13",
-        "name": "Financial Stock Info",
+        "id": "e4c161eb-90d4-474e-b4e3-a1337e532e69",
+        "name": "Financial Stock Info1",
         "credentials": {
           "googlePalmApi": {
             "id": "yjocCx9owSKGIInt",
             "name": "Google Gemini(PaLM) Api account"
           }
         }
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
+            "mode": "list",
+            "cachedResultName": "Stock-info",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "1",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          208,
+          272
+        ],
+        "id": "bae12eeb-30ca-43d0-b953-9a94fd982cff",
+        "name": "GetStockRows1",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "OS5RKCNC3AgOXFDq",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Load the prompt from the markdown file\n// In n8n, you would typically store this in a Set node or read from a file\n// For now, we'll include the updated prompt directly\n\nconst basePrompt = `# Prompt: Relatório de Ações Brasileiras e Americanas\n\n## 🎯 INSTRUÇÃO PRINCIPAL\n\n**VOCÊ DEVE GERAR UM RELATÓRIO HTML COMPLETO E PRONTO PARA USO COM DADOS REAIS E ATUALIZADOS.**\n\n**PROIBIDO:**\n- ❌ Usar placeholders, variáveis ou templates (ex: {{VALOR}}, {PERCENTUAL}, etc.)\n- ❌ Deixar campos vazios ou com \"dados a serem preenchidos\"\n- ❌ Gerar código JavaScript para preencher dados posteriormente\n- ❌ Usar dados fictícios ou simulados sem avisar explicitamente\n\n**OBRIGATÓRIO:**\n- ✅ Buscar cotações REAIS e ATUALIZADAS de todas as ações\n- ✅ Preencher TODOS os valores com dados reais do mercado\n- ✅ Usar data e hora ATUAL do momento da geração\n- ✅ Retornar HTML 100% completo e funcional\n\n---\n\n## 📋 Objetivo\nGerar um relatório completo e atualizado sobre ações da **bolsa brasileira (B3)** e **bolsas americanas (NYSE/NASDAQ)**, formatado em HTML para envio por e-mail, com informações relevantes para tomada de decisão de investimento.\n\n---\n\n## 📊 Estrutura do Relatório\n\n### Organização Geral:\n\nO relatório deve ter **DUAS SEÇÕES PRINCIPAIS** claramente separadas:\n\n1. **🇧🇷 AÇÕES BRASILEIRAS (B3)** - Todas as ações do Brasil\n2. **🇺🇸 AÇÕES AMERICANAS (NYSE/NASDAQ)** - Todas as ações dos EUA\n\nCada seção deve ter seu próprio:\n- Resumo executivo específico (quantas subiram/caíram, maior alta, maior baixa)\n- Lista de ações com análise completa\n- Cotações na moeda correspondente (R$ para BR, US$ para US)\n\n---\n\n### Para cada ação, inclua:\n\n#### 1. Cabeçalho da Ação\n- Código e nome completo da empresa\n- Setor de atuação\n\n#### 2. 📈 Cotações e Performance\n- Cotação Atual (com data/hora)\n- Variação no Dia\n- Último Mês (30d)\n- Último Ano (12m)\n- Últimos 3 Anos\n\n#### 3. 📊 Indicadores Fundamentalistas\n- P/L, Dividend Yield, P/VP, ROE\n\n#### 4. 💰 Proventos\n- Listar proventos declarados e previstos\n\n#### 5. 📰 Notícias Relevantes\n- 3-5 notícias mais relevantes dos últimos 30 dias\n\n#### 6. 🎯 Análise Técnica\n- Suportes, Resistências, Médias Móveis\n\n---\n\n## ⚠️ REGRAS CRÍTICAS\n\n### 🚫 NUNCA:\n- Use placeholders como {{VARIAVEL}}\n- Deixe dados faltando\n- Gere JavaScript para preencher depois\n\n### ✅ SEMPRE:\n- Busque dados REAIS\n- Preencha TODOS os valores\n- Use data/hora ATUAL\n- Forneça HTML completo\n\n---\n\n## 🔴 LEMBRETE FINAL\n\n**SE VOCÊ GERAR PLACEHOLDERS OU VARIÁVEIS NÃO PREENCHIDAS, A TAREFA SERÁ CONSIDERADA FALHADA.**\n\nRetorne APENAS HTML completo, funcional e com todos os dados preenchidos.\n\n\n### 🔌 APIs e Fontes de Dados Recomendadas:\n\n#### APIs Gratuitas para Ações Brasileiras (B3):\n1. **Brapi** (https://brapi.dev)\n   - API gratuita com cotações B3 em tempo real\n   - Endpoint: \"https://brapi.dev/api/quote/{ticker}\"\n   - Exemplo: \"https://brapi.dev/api/quote/ITSA4\"\n\n2. **Yahoo Finance API**\n   - Use o sufixo \".SA\" para ações brasileiras\n   - Exemplo: \"ITSA4.SA\", \"ITUB4.SA\"\n\n3. **HG Brasil Finance API**\n   - API brasileira com dados do mercado\n   - Cotações, moedas e muito mais\n\n#### APIs Gratuitas para Ações Americanas (US):\n1. **Yahoo Finance API**\n   - Sem sufixo para ações americanas\n   - Exemplo: \"AAPL\", \"GOOGL\", \"MSFT\"\n\n2. **Alpha Vantage** (https://www.alphavantage.co)\n   - API gratuita (limite de requests)\n   - Endpoint: \"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}\"\n\n3. **Finnhub** (https://finnhub.io)\n   - API gratuita com cotações em tempo real\n   - Boa cobertura de ações americanas\n\n#### Sites para Web Scraping (se necessário):\n**Brasil:**\n- Status Invest (https://statusinvest.com.br)\n- Fundamentus (https://www.fundamentus.com.br)\n- InfoMoney (https://www.infomoney.com.br)\n- Investing.com Brasil (https://br.investing.com)\n\n**EUA:**\n- Yahoo Finance (https://finance.yahoo.com)\n- MarketWatch (https://www.marketwatch.com)\n- Seeking Alpha (https://seekingalpha.com)\n- Investing.com (https://www.investing.com)\n\n#### Para Notícias:\n**Brasil:**\n- InfoMoney notícias\n- Valor Econômico\n- B3 - Comunicados e Fatos Relevantes\n\n**EUA:**\n- Bloomberg\n- CNBC\n- Reuters\n- Yahoo Finance News\n- MarketWatch\n\n## 🔔 Alertas Importantes\n\nInclua alertas quando aplicável:\n- ⚠️ Variação superior a ±5% no dia\n- 📢 Resultados trimestrais divulgados recentemente\n- 💵 Proventos com data de pagamento próxima (próximos 7 dias)\n- 🔥 Notícias de alto impacto (fusões, aquisições, mudanças estratégicas)\n\n\n## 🔴 LEMBRETE FINAL - LEIA NOVAMENTE\n\n### ESTE PROMPT EXIGE:\n\n1. **HTML COMPLETO** - Pronto para abrir no navegador e enviar por e-mail\n2. **DADOS REAIS** - Busque cotações, notícias e indicadores atualizados\n3. **ZERO PLACEHOLDERS** - Nenhum \"{{VARIAVEL}}\", \"{VALOR}\" ou similar\n4. **SEM JAVASCRIPT** - Não gere scripts para preencher dados depois\n5. **DATA ATUAL** - Use a data e hora real do momento da geração\n\n### SE VOCÊ GERAR PLACEHOLDERS OU VARIÁVEIS NÃO PREENCHIDAS, A TAREFA SERÁ CONSIDERADA FALHADA.\n\n`;\n\nconst stocks = $input.item.json.stocks\nconst stocksBr = JSON.stringify(stocks.br)\nconst stocksUs = JSON.stringify(stocks.us)\n\nconst prompt = `Use this stock list to generate the report:\\n\\n\" US: ${stocksUs} BR: ${stocksBr} \n\n${basePrompt}\n\\n\\n\n\n`\n\nreturn [{\n  json: {\n    prompt: prompt\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          672,
+          272
+        ],
+        "id": "19c8337d-4cd7-4f36-9b92-86630b1a395a",
+        "name": "Prompt"
       }
     ],
     "pinData": {},
     "connections": {
-      "Schedule Trigger": {
+      "SplitStocksByMarket": {
         "main": [
           [
             {
-              "node": "Financial Stock Info",
+              "node": "Prompt",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Financial Stock Info": {
+      "Schedule Trigger1": {
         "main": [
           [
             {
-              "node": "Send a message",
+              "node": "GetStockRows1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Financial Stock Info1": {
+        "main": [
+          [
+            {
+              "node": "Send a message1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GetStockRows1": {
+        "main": [
+          [
+            {
+              "node": "SplitStocksByMarket",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prompt": {
+        "main": [
+          [
+            {
+              "node": "Financial Stock Info1",
               "type": "main",
               "index": 0
             }
@@ -109,7 +200,7 @@
     "settings": {
       "executionOrder": "v1"
     },
-    "versionId": "96572d20-1846-46ac-8abd-f52f220a7829",
+    "versionId": "17f0294b-c9b6-4527-b36f-19def2ba955c",
     "meta": {
       "templateCredsSetupCompleted": true,
       "instanceId": "bc0944e7f3ffc25587b31301c4153107d8acd7d121f4aa997681175d082d4fa6"
