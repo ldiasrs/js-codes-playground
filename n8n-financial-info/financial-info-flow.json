@@ -1,0 +1,119 @@
+{
+    "name": "My workflow",
+    "nodes": [
+      {
+        "parameters": {
+          "sendTo": "ldias.rs@gmail.com",
+          "subject": "=Financial info {{ DateTime.now() }}",
+          "message": "={{ $json.content.parts[0].text }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          560,
+          0
+        ],
+        "id": "734490dc-5779-4d36-8dc9-d25e22d760bb",
+        "name": "Send a message",
+        "webhookId": "1e9843d7-2eba-4798-a79b-72df46b1fcd8",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "pDa6ISiAMvw5YoZ3",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "weeks",
+                "triggerAtDay": [
+                  1
+                ],
+                "triggerAtHour": 11
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "962b7878-a892-4022-a445-b1aad01f63ec",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "# Prompt: Relatório de Ações Brasileiras\n\n## 🎯 INSTRUÇÃO PRINCIPAL\n\n**VOCÊ DEVE GERAR UM RELATÓRIO HTML COMPLETO E PRONTO PARA USO COM DADOS REAIS E ATUALIZADOS.**\n\n**PROIBIDO:**\n- ❌ Usar placeholders, variáveis ou templates (ex: `{{VALOR}}`, `{PERCENTUAL}`, etc.)\n- ❌ Deixar campos vazios ou com \"dados a serem preenchidos\"\n- ❌ Gerar código JavaScript para preencher dados posteriormente\n- ❌ Usar dados fictícios ou simulados sem avisar explicitamente\n\n**OBRIGATÓRIO:**\n- ✅ Buscar cotações REAIS e ATUALIZADAS de todas as ações\n- ✅ Preencher TODOS os valores com dados reais do mercado\n- ✅ Usar data e hora ATUAL do momento da geração\n- ✅ Retornar HTML 100% completo e funcional\n\n---\n\n## 📋 Objetivo\nGerar um relatório completo e atualizado sobre ações específicas da bolsa brasileira (B3), formatado em HTML para envio por e-mail, com informações relevantes para tomada de decisão de investimento.\n\n---\n\n## 🎯 Ações para Análise\n\n**Carteira de Acompanhamento:**\n- ITSA4 (Itaúsa)\n- ITUB4 (Itaú Unibanco)\n- SEER3 (Ser Educacional)\n- LOGG3 (Log Commercial Properties)\n- AGRO3 (BrasilAgro)\n- SHUL4 (Schulz)\n- GOLD11 (ETF de Ouro)\n\n---\n\n## 📊 Estrutura do Relatório\n\nPara cada ação, inclua as seguintes seções:\n\n### 1. Cabeçalho da Ação\n```\n{CÓDIGO} - {NOME COMPLETO DA EMPRESA}\nSetor: {SETOR DE ATUAÇÃO}\n```\n\n### 2. 📈 Cotações e Performance\nApresente os valores em formato tabular ou lista clara:\n\n- **Cotação Atual**: R$ {VALOR} ({DATA/HORA da última atualização})\n- **Variação no Dia**: {PERCENTUAL}% ({VALOR} pts)\n- **Último Mês (30d)**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n- **Último Ano (12m)**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n- **Últimos 3 Anos**: {PERCENTUAL}% (de R$ {INICIAL} para R$ {FINAL})\n\n### 3. 📊 Indicadores Fundamentalistas (se disponível)\n- **P/L** (Preço/Lucro): {VALOR}\n- **Dividend Yield**: {PERCENTUAL}% (últimos 12 meses)\n- **P/VP** (Preço/Valor Patrimonial): {VALOR}\n- **ROE**: {PERCENTUAL}%\n\n### 4. 💰 Proventos\nListar os proventos declarados e previstos:\n\n- **Tipo**: Dividendos / Juros sobre Capital Próprio (JCP) / Bonificação\n- **Valor**: R$ {VALOR} por ação\n- **Data Com**: {DATA}\n- **Data de Pagamento**: {DATA}\n- **Status**: Aprovado / Previsto / Pago\n\n*Se não houver proventos recentes ou previstos, informar: \"Nenhum provento declarado nos últimos 3 meses.\"*\n\n### 5. 📰 Notícias Relevantes (últimos 30 dias)\nListar apenas as **3-5 notícias mais relevantes** que possam impactar o preço da ação:\n\n- **[Data]** - Título resumido da notícia\n  - Breve descrição (1-2 linhas) do impacto ou relevância\n  - Fonte (opcional)\n\n*Se não houver notícias relevantes, informar: \"Sem notícias relevantes no período.\"*\n\n### 6. 🎯 Análise Técnica Resumida (opcional)\n- **Suportes**: R$ {VALOR1}, R$ {VALOR2}\n- **Resistências**: R$ {VALOR1}, R$ {VALOR2}\n- **Médias Móveis**: MM20: R$ {VALOR} | MM50: R$ {VALOR} | MM200: R$ {VALOR}\n\n---\n\n## ✨ Requisitos de Formatação\n\n1. **Tom**: Profissional, objetivo e informativo - como um briefing para investidores\n2. **Estrutura**: Use títulos, subtítulos e ícones para facilitar a leitura\n3. **Espaçamento**: Separe cada ação com linha divisória (---)\n4. **Destaques**: Use **negrito** para números importantes e *itálico* para observações\n5. **Cores no e-mail**: \n   - Verde para variações positivas 🟢\n   - Vermelho para variações negativas 🔴\n   - Azul para informações neutras 🔵\n6. **Resumo Executivo**: Adicione no início do e-mail um resumo com:\n   - Data e hora da geração do relatório\n   - Resumo geral da carteira (quantas ações subiram/caíram no dia)\n   - Destaques principais (maior alta, maior baixa, proventos importantes)\n7. **Saída em HTML**: A saída deve ser ÚNICA E EXCLUSIVAMENTE em HTML bem formatado e completo\n\n---\n\n## ⚠️ REGRAS CRÍTICAS - LEIA COM ATENÇÃO\n\n### 🚫 NUNCA FAÇA ISSO:\n\n1. **NUNCA use placeholders, variáveis ou templates** como:\n   - ❌ `{{VARIACAO_DIARIA_ITSA4}}`\n   - ❌ `{{COR_VARIACAO_DIARIA_ITSA4}}`\n   - ❌ `{{DATA_RELATORIO}}`\n   - ❌ `{{ANO_ATUAL}}`\n   - ❌ `{VALOR}`, `{PERCENTUAL}`, etc.\n\n2. **NUNCA deixe dados faltando ou incompletos**:\n   - ❌ \"Cotação Atual: R$ {{VALOR}}\"\n   - ❌ \"Variação: {{PERCENTUAL}}%\"\n   - ❌ \"Data: {{DATA}}\"\n\n3. **NUNCA gere JavaScript ou scripts para preencher dados depois**\n   - O HTML deve estar 100% completo e pronto para uso\n\n### ✅ SEMPRE FAÇA ISSO:\n\n1. **SEMPRE busque dados REAIS e ATUALIZADOS** de fontes confiáveis:\n   - Use APIs financeiras (B3, Yahoo Finance, Brapi, etc.)\n   - Consulte sites como Status Invest, InfoMoney, Fundamentus\n   - Verifique múltiplas fontes para validar os dados\n\n2. **SEMPRE preencha TODOS os valores com dados reais**:\n   - ✅ \"Cotação Atual: R$ 9.85 (07/11/2025 17:55)\"\n   - ✅ \"Variação no Dia: +1.25% (0.12 pts)\"\n   - ✅ \"Data Com: 15/03/2025\"\n\n3. **SEMPRE use a data e hora ATUAL do momento da geração**:\n   - ✅ \"Data e Hora: 07/11/2025 às 18:30 (Horário de Brasília)\"\n\n4. **SEMPRE forneça HTML completo e funcional**:\n   - HTML deve abrir diretamente no navegador\n   - Todas as cores, estilos e formatações já aplicadas\n   - Nenhuma intervenção manual necessária\n\n### 📊 Exemplo de OUTPUT CORRETO vs INCORRETO\n\n#### ❌ ERRADO (com placeholders):\n```html\n<li class=\"list-item\"><strong class=\"{{COR_VARIACAO_DIARIA_ITSA4}}\">Variação no Dia:</strong> {{VARIACAO_DIARIA_ITSA4}}% ({{VALOR_VARIACAO_DIARIA_ITSA4}} pts)</li>\n```\n\n#### ✅ CORRETO (dados reais preenchidos):\n```html\n<li class=\"list-item\"><strong class=\"green\">Variação no Dia:</strong> +1.25% (+0.12 pts)</li>\n```\n\n#### ❌ ERRADO (sem dados):\n```html\n<p><strong>Data e Hora:</strong> {{DATA_RELATORIO}} às {{HORA_RELATORIO}}</p>\n```\n\n#### ✅ CORRETO (com dados reais):\n```html\n<p><strong>Data e Hora:</strong> 07/11/2025 às 18:30 (Horário de Brasília)</p>\n```\n\n### 🔍 PROCESSO DE GERAÇÃO:\n\n1. **PASSO 1**: Busque os dados REAIS de TODAS as 7 ações nas fontes disponíveis\n2. **PASSO 2**: Organize os dados coletados (cotações, variações, proventos, notícias)\n3. **PASSO 3**: Gere o HTML COMPLETO com TODOS os dados já preenchidos\n4. **PASSO 4**: Revise para garantir que NÃO há placeholders ou dados faltando\n5. **PASSO 5**: Retorne APENAS o HTML final completo\n\n### 📝 VALIDAÇÃO FINAL:\n\nAntes de retornar o resultado, verifique:\n- [ ] Nenhum placeholder do tipo `{{VARIAVEL}}` presente no código\n- [ ] Todas as cotações estão com valores reais em R$\n- [ ] Todas as variações percentuais estão calculadas\n- [ ] Todas as datas estão no formato DD/MM/AAAA\n- [ ] Todas as classes CSS (green, red, blue) estão aplicadas corretamente\n- [ ] Todas as notícias têm datas reais dos últimos 30 dias\n- [ ] Todos os indicadores fundamentalistas têm valores numéricos\n- [ ] HTML está completo e funcional (pode ser aberto diretamente no navegador)\n\n### ⚡ SE NÃO CONSEGUIR ACESSAR DADOS REAIS:\n\n**OPÇÃO 1 (PREFERIDA)**: Informe claramente ao usuário que não consegue acessar dados em tempo real:\n```\n\"Não consigo acessar dados de mercado em tempo real. Por favor, forneça:\n1. As cotações atuais das ações\n2. As variações do dia\n3. Ou use uma API financeira (Brapi, Alpha Vantage, etc.) para obter os dados\"\n```\n\n**OPÇÃO 2**: Se for para fins demonstrativos/teste, avise EXPLICITAMENTE no início do HTML:\n```html\n<div class=\"alert\" style=\"background-color: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin-bottom: 20px;\">\n    <strong>⚠️ AVISO:</strong> Este relatório contém dados simulados/ilustrativos gerados em [DATA/HORA]. \n    NÃO use para decisões de investimento reais. Para dados atualizados, consulte fontes oficiais.\n</div>\n```\n\n**NUNCA gere dados fictícios sem avisar claramente que são simulados/ilustrativos.**\n\n---\n\n## 📅 Informações Adicionais\n\n**Frequência sugerida**: Diária ou Semanal\n**Melhor horário**: Após o fechamento do mercado (18h+)\n\n### 🔌 APIs e Fontes de Dados Recomendadas:\n\n#### APIs Gratuitas (Brasil):\n1. **Brapi** (https://brapi.dev)\n   - API gratuita com cotações B3 em tempo real\n   - Endpoint: `https://brapi.dev/api/quote/{ticker}`\n   - Exemplo: `https://brapi.dev/api/quote/ITSA4`\n\n2. **Yahoo Finance API**\n   - Use o sufixo `.SA` para ações brasileiras\n   - Exemplo: `ITSA4.SA`, `ITUB4.SA`\n\n3. **HG Brasil Finance API**\n   - API brasileira com dados do mercado\n   - Cotações, moedas e muito mais\n\n#### Sites para Web Scraping (se necessário):\n- **Status Invest** (https://statusinvest.com.br)\n- **Fundamentus** (https://www.fundamentus.com.br)\n- **InfoMoney** (https://www.infomoney.com.br)\n- **Investing.com Brasil** (https://br.investing.com)\n\n#### Para Notícias:\n- Google News API\n- InfoMoney notícias\n- Valor Econômico\n- B3 - Comunicados e Fatos Relevantes\n\n### 💡 Dica de Implementação:\n\nSe você estiver usando este prompt em uma automação (n8n, Zapier, Make):\n1. Configure um nó HTTP Request para buscar dados da Brapi antes de chamar a IA\n2. Passe os dados JSON como contexto para o modelo\n3. Instrua o modelo a usar APENAS os dados fornecidos no contexto\n4. Exemplo de contexto:\n\n```json\n{\n  \"data_geracao\": \"07/11/2025 18:30\",\n  \"acoes\": {\n    \"ITSA4\": {\n      \"cotacao\": 9.85,\n      \"variacao_dia\": 1.25,\n      \"variacao_mes\": 2.60,\n      \"nome\": \"Itaúsa S.A.\",\n      \"setor\": \"Holding Financeira\"\n    }\n  }\n}\n```\n\n---\n\n## 🔔 Alertas Importantes\n\nInclua alertas quando aplicável:\n- ⚠️ Variação superior a ±5% no dia\n- 📢 Resultados trimestrais divulgados recentemente\n- 💵 Proventos com data de pagamento próxima (próximos 7 dias)\n- 🔥 Notícias de alto impacto (fusões, aquisições, mudanças estratégicas)\n\n---\n\n## 🔴 LEMBRETE FINAL - LEIA NOVAMENTE\n\n### ESTE PROMPT EXIGE:\n\n1. **HTML COMPLETO** - Pronto para abrir no navegador e enviar por e-mail\n2. **DADOS REAIS** - Busque cotações, notícias e indicadores atualizados\n3. **ZERO PLACEHOLDERS** - Nenhum `{{VARIAVEL}}`, `{VALOR}` ou similar\n4. **SEM JAVASCRIPT** - Não gere scripts para preencher dados depois\n5. **DATA ATUAL** - Use a data e hora real do momento da geração\n\n### SE VOCÊ GERAR PLACEHOLDERS OU VARIÁVEIS NÃO PREENCHIDAS, A TAREFA SERÁ CONSIDERADA FALHADA.\n\n### FORMATO DA RESPOSTA:\n\nSua resposta deve conter APENAS:\n```html\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <!-- CSS inline completo -->\n</head>\n<body>\n    <!-- Conteúdo com TODOS os dados preenchidos -->\n</body>\n</html>\n```\n\n**NÃO inclua:**\n- Explicações antes ou depois do HTML\n- Código com placeholders\n- Instruções de \"preencha aqui\"\n- JavaScript para substituição de variáveis\n\n---\n\n**Observação Legal**: Este relatório tem fins informativos e educacionais. Não constitui recomendação de investimento, aconselhamento financeiro ou oferta de compra/venda de ativos. Consulte sempre um profissional habilitado (analista CNPI, assessor de investimentos) antes de tomar decisões financeiras. Rentabilidade passada não garante resultados futuros."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1,
+        "position": [
+          208,
+          0
+        ],
+        "id": "4b21bcb7-2cd7-499b-8cf0-145a8d442e13",
+        "name": "Financial Stock Info",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "yjocCx9owSKGIInt",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      }
+    ],
+    "pinData": {},
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Financial Stock Info",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Financial Stock Info": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "96572d20-1846-46ac-8abd-f52f220a7829",
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "bc0944e7f3ffc25587b31301c4153107d8acd7d121f4aa997681175d082d4fa6"
+    },
+    "id": "fBu2euckr6pj1X50",
+    "tags": []
+  }
