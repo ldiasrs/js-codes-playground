@@ -109,12 +109,14 @@ function shouldExecuteTask(task, lastExecution, today = new Date()) {
 // CÓDIGO PRINCIPAL N8N
 // ============================================
 
-// Pegar inputs do n8n
-const tasks = $input.first().json;  // Input 1: Lista de tasks
-const executionsInput = $input.last().json;  // Input 2: Lista de execuções
+// Acessar nodes anteriores usando $() syntax
+// Nota: GetTasks e GetExecutions devem ter sido executados antes
+const tasksItems = $('GetTasks').all();
+const executionsItems = $('GetExecutions').all();
 
-// Converter execuções para array se necessário
-const executions = Array.isArray(executionsInput) ? executionsInput : [executionsInput];
+// Extrair dados JSON
+const tasks = tasksItems.map(item => item.json);
+const executions = executionsItems.map(item => item.json);
 
 // Data de hoje
 const today = new Date();

@@ -1,0 +1,277 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "14deda51-c5b8-4b9e-bb81-19e8cc52a590",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
+          "mode": "list",
+          "cachedResultName": "Stock-info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 865796428,
+          "mode": "list",
+          "cachedResultName": "2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit#gid=865796428"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d40d6d7d-e007-4fb5-b050-91b779cb2ee4",
+      "name": "GetTasks",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TcsAIidzUoiqPfyA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
+          "mode": "list",
+          "cachedResultName": "Stock-info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 136723104,
+          "mode": "list",
+          "cachedResultName": "executions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit#gid=136723104"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "1a1b4433-1233-4eaa-a63a-92c8272b041e",
+      "name": "GetExecutions",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TcsAIidzUoiqPfyA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ScheduleType = {\n  DAILY: 'DAILY',\n  WEEKLY: 'WEEKLLY',\n  MONTHLY: 'MONTLY'\n};\n\nconst DaysOfWeek = {\n  Sunday: 0,\n  Monday: 1,\n  Tuesday: 2,\n  Wednesday: 3,\n  Thursday: 4,\n  Friday: 5,\n  Saturday: 6\n};\n\nfunction parseExecutionDate(dateStr) {\n  const [datePart, timePart] = dateStr.split(' ');\n  const [day, month, year] = datePart.split('/');\n  const [hours, minutes, seconds] = timePart.split(':');\n  return new Date(year, month - 1, day, hours, minutes, seconds);\n}\n\nfunction isToday(date, today = new Date()) {\n  return date.getDate() === today.getDate() &&\n         date.getMonth() === today.getMonth() &&\n         date.getFullYear() === today.getFullYear();\n}\n\nfunction getLastExecution(taskId, executions) {\n  const taskExecutions = executions\n    .filter(exec => exec.Id === taskId)\n    .map(exec => parseExecutionDate(exec.ExecutionTime))\n    .sort((a, b) => b - a);\n  \n  return taskExecutions.length > 0 ? taskExecutions[0] : null;\n}\n\nfunction shouldExecuteDaily(task, lastExecution, today) {\n  if (!lastExecution) return true;\n  if (!isToday(lastExecution, today)) return true;\n  \n  if (task.ScheduledPeriod > 1) {\n    const daysDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24));\n    return daysDiff >= task.ScheduledPeriod;\n  }\n  \n  return false;\n}\n\nfunction shouldExecuteWeekly(task, lastExecution, today) {\n  const scheduledDayOfWeek = DaysOfWeek[task.ScheduledDay];\n  const todayDayOfWeek = today.getDay();\n  \n  if (scheduledDayOfWeek !== todayDayOfWeek) return false;\n  if (!lastExecution) return true;\n  \n  if (!isToday(lastExecution, today)) {\n    const weeksDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24 * 7));\n    return weeksDiff >= task.ScheduledPeriod;\n  }\n  \n  return false;\n}\n\nfunction shouldExecuteMonthly(task, lastExecution, today) {\n  const scheduledDayOfMonth = parseInt(task.ScheduledDay);\n  const todayDayOfMonth = today.getDate();\n  \n  if (scheduledDayOfMonth !== todayDayOfMonth) return false;\n  if (!lastExecution) return true;\n  \n  if (!isToday(lastExecution, today)) {\n    const monthsDiff = (today.getFullYear() - lastExecution.getFullYear()) * 12 \n                     + (today.getMonth() - lastExecution.getMonth());\n    return monthsDiff >= task.ScheduledPeriod;\n  }\n  \n  return false;\n}\n\nfunction shouldExecuteTask(task, lastExecution, today = new Date()) {\n  switch (task.ScheduledType) {\n    case ScheduleType.DAILY:\n      return shouldExecuteDaily(task, lastExecution, today);\n    case ScheduleType.WEEKLY:\n      return shouldExecuteWeekly(task, lastExecution, today);\n    case ScheduleType.MONTHLY:\n      return shouldExecuteMonthly(task, lastExecution, today);\n    default:\n      return false;\n  }\n}\n\n// Acessar nodes usando $() syntax\nconst tasksItems = $('GetTasks').all();\nconst executionsItems = $('GetExecutions').all();\n\n// Extrair dados JSON\nconst tasks = tasksItems.map(item => item.json);\nconst executions = executionsItems.map(item => item.json);\n\n// Data de hoje\nconst today = new Date();\n\nconsole.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);\nconsole.log(`📊 Total de tasks: ${tasks.length}`);\nconsole.log(`📊 Total de execuções: ${executions.length}`);\n\n// Filtrar tasks que devem ser executadas hoje\nconst tasksToExecute = tasks.filter(task => {\n  const lastExecution = getLastExecution(task.Id, executions);\n  const shouldExecute = shouldExecuteTask(task, lastExecution, today);\n  \n  if (shouldExecute) {\n    console.log(`✅ Task \"${task.Subject}\" deve ser executada`);\n  }\n  \n  return shouldExecute;\n});\n\nconsole.log(`\\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);\n\n// Retornar no formato n8n\nreturn tasksToExecute.map((task, index) => ({\n  json: task,\n  pairedItem: { item: index }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "13dbc75e-a09b-4bdb-b1c2-0e96d1634f70",
+      "name": "FilterTasksToBeExecuted"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gemini-1.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.Prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "fc1a235b-6096-45aa-9e69-0df57c9f65f4",
+      "name": "AI-Process",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "xg8JJT12sq4nKGDw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
+          "mode": "list",
+          "cachedResultName": "Stock-info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 136723104,
+          "mode": "list",
+          "cachedResultName": "executions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit#gid=136723104"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $('FilterTasksToBeExecuted').item.json.Id }}",
+            "ExecutionTime": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
+            "Saida": "={{ $json.message.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExecutionTime",
+              "displayName": "ExecutionTime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Saida",
+              "displayName": "Saida",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "7cdccd25-cd78-45af-881d-d6c8d7510325",
+      "name": "AppendExecutions",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TcsAIidzUoiqPfyA",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "GetTasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetTasks": {
+      "main": [
+        [
+          {
+            "node": "GetExecutions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetExecutions": {
+      "main": [
+        [
+          {
+            "node": "FilterTasksToBeExecuted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FilterTasksToBeExecuted": {
+      "main": [
+        [
+          {
+            "node": "AI-Process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI-Process": {
+      "main": [
+        [
+          {
+            "node": "AppendExecutions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dd030400-68cf-4ee5-8df1-cc30f236e673",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
+  },
+  "id": "G5cy85soKfPjjlJb",
+  "tags": []
+}
