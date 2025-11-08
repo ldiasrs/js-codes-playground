@@ -14,10 +14,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        0,
-        0
+        -656,
+        -64
       ],
-      "id": "14deda51-c5b8-4b9e-bb81-19e8cc52a590",
+      "id": "165bf56c-77a3-4fe8-9f2b-ee2cfb7ed1ec",
       "name": "Schedule Trigger"
     },
     {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        208,
-        0
+        -448,
+        -64
       ],
-      "id": "d40d6d7d-e007-4fb5-b050-91b779cb2ee4",
+      "id": "a6790ae8-e726-4f88-940f-b4dc71f0fb5b",
       "name": "GetTasks",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        416,
-        0
+        -240,
+        -64
       ],
-      "id": "1a1b4433-1233-4eaa-a63a-92c8272b041e",
+      "id": "77e2200d-f5b3-4376-b5e5-2313ac6cbb06",
       "name": "GetExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -93,18 +93,19 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        0
+        -32,
+        -64
       ],
-      "id": "13dbc75e-a09b-4bdb-b1c2-0e96d1634f70",
+      "id": "507dc636-d9b5-469b-bd75-d8347a825599",
       "name": "FilterTasksToBeExecuted"
     },
     {
       "parameters": {
         "modelId": {
           "__rl": true,
+          "value": "models/gemini-2.5-flash",
           "mode": "list",
-          "value": "gemini-1.5-flash"
+          "cachedResultName": "models/gemini-2.5-flash"
         },
         "messages": {
           "values": [
@@ -118,10 +119,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        832,
-        0
+        176,
+        -64
       ],
-      "id": "fc1a235b-6096-45aa-9e69-0df57c9f65f4",
+      "id": "6c4dafd7-3972-4189-8d99-3334edf4f478",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -152,7 +153,7 @@
           "value": {
             "Id": "={{ $('FilterTasksToBeExecuted').item.json.Id }}",
             "ExecutionTime": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
-            "Saida": "={{ $json.message.content }}"
+            "Saida": "={{ $json.content.parts[0].text }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -192,10 +193,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1040,
-        0
+        512,
+        -64
       ],
-      "id": "7cdccd25-cd78-45af-881d-d6c8d7510325",
+      "id": "83eab61d-73ab-4901-8028-7b08ab61acab",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -267,7 +268,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "dd030400-68cf-4ee5-8df1-cc30f236e673",
+  "versionId": "f3645b44-977b-4dcb-b6e0-e99672c426ef",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
