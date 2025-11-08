@@ -14,7 +14,7 @@
 const ScheduleType = {
   DAILY: 'DAILY',
   WEEKLY: 'WEEKLLY',
-  MONTHLY: 'MONTLY'
+  MOUNTHLY: 'MONTLY'
 };
 
 const DaysOfWeek = {
@@ -90,7 +90,7 @@ function shouldExecuteWeekly(task, lastExecution, today) {
   return false;
 }
 
-function shouldExecuteMonthly(task, lastExecution, today) {
+function shouldExecuteMOUNTHLY(task, lastExecution, today) {
   const scheduledDayOfMonth = parseInt(task.ScheduledDay);
   const todayDayOfMonth = today.getDate();
   
@@ -112,8 +112,8 @@ function shouldExecuteTask(task, lastExecution, today = new Date()) {
       return shouldExecuteDaily(task, lastExecution, today);
     case ScheduleType.WEEKLY:
       return shouldExecuteWeekly(task, lastExecution, today);
-    case ScheduleType.MONTHLY:
-      return shouldExecuteMonthly(task, lastExecution, today);
+    case ScheduleType.MOUNTHLY:
+      return shouldExecuteMOUNTHLY(task, lastExecution, today);
     default:
       return false;
   }

@@ -12,7 +12,7 @@
 **Complete task scheduler logic integrated:**
 - ✅ Supports DAILY tasks (with custom periods)
 - ✅ Supports WEEKLY tasks (with day of week validation)
-- ✅ Supports MONTHLY tasks (with day of month validation)
+- ✅ Supports MOUNTHLY tasks (with day of month validation)
 - ✅ Compares against last execution from history
 - ✅ Returns only tasks that should execute today
 - ✅ **NEW:** Enriches each task's prompt with history of last 3 executions to avoid repetition
@@ -22,7 +22,7 @@
 - `getLastExecution()` - Finds most recent execution for each task
 - `getLastNExecutions()` - **NEW:** Retrieves last N executions with output data
 - `buildPromptWithHistory()` - **NEW:** Enriches prompt with execution history
-- `shouldExecuteDaily/Weekly/Monthly()` - Schedule validation logic
+- `shouldExecuteDaily/Weekly/MOUNTHLY()` - Schedule validation logic
 - `shouldExecuteTask()` - Main decision logic
 
 ### 3. Modified AI-Process Node
@@ -74,7 +74,7 @@ AppendExecutions
 3. **GetExecutions** fetches execution history (sheet "executions")
 4. **FilterTasksToBeExecuted** accesses both previous nodes and:
    - Analyzes which tasks should run TODAY based on:
-     - Task schedule type (DAILY/WEEKLY/MONTHLY)
+     - Task schedule type (DAILY/WEEKLY/MOUNTHLY)
      - Last execution timestamp
      - Scheduled day/period configuration
    - **Enriches each task's prompt** with the last 3 execution outputs to provide context
@@ -143,7 +143,7 @@ Para evitar repetição, considere as respostas anteriores abaixo:
 ```
 **Result:** Executes only on Mondays if not already executed
 
-### Monthly Task
+### MOUNTHLY Task
 ```json
 {
   "Id": 3,

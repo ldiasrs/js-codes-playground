@@ -10,7 +10,7 @@
 const ScheduleType = {
   DAILY: 'DAILY',
   WEEKLY: 'WEEKLLY', // Mantido o typo para compatibilidade
-  MONTHLY: 'MONTLY'  // Mantido o typo para compatibilidade
+  MOUNTHLY: 'MONTLY'  // Mantido o typo para compatibilidade
 };
 
 /**
@@ -119,13 +119,13 @@ function shouldExecuteWeekly(task, lastExecution, today) {
 }
 
 /**
- * Verifica se uma task MONTHLY deve ser executada
+ * Verifica se uma task MOUNTHLY deve ser executada
  * @param {Object} task - Task
  * @param {Date} lastExecution - Última execução
  * @param {Date} today - Data de hoje
  * @returns {boolean}
  */
-function shouldExecuteMonthly(task, lastExecution, today) {
+function shouldExecuteMOUNTHLY(task, lastExecution, today) {
   // Verificar se hoje é o dia do mês configurado
   const scheduledDayOfMonth = parseInt(task.ScheduledDay);
   const todayDayOfMonth = today.getDate();
@@ -163,8 +163,8 @@ function shouldExecuteTask(task, lastExecution, today = new Date()) {
     case ScheduleType.WEEKLY:
       return shouldExecuteWeekly(task, lastExecution, today);
     
-    case ScheduleType.MONTHLY:
-      return shouldExecuteMonthly(task, lastExecution, today);
+    case ScheduleType.MOUNTHLY:
+      return shouldExecuteMOUNTHLY(task, lastExecution, today);
     
     default:
       console.warn(`Tipo de agendamento desconhecido: ${task.ScheduledType}`);
