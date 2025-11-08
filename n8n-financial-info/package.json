@@ -1,0 +1,27 @@
+{
+  "name": "n8n-financial-info",
+  "version": "1.0.0",
+  "description": "n8n workflows for financial information with automated task scheduling",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "sync-nodes": "node scripts/sync-nodes.js",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "n8n",
+    "workflow",
+    "automation",
+    "financial",
+    "scheduler"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.54.0"
+  }
+}
+
