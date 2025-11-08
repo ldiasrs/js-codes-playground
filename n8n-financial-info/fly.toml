@@ -1,5 +1,7 @@
-# fly.toml - Configuração OTIMIZADA para n8n (mínimo de memória)
-# Para free tier do Fly.io
+# fly.toml app configuration file generated for n8n-financial-info on 2025-11-08T12:14:03-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = 'n8n-financial-info'
 primary_region = 'gru'
@@ -8,29 +10,25 @@ primary_region = 'gru'
   image = 'n8nio/n8n:latest'
 
 [env]
-  N8N_PORT = '5678'
-  NODE_ENV = 'production'
-  GENERIC_TIMEZONE = 'America/Sao_Paulo'
-  TZ = 'America/Sao_Paulo'
-  N8N_METRICS = 'false'
-  
-  # Otimizações de memória
-  NODE_OPTIONS = '--max-old-space-size=200'
-  EXECUTIONS_PROCESS = 'main'
   EXECUTIONS_MODE = 'regular'
+  EXECUTIONS_PROCESS = 'main'
+  GENERIC_TIMEZONE = 'America/Sao_Paulo'
   N8N_CONCURRENCY_PRODUCTION_LIMIT = '1'
-  
-  # Desabilitar features que consomem memória
   N8N_DIAGNOSTICS_ENABLED = 'false'
-  N8N_VERSION_NOTIFICATIONS_ENABLED = 'false'
-  N8N_TEMPLATES_ENABLED = 'false'
-  
-  # Configurações de log
+  N8N_EDITOR_BASE_URL = 'https://n8n-financial-info.fly.dev'
   N8N_LOG_LEVEL = 'warn'
   N8N_LOG_OUTPUT = 'console'
-  
-  # Interface
-  N8N_EDITOR_BASE_URL = 'https://n8n-financial-info.fly.dev'
+  N8N_METRICS = 'false'
+  N8N_PORT = '5678'
+  N8N_TEMPLATES_ENABLED = 'false'
+  N8N_VERSION_NOTIFICATIONS_ENABLED = 'false'
+  NODE_ENV = 'production'
+  NODE_OPTIONS = '--max-old-space-size=200'
+  TZ = 'America/Sao_Paulo'
+
+[[mounts]]
+  source = 'n8n_data'
+  destination = '/home/node/.n8n'
 
 [http_service]
   internal_port = 5678
@@ -45,19 +43,6 @@ primary_region = 'gru'
     hard_limit = 10
     soft_limit = 5
 
-# IMPORTANTE: 512MB é o MÍNIMO para n8n funcionar
-# 256MB NÃO É SUFICIENTE e causará OOM
-[[vm]]
-  memory = '512mb'
-  cpu_kind = 'shared'
-  cpus = 1
-
-# Volume para dados
-[[mounts]]
-  source = 'n8n_data'
-  destination = '/home/node/.n8n'
-
-# Health checks otimizados
 [[services]]
   protocol = 'tcp'
   internal_port = 5678
@@ -76,18 +61,20 @@ primary_region = 'gru'
     hard_limit = 10
     soft_limit = 5
 
-  # TCP check mais tolerante
   [[services.tcp_checks]]
     interval = '30s'
     timeout = '5s'
-    grace_period = '60s'
+    grace_period = '1m0s'
 
-  # HTTP check mais tolerante
   [[services.http_checks]]
-    interval = '60s'
+    interval = '1m0s'
     timeout = '5s'
-    grace_period = '60s'
+    grace_period = '1m0s'
     method = 'get'
     path = '/healthz'
     protocol = 'http'
 
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
