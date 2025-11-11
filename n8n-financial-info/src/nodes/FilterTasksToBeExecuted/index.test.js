@@ -251,7 +251,7 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve chamar shouldExecuteMonthly para MONTHLY', () => {
       const task = { 
-        ScheduledType: 'MONTLY', // Typo intencional
+        ScheduledType: 'MOUNTHLY',
         ScheduledDay: '8',
         ScheduledPeriod: 1 
       };
@@ -337,7 +337,7 @@ describe('FilterTasksToBeExecuted', () => {
       {
         Id: 3,
         Subject: 'Task Mensal',
-        ScheduledType: 'MONTLY',
+        ScheduledType: 'MOUNTHLY',
         ScheduledDay: '8',
         ScheduledPeriod: 1,
         Prompt: 'Prompt 3'

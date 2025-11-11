@@ -8,7 +8,7 @@
 const ScheduleType = {
   DAILY: 'DAILY',
   WEEKLY: 'WEEKLY',
-  MONTHLY: 'MONTLY'
+  MONTHLY: 'MOUNTHLY'
 };
 
 const DaysOfWeek = {

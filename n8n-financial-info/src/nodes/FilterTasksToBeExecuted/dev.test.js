@@ -34,7 +34,7 @@ describe('Teste de desenvolvimento manual', () => {
       {
         Id: 3,
         Subject: 'Relatório Mensal',
-        ScheduledType: 'MONTLY',
+        ScheduledType: 'MOUNTHLY',
         ScheduledPeriod: 1,
         ScheduledDay: '1',
         ScheduledTime: '09:00',
