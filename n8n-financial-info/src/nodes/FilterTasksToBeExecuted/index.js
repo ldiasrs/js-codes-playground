@@ -7,7 +7,7 @@
 
 const ScheduleType = {
   DAILY: 'DAILY',
-  WEEKLY: 'WEEKLLY',
+  WEEKLY: 'WEEKLY',
   MONTHLY: 'MONTLY'
 };
 
@@ -82,6 +82,26 @@ function getLastNExecutions(taskId, executions, n = 3) {
 }
 
 /**
+ * Verifica se o horário agendado já passou
+ * @param {string} scheduledTime - Horário no formato "HH:mm"
+ * @param {Date} currentTime - Data/hora atual
+ * @returns {boolean}
+ */
+function hasScheduledTimePassed(scheduledTime, currentTime) {
+  if (!scheduledTime) return true; // Se não tem horário definido, sempre pode executar
+  
+  const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+  const currentHours = currentTime.getHours();
+  const currentMinutes = currentTime.getMinutes();
+  
+  // Compara horário
+  if (currentHours > scheduledHours) return true;
+  if (currentHours === scheduledHours && currentMinutes >= scheduledMinutes) return true;
+  
+  return false;
+}
+
+/**
  * Verifica se uma task DAILY deve ser executada
  * @param {Object} task - Task
  * @param {Date} lastExecution - Última execução
@@ -115,15 +135,21 @@ function shouldExecuteWeekly(task, lastExecution, today) {
   const scheduledDayOfWeek = DaysOfWeek[task.ScheduledDay];
   const todayDayOfWeek = today.getDay();
   
+  // Não é o dia da semana correto
   if (scheduledDayOfWeek !== todayDayOfWeek) return false;
+  
+  // Verifica se o horário já passou
+  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;
+  
+  // Nunca executou antes - pode executar
   if (!lastExecution) return true;
   
-  if (!isToday(lastExecution, today)) {
-    const weeksDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24 * 7));
-    return weeksDiff >= task.ScheduledPeriod;
-  }
+  // Já executou hoje - não executar novamente
+  if (isToday(lastExecution, today)) return false;
   
-  return false;
+  // Executou em outro dia - verifica o período
+  const weeksDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24 * 7));
+  return weeksDiff >= task.ScheduledPeriod;
 }
 
 /**
@@ -137,16 +163,22 @@ function shouldExecuteMonthly(task, lastExecution, today) {
   const scheduledDayOfMonth = parseInt(task.ScheduledDay);
   const todayDayOfMonth = today.getDate();
   
+  // Não é o dia do mês correto
   if (scheduledDayOfMonth !== todayDayOfMonth) return false;
+  
+  // Verifica se o horário já passou
+  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;
+  
+  // Nunca executou antes - pode executar
   if (!lastExecution) return true;
   
-  if (!isToday(lastExecution, today)) {
-    const monthsDiff = (today.getFullYear() - lastExecution.getFullYear()) * 12 
-                     + (today.getMonth() - lastExecution.getMonth());
-    return monthsDiff >= task.ScheduledPeriod;
-  }
+  // Já executou hoje - não executar novamente
+  if (isToday(lastExecution, today)) return false;
   
-  return false;
+  // Executou em outro dia - verifica o período
+  const monthsDiff = (today.getFullYear() - lastExecution.getFullYear()) * 12 
+                   + (today.getMonth() - lastExecution.getMonth());
+  return monthsDiff >= task.ScheduledPeriod;
 }
 
 /**
@@ -245,6 +277,7 @@ module.exports = {
   isToday,
   getLastExecution,
   getLastNExecutions,
+  hasScheduledTimePassed,
   shouldExecuteDaily,
   shouldExecuteWeekly,
   shouldExecuteMonthly,

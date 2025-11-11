@@ -240,7 +240,7 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve chamar shouldExecuteWeekly para WEEKLY', () => {
       const task = { 
-        ScheduledType: 'WEEKLLY', // Typo intencional
+        ScheduledType: 'WEEKLY',
         ScheduledDay: 'Saturday',
         ScheduledPeriod: 1 
       };
@@ -329,7 +329,7 @@ describe('FilterTasksToBeExecuted', () => {
       {
         Id: 2,
         Subject: 'Task Semanal',
-        ScheduledType: 'WEEKLLY',
+        ScheduledType: 'WEEKLY',
         ScheduledDay: 'Saturday',
         ScheduledPeriod: 1,
         Prompt: 'Prompt 2'
