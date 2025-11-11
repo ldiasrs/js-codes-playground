@@ -351,7 +351,11 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve filtrar e retornar tasks que devem executar', () => {
       const today = new Date(2025, 10, 8); // Sábado, 08/11/2025
-      const emails = [];
+      const emails = [
+        { Id: 1, email: 'test1@example.com' },
+        { Id: 2, email: 'test2@example.com' },
+        { Id: 3, email: 'test3@example.com' }
+      ];
       const result = filterTasksToExecute(tasks, executions, emails, today);
       
       expect(result.length).toBeGreaterThan(0);
@@ -361,7 +365,11 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve enriquecer prompts com histórico', () => {
       const today = new Date(2025, 10, 8);
-      const emails = [];
+      const emails = [
+        { Id: 1, email: 'test1@example.com' },
+        { Id: 2, email: 'test2@example.com' },
+        { Id: 3, email: 'test3@example.com' }
+      ];
       const result = filterTasksToExecute(tasks, executions, emails, today);
       
       const taskWithHistory = result.find(t => t.Id === 1);
@@ -384,7 +392,11 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve manter propriedades originais das tasks', () => {
       const today = new Date(2025, 10, 8);
-      const emails = [];
+      const emails = [
+        { Id: 1, email: 'test1@example.com' },
+        { Id: 2, email: 'test2@example.com' },
+        { Id: 3, email: 'test3@example.com' }
+      ];
       const result = filterTasksToExecute(tasks, executions, emails, today);
       
       result.forEach(task => {

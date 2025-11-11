@@ -227,21 +227,98 @@ function buildPromptWithHistory(task, lastExecutions) {
 }
 
 /**
- * Função principal que processa tasks e execuções
+ * Remove emails duplicados de uma lista
+ * @param {Array<string>} emails - Lista de emails
+ * @returns {Array<string>}
+ */
+function removeDuplicateEmails(emails) {
+  return emails.filter((email, index, self) => self.indexOf(email) === index);
+}
+
+/**
+ * Obtém emails únicos para uma task específica
+ * @param {number} taskId - ID da task
+ * @param {Array} emailsList - Lista de emails
+ * @returns {Array<string>}
+ */
+function getTaskEmails(taskId, emailsList) {
+  const taskEmails = emailsList
+    .filter(e => e.Id === taskId)
+    .map(e => e.email);
+  
+  return removeDuplicateEmails(taskEmails);
+}
+
+/**
+ * Enriquece uma task com histórico e emails
+ * @param {Object} task - Task original
+ * @param {Array} executions - Lista de execuções
+ * @param {Array} emails - Lista de emails
+ * @returns {Object}
+ */
+function enrichTask(task, executions, emails) {
+  const lastExecutions = getLastNExecutions(task.Id, executions, 3);
+  const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);
+  const taskEmails = getTaskEmails(task.Id, emails);
+  
+  logTaskEnrichment(task, lastExecutions.length, taskEmails);
+  
+  return {
+    ...task,
+    Prompt: enrichedPrompt,
+    HistoryCount: lastExecutions.length,
+    Emails: taskEmails
+  };
+}
+
+/**
+ * Verifica se uma task tem emails configurados
+ * @param {Object} task - Task a verificar
+ * @returns {boolean}
+ */
+function hasEmails(task) {
+  return task.Emails && task.Emails.length > 0;
+}
+
+/**
+ * Filtra tasks que possuem emails configurados
+ * @param {Array} tasks - Lista de tasks
+ * @returns {Array}
+ */
+function filterTasksWithEmails(tasks) {
+  return tasks.filter(task => {
+    if (!hasEmails(task)) {
+      console.log(`⚠️ Task "${task.Subject}" (ID: ${task.Id}) ignorada - sem emails configurados`);
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Valida se há tasks para processar
+ * @param {Array} tasks - Lista de tasks
+ * @returns {boolean}
+ */
+function validateTasksExist(tasks) {
+  if (tasks.length === 0) {
+    console.log('\n❌ Nenhuma task com emails configurados. Finalizando fluxo.');
+    return false;
+  }
+  
+  console.log(`\n✅ ${tasks.length} task(s) com emails serão processadas`);
+  return true;
+}
+
+/**
+ * Filtra tasks que devem ser executadas hoje
  * @param {Array} tasks - Lista de tasks
  * @param {Array} executions - Lista de execuções
- * @param {Array} emails - Lista de emails por task ID (opcional)
  * @param {Date} today - Data de hoje
  * @returns {Array}
  */
-function filterTasksToExecute(tasks, executions, emails = [], today = new Date()) {
-  console.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);
-  console.log(`📊 Total de tasks: ${tasks.length}`);
-  console.log(`📊 Total de execuções: ${executions.length}`);
-  console.log(`📧 Total de emails configurados: ${emails.length}`);
-
-  // Filtrar tasks que devem ser executadas hoje
-  const tasksToExecute = tasks.filter(task => {
+function filterTasksBySchedule(tasks, executions, today) {
+  return tasks.filter(task => {
     const lastExecution = getLastExecution(task.Id, executions);
     const shouldExecute = shouldExecuteTask(task, lastExecution, today);
     
@@ -251,48 +328,101 @@ function filterTasksToExecute(tasks, executions, emails = [], today = new Date()
     
     return shouldExecute;
   });
+}
 
-  console.log(`\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);
+/**
+ * Registra informações de enriquecimento de uma task
+ * @param {Object} task - Task sendo enriquecida
+ * @param {number} historyCount - Quantidade de execuções no histórico
+ * @param {Array<string>} emails - Lista de emails
+ */
+function logTaskEnrichment(task, historyCount, emails) {
+  console.log(`\n📝 Task "${task.Subject}" - Histórico: ${historyCount} execuções anteriores`);
+  console.log(`📧 Emails: ${emails.length > 0 ? emails.join(', ') : 'nenhum'}`);
+}
 
-  // Enriquecer cada task com histórico das últimas 3 execuções e emails
-  const tasksWithHistory = tasksToExecute.map(task => {
-    const lastExecutions = getLastNExecutions(task.Id, executions, 3);
-    const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);
-    
-    // Get emails for this task and remove duplicates
-    const taskEmails = emails
-      .filter(e => e.Id === task.Id)
-      .map(e => e.email)
-      .filter((email, index, self) => self.indexOf(email) === index); // Remove duplicados
-    
-    console.log(`\n📝 Task "${task.Subject}" - Histórico: ${lastExecutions.length} execuções anteriores`);
-    console.log(`📧 Emails: ${taskEmails.length > 0 ? taskEmails.join(', ') : 'nenhum'}`);
-    
-    return {
-      ...task,
-      Prompt: enrichedPrompt,
-      HistoryCount: lastExecutions.length,
-      Emails: taskEmails
-    };
-  });
+/**
+ * Registra estatísticas iniciais do processamento
+ * @param {number} tasksCount - Total de tasks
+ * @param {number} executionsCount - Total de execuções
+ * @param {number} emailsCount - Total de emails
+ * @param {Date} today - Data de hoje
+ */
+function logProcessingStats(tasksCount, executionsCount, emailsCount, today) {
+  console.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);
+  console.log(`📊 Total de tasks: ${tasksCount}`);
+  console.log(`📊 Total de execuções: ${executionsCount}`);
+  console.log(`📧 Total de emails configurados: ${emailsCount}`);
+}
 
-  return tasksWithHistory;
+/**
+ * Função principal que processa tasks e execuções
+ * @param {Array} tasks - Lista de tasks
+ * @param {Array} executions - Lista de execuções
+ * @param {Array} emails - Lista de emails por task ID (opcional)
+ * @param {Date} today - Data de hoje
+ * @returns {Array}
+ */
+function filterTasksToExecute(tasks, executions, emails = [], today = new Date()) {
+  // Log de estatísticas iniciais
+  logProcessingStats(tasks.length, executions.length, emails.length, today);
+
+  // Filtrar tasks por agendamento
+  const scheduledTasks = filterTasksBySchedule(tasks, executions, today);
+  console.log(`\n🎯 Total de tasks para executar: ${scheduledTasks.length}`);
+
+  // Enriquecer tasks com histórico e emails
+  const enrichedTasks = scheduledTasks.map(task => 
+    enrichTask(task, executions, emails)
+  );
+
+  // Filtrar apenas tasks com emails
+  const tasksWithEmails = filterTasksWithEmails(enrichedTasks);
+
+  // Validar se há tasks para processar
+  if (!validateTasksExist(tasksWithEmails)) {
+    return [];
+  }
+
+  return tasksWithEmails;
 }
 
 // Exportar todas as funções para testes
 module.exports = {
+  // Constants
   ScheduleType,
   DaysOfWeek,
+  
+  // Date utilities
   parseExecutionDate,
   isToday,
+  hasScheduledTimePassed,
+  
+  // Execution history
   getLastExecution,
   getLastNExecutions,
-  hasScheduledTimePassed,
+  
+  // Scheduling logic
   shouldExecuteDaily,
   shouldExecuteWeekly,
   shouldExecuteMonthly,
   shouldExecuteTask,
+  
+  // Prompt building
   buildPromptWithHistory,
+  
+  // Email utilities
+  removeDuplicateEmails,
+  getTaskEmails,
+  hasEmails,
+  
+  // Task processing
+  enrichTask,
+  filterTasksBySchedule,
+  filterTasksWithEmails,
+  validateTasksExist,
+  
+  // Main function
   filterTasksToExecute
 };
 
