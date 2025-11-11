@@ -230,13 +230,15 @@ function buildPromptWithHistory(task, lastExecutions) {
  * Função principal que processa tasks e execuções
  * @param {Array} tasks - Lista de tasks
  * @param {Array} executions - Lista de execuções
+ * @param {Array} emails - Lista de emails por task ID (opcional)
  * @param {Date} today - Data de hoje
  * @returns {Array}
  */
-function filterTasksToExecute(tasks, executions, today = new Date()) {
+function filterTasksToExecute(tasks, executions, emails = [], today = new Date()) {
   console.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);
   console.log(`📊 Total de tasks: ${tasks.length}`);
   console.log(`📊 Total de execuções: ${executions.length}`);
+  console.log(`📧 Total de emails configurados: ${emails.length}`);
 
   // Filtrar tasks que devem ser executadas hoje
   const tasksToExecute = tasks.filter(task => {
@@ -252,17 +254,24 @@ function filterTasksToExecute(tasks, executions, today = new Date()) {
 
   console.log(`\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);
 
-  // Enriquecer cada task com histórico das últimas 3 execuções
+  // Enriquecer cada task com histórico das últimas 3 execuções e emails
   const tasksWithHistory = tasksToExecute.map(task => {
     const lastExecutions = getLastNExecutions(task.Id, executions, 3);
     const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);
     
+    // Get emails for this task
+    const taskEmails = emails
+      .filter(e => e.Id === task.Id)
+      .map(e => e.email);
+    
     console.log(`\n📝 Task "${task.Subject}" - Histórico: ${lastExecutions.length} execuções anteriores`);
+    console.log(`📧 Emails: ${taskEmails.length > 0 ? taskEmails.join(', ') : 'nenhum'}`);
     
     return {
       ...task,
       Prompt: enrichedPrompt,
-      HistoryCount: lastExecutions.length
+      HistoryCount: lastExecutions.length,
+      Emails: taskEmails
     };
   });
 

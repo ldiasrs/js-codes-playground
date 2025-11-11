@@ -14,10 +14,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        256,
-        -112
+        320,
+        144
       ],
-      "id": "64e2a209-c101-422b-bbf9-4aab1f13364a",
+      "id": "1c6fb69f-2658-4654-8ab0-5eeff8dbc3a3",
       "name": "Schedule Trigger"
     },
     {
@@ -26,7 +26,7 @@
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
           "mode": "list",
-          "cachedResultName": "Stock-info",
+          "cachedResultName": "n8n-database",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
         },
         "sheetName": {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        464,
-        -112
+        528,
+        144
       ],
-      "id": "ad9951ba-962b-4d21-82b7-f9e22274763d",
+      "id": "ff7bff6c-b5c3-479c-bb36-b5fc57c70815",
       "name": "GetTasks",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -59,7 +59,7 @@
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
           "mode": "list",
-          "cachedResultName": "Stock-info",
+          "cachedResultName": "n8n-database",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
         },
         "sheetName": {
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        672,
-        -112
+        736,
+        144
       ],
-      "id": "092d8588-6e9d-45e6-bae2-62e7bd9bb6a6",
+      "id": "6f483f9b-41d0-4736-a4e2-e6d250c701f1",
       "name": "GetExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -88,15 +88,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const ScheduleType = {\n  DAILY: 'DAILY',\n  WEEKLY: 'WEEKLY',\n  MONTHLY: 'MONTLY'\n};\n\nconst DaysOfWeek = {\n  Sunday: 0,\n  Monday: 1,\n  Tuesday: 2,\n  Wednesday: 3,\n  Thursday: 4,\n  Friday: 5,\n  Saturday: 6\n};\n\n\nfunction parseExecutionDate(dateStr) {\n  const [datePart, timePart] = dateStr.split(' ');\n  const [day, month, year] = datePart.split('/');\n  const [hours, minutes, seconds] = timePart.split(':');\n  return new Date(year, month - 1, day, hours, minutes, seconds);\n}\n\n\nfunction isToday(date, today = new Date()) {\n  return date.getDate() === today.getDate() &&\n         date.getMonth() === today.getMonth() &&\n         date.getFullYear() === today.getFullYear();\n}\n\n\nfunction getLastExecution(taskId, executions) {\n  const taskExecutions = executions\n    .filter(exec => exec.Id === taskId)\n    .map(exec => parseExecutionDate(exec.ExecutionTime))\n    .sort((a, b) => b - a);\n  \n  return taskExecutions.length > 0 ? taskExecutions[0] : null;\n}\n\n\nfunction getLastNExecutions(taskId, executions, n = 3) {\n  const taskExecutions = executions\n    .filter(exec => exec.Id === taskId)\n    .map(exec => ({\n      date: parseExecutionDate(exec.ExecutionTime),\n      dateStr: exec.ExecutionTime,\n      output: exec.Saida\n    }))\n    .sort((a, b) => b.date - a.date)\n    .slice(0, n);\n  \n  return taskExecutions;\n}\n\n\nfunction hasScheduledTimePassed(scheduledTime, currentTime) {\n  if (!scheduledTime) return true; // Se não tem horário definido, sempre pode executar\n  \n  const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);\n  const currentHours = currentTime.getHours();\n  const currentMinutes = currentTime.getMinutes();\n  \n  // Compara horário\n  if (currentHours > scheduledHours) return true;\n  if (currentHours === scheduledHours && currentMinutes >= scheduledMinutes) return true;\n  \n  return false;\n}\n\n\nfunction shouldExecuteDaily(task, lastExecution, today) {\n  if (!lastExecution) return true;\n  \n  // Se já executou hoje, não executar\n  if (isToday(lastExecution, today)) return false;\n  \n  // Se tem período maior que 1, verificar se passou o número de dias\n  if (task.ScheduledPeriod > 1) {\n    const daysDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24));\n    return daysDiff >= task.ScheduledPeriod;\n  }\n  \n  // Período = 1, executar diariamente\n  return true;\n}\n\n\nfunction shouldExecuteWeekly(task, lastExecution, today) {\n  const scheduledDayOfWeek = DaysOfWeek[task.ScheduledDay];\n  const todayDayOfWeek = today.getDay();\n  \n  // Não é o dia da semana correto\n  if (scheduledDayOfWeek !== todayDayOfWeek) return false;\n  \n  // Verifica se o horário já passou\n  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;\n  \n  // Nunca executou antes - pode executar\n  if (!lastExecution) return true;\n  \n  // Já executou hoje - não executar novamente\n  if (isToday(lastExecution, today)) return false;\n  \n  // Executou em outro dia - verifica o período\n  const weeksDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24 * 7));\n  return weeksDiff >= task.ScheduledPeriod;\n}\n\n\nfunction shouldExecuteMonthly(task, lastExecution, today) {\n  const scheduledDayOfMonth = parseInt(task.ScheduledDay);\n  const todayDayOfMonth = today.getDate();\n  \n  // Não é o dia do mês correto\n  if (scheduledDayOfMonth !== todayDayOfMonth) return false;\n  \n  // Verifica se o horário já passou\n  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;\n  \n  // Nunca executou antes - pode executar\n  if (!lastExecution) return true;\n  \n  // Já executou hoje - não executar novamente\n  if (isToday(lastExecution, today)) return false;\n  \n  // Executou em outro dia - verifica o período\n  const monthsDiff = (today.getFullYear() - lastExecution.getFullYear()) * 12 \n                   + (today.getMonth() - lastExecution.getMonth());\n  return monthsDiff >= task.ScheduledPeriod;\n}\n\n\nfunction shouldExecuteTask(task, lastExecution, today = new Date()) {\n  switch (task.ScheduledType) {\n    case ScheduleType.DAILY:\n      return shouldExecuteDaily(task, lastExecution, today);\n    case ScheduleType.WEEKLY:\n      return shouldExecuteWeekly(task, lastExecution, today);\n    case ScheduleType.MONTHLY:\n      return shouldExecuteMonthly(task, lastExecution, today);\n    default:\n      return false;\n  }\n}\n\n\nfunction buildPromptWithHistory(task, lastExecutions) {\n  let prompt = task.Prompt;\n  \n  if (lastExecutions.length > 0) {\n    prompt += '\\n\\n---\\n\\n';\n    prompt += '📋 HISTÓRICO DAS ÚLTIMAS EXECUÇÕES:\\n';\n    prompt += 'Para evitar repetição, considere as respostas anteriores abaixo:\\n\\n';\n    \n    lastExecutions.forEach((exec, index) => {\n      prompt += `${index + 1}. Execução em ${exec.dateStr}:\\n`;\n      prompt += `${exec.output}\\n\\n`;\n    });\n    \n    prompt += '⚠️ IMPORTANTE: Gere uma resposta diferente e criativa, evitando repetir as ideias acima.';\n  }\n  \n  return prompt;\n}\n\n\nfunction filterTasksToExecute(tasks, executions, today = new Date()) {\n  console.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);\n  console.log(`📊 Total de tasks: ${tasks.length}`);\n  console.log(`📊 Total de execuções: ${executions.length}`);\n\n  // Filtrar tasks que devem ser executadas hoje\n  const tasksToExecute = tasks.filter(task => {\n    const lastExecution = getLastExecution(task.Id, executions);\n    const shouldExecute = shouldExecuteTask(task, lastExecution, today);\n    \n    if (shouldExecute) {\n      console.log(`✅ Task \"${task.Subject}\" deve ser executada`);\n    }\n    \n    return shouldExecute;\n  });\n\n  console.log(`\\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);\n\n  // Enriquecer cada task com histórico das últimas 3 execuções\n  const tasksWithHistory = tasksToExecute.map(task => {\n    const lastExecutions = getLastNExecutions(task.Id, executions, 3);\n    const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);\n    \n    console.log(`\\n📝 Task \"${task.Subject}\" - Histórico: ${lastExecutions.length} execuções anteriores`);\n    \n    return {\n      ...task,\n      Prompt: enrichedPrompt,\n      HistoryCount: lastExecutions.length\n    };\n  });\n\n  return tasksWithHistory;\n}\n\n// Exportar todas as funções para testes\n\n// Wrapper n8n - Executar lógica\nconst tasksItems = $('GetTasks').all();\nconst executionsItems = $('GetExecutions').all();\nconst tasks = tasksItems.map(item => item.json);\nconst executions = executionsItems.map(item => item.json);\nconst tasksWithHistory = filterTasksToExecute(tasks, executions);\nreturn tasksWithHistory.map((task, index) => ({\n  json: task,\n  pairedItem: { item: index }\n}));"
+        "jsCode": "const ScheduleType = {\n  DAILY: 'DAILY',\n  WEEKLY: 'WEEKLY',\n  MONTHLY: 'MONTLY'\n};\n\nconst DaysOfWeek = {\n  Sunday: 0,\n  Monday: 1,\n  Tuesday: 2,\n  Wednesday: 3,\n  Thursday: 4,\n  Friday: 5,\n  Saturday: 6\n};\n\n\nfunction parseExecutionDate(dateStr) {\n  const [datePart, timePart] = dateStr.split(' ');\n  const [day, month, year] = datePart.split('/');\n  const [hours, minutes, seconds] = timePart.split(':');\n  return new Date(year, month - 1, day, hours, minutes, seconds);\n}\n\n\nfunction isToday(date, today = new Date()) {\n  return date.getDate() === today.getDate() &&\n         date.getMonth() === today.getMonth() &&\n         date.getFullYear() === today.getFullYear();\n}\n\n\nfunction getLastExecution(taskId, executions) {\n  const taskExecutions = executions\n    .filter(exec => exec.Id === taskId)\n    .map(exec => parseExecutionDate(exec.ExecutionTime))\n    .sort((a, b) => b - a);\n  \n  return taskExecutions.length > 0 ? taskExecutions[0] : null;\n}\n\n\nfunction getLastNExecutions(taskId, executions, n = 3) {\n  const taskExecutions = executions\n    .filter(exec => exec.Id === taskId)\n    .map(exec => ({\n      date: parseExecutionDate(exec.ExecutionTime),\n      dateStr: exec.ExecutionTime,\n      output: exec.Saida\n    }))\n    .sort((a, b) => b.date - a.date)\n    .slice(0, n);\n  \n  return taskExecutions;\n}\n\n\nfunction hasScheduledTimePassed(scheduledTime, currentTime) {\n  if (!scheduledTime) return true; // Se não tem horário definido, sempre pode executar\n  \n  const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);\n  const currentHours = currentTime.getHours();\n  const currentMinutes = currentTime.getMinutes();\n  \n  // Compara horário\n  if (currentHours > scheduledHours) return true;\n  if (currentHours === scheduledHours && currentMinutes >= scheduledMinutes) return true;\n  \n  return false;\n}\n\n\nfunction shouldExecuteDaily(task, lastExecution, today) {\n  if (!lastExecution) return true;\n  \n  // Se já executou hoje, não executar\n  if (isToday(lastExecution, today)) return false;\n  \n  // Se tem período maior que 1, verificar se passou o número de dias\n  if (task.ScheduledPeriod > 1) {\n    const daysDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24));\n    return daysDiff >= task.ScheduledPeriod;\n  }\n  \n  // Período = 1, executar diariamente\n  return true;\n}\n\n\nfunction shouldExecuteWeekly(task, lastExecution, today) {\n  const scheduledDayOfWeek = DaysOfWeek[task.ScheduledDay];\n  const todayDayOfWeek = today.getDay();\n  \n  // Não é o dia da semana correto\n  if (scheduledDayOfWeek !== todayDayOfWeek) return false;\n  \n  // Verifica se o horário já passou\n  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;\n  \n  // Nunca executou antes - pode executar\n  if (!lastExecution) return true;\n  \n  // Já executou hoje - não executar novamente\n  if (isToday(lastExecution, today)) return false;\n  \n  // Executou em outro dia - verifica o período\n  const weeksDiff = Math.floor((today - lastExecution) / (1000 * 60 * 60 * 24 * 7));\n  return weeksDiff >= task.ScheduledPeriod;\n}\n\n\nfunction shouldExecuteMonthly(task, lastExecution, today) {\n  const scheduledDayOfMonth = parseInt(task.ScheduledDay);\n  const todayDayOfMonth = today.getDate();\n  \n  // Não é o dia do mês correto\n  if (scheduledDayOfMonth !== todayDayOfMonth) return false;\n  \n  // Verifica se o horário já passou\n  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;\n  \n  // Nunca executou antes - pode executar\n  if (!lastExecution) return true;\n  \n  // Já executou hoje - não executar novamente\n  if (isToday(lastExecution, today)) return false;\n  \n  // Executou em outro dia - verifica o período\n  const monthsDiff = (today.getFullYear() - lastExecution.getFullYear()) * 12 \n                   + (today.getMonth() - lastExecution.getMonth());\n  return monthsDiff >= task.ScheduledPeriod;\n}\n\n\nfunction shouldExecuteTask(task, lastExecution, today = new Date()) {\n  switch (task.ScheduledType) {\n    case ScheduleType.DAILY:\n      return shouldExecuteDaily(task, lastExecution, today);\n    case ScheduleType.WEEKLY:\n      return shouldExecuteWeekly(task, lastExecution, today);\n    case ScheduleType.MONTHLY:\n      return shouldExecuteMonthly(task, lastExecution, today);\n    default:\n      return false;\n  }\n}\n\n\nfunction buildPromptWithHistory(task, lastExecutions) {\n  let prompt = task.Prompt;\n  \n  if (lastExecutions.length > 0) {\n    prompt += '\\n\\n---\\n\\n';\n    prompt += '📋 HISTÓRICO DAS ÚLTIMAS EXECUÇÕES:\\n';\n    prompt += 'Para evitar repetição, considere as respostas anteriores abaixo:\\n\\n';\n    \n    lastExecutions.forEach((exec, index) => {\n      prompt += `${index + 1}. Execução em ${exec.dateStr}:\\n`;\n      prompt += `${exec.output}\\n\\n`;\n    });\n    \n    prompt += '⚠️ IMPORTANTE: Gere uma resposta diferente e criativa, evitando repetir as ideias acima.';\n  }\n  \n  return prompt;\n}\n\n\nfunction filterTasksToExecute(tasks, executions, emails = [], today = new Date()) {\n  console.log(`📅 Verificando tasks para: ${today.toLocaleDateString('pt-BR')}`);\n  console.log(`📊 Total de tasks: ${tasks.length}`);\n  console.log(`📊 Total de execuções: ${executions.length}`);\n  console.log(`📧 Total de emails configurados: ${emails.length}`);\n\n  // Filtrar tasks que devem ser executadas hoje\n  const tasksToExecute = tasks.filter(task => {\n    const lastExecution = getLastExecution(task.Id, executions);\n    const shouldExecute = shouldExecuteTask(task, lastExecution, today);\n    \n    if (shouldExecute) {\n      console.log(`✅ Task \"${task.Subject}\" deve ser executada`);\n    }\n    \n    return shouldExecute;\n  });\n\n  console.log(`\\n🎯 Total de tasks para executar: ${tasksToExecute.length}`);\n\n  // Enriquecer cada task com histórico das últimas 3 execuções e emails\n  const tasksWithHistory = tasksToExecute.map(task => {\n    const lastExecutions = getLastNExecutions(task.Id, executions, 3);\n    const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);\n    \n    // Get emails for this task\n    const taskEmails = emails\n      .filter(e => e.Id === task.Id)\n      .map(e => e.email);\n    \n    console.log(`\\n📝 Task \"${task.Subject}\" - Histórico: ${lastExecutions.length} execuções anteriores`);\n    console.log(`📧 Emails: ${taskEmails.length > 0 ? taskEmails.join(', ') : 'nenhum'}`);\n    \n    return {\n      ...task,\n      Prompt: enrichedPrompt,\n      HistoryCount: lastExecutions.length,\n      Emails: taskEmails\n    };\n  });\n\n  return tasksWithHistory;\n}\n\n// Exportar todas as funções para testes\n\n// Wrapper n8n - Executar lógica\nconst tasksItems = $('GetTasks').all();\nconst executionsItems = $('GetExecutions').all();\nconst tasks = tasksItems.map(item => item.json);\nconst executions = executionsItems.map(item => item.json);\nconst tasksWithHistory = filterTasksToExecute(tasks, executions);\nreturn tasksWithHistory.map((task, index) => ({\n  json: task,\n  pairedItem: { item: index }\n}));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        880,
-        -112
+        1168,
+        144
       ],
-      "id": "98e27daa-6b97-4e05-a082-f2cbac3c0c47",
+      "id": "adf9a8c2-a5b8-4823-bfca-5d800d84380c",
       "name": "FilterTasksToBeExecuted"
     },
     {
@@ -119,10 +119,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        1088,
-        -112
+        1376,
+        144
       ],
-      "id": "752ad0fb-1ae7-45e7-ab42-50baddbb46cf",
+      "id": "4a198a3e-c057-4ef4-92f3-292f94e7eafc",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -133,12 +133,25 @@
     },
     {
       "parameters": {
+        "jsCode": "// Get AI output and task data\nconst items = $input.all();\n\n// Split each item by its emails\nconst splitItems = [];\nitems.forEach(item => {\n  const task = item.json;\n  const emails = task.Emails || [];\n  \n  // If no emails, skip this task\n  if (emails.length === 0) {\n    console.log(`⚠️ Task \"${task.Subject}\" (ID: ${task.Id}) não tem emails configurados`);\n    return;\n  }\n  \n  // Create one item per email\n  emails.forEach(email => {\n    splitItems.push({\n      ...task,\n      currentEmail: email,\n      allEmails: emails.join(', ')  // For AppendExecutions\n    });\n  });\n  \n  console.log(`📧 Task \"${task.Subject}\" dividida para ${emails.length} email(s)`);\n});\n\nconsole.log(`\\n✅ Total de emails a enviar: ${splitItems.length}`);\n\nreturn splitItems.map((item, index) => ({\n  json: item,\n  pairedItem: { item: index }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1544,
+        144
+      ],
+      "id": "a8f4b5c6-d7e8-4f9a-b0c1-d2e3f4a5b6c7",
+      "name": "SplitByEmails"
+    },
+    {
+      "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
           "mode": "list",
-          "cachedResultName": "Stock-info",
+          "cachedResultName": "n8n-database",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
         },
         "sheetName": {
@@ -153,7 +166,8 @@
           "value": {
             "Id": "={{ $('FilterTasksToBeExecuted').item.json.Id }}",
             "ExecutionTime": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
-            "Saida": "={{ $json.content.parts[0].text }}"
+            "Saida": "={{ $json.content.parts[0].text }}",
+            "Emails": "={{ $json.allEmails }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -183,6 +197,15 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
+            },
+            {
+              "id": "Emails",
+              "displayName": "Emails",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
             }
           ],
           "attemptToConvertTypes": false,
@@ -193,10 +216,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1424,
-        -112
+        1712,
+        144
       ],
-      "id": "bb46f269-ef54-46f3-a4d8-e43c9cfb0b9c",
+      "id": "ebe96506-5635-495e-907a-e86bae73733e",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -207,19 +230,52 @@
     },
     {
       "parameters": {
-        "sendTo": "ldias.rs@gmail.com",
-        "subject": "={{ $('FilterTasksToBeExecuted').item.json.Subject }}",
-        "message": "={{ $('AI-Process').item.json.content.parts[0].text }}",
+        "documentId": {
+          "__rl": true,
+          "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
+          "mode": "list",
+          "cachedResultName": "n8n-database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1041026492,
+          "mode": "list",
+          "cachedResultName": "emails",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI/edit#gid=1041026492"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        144
+      ],
+      "id": "be0e5973-2005-49dd-847f-5592465958a3",
+      "name": "GetEmails",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TcsAIidzUoiqPfyA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.currentEmail }}",
+        "subject": "={{ $json.Subject }}",
+        "message": "={{ $json.content.parts[0].text }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        1632,
-        -112
+        1920,
+        144
       ],
-      "id": "231eb908-a4b0-4cb6-aed7-edca5af80c50",
-      "name": "Send a message",
+      "id": "6b3fa9dd-4dcb-46b2-9b87-3eb17e9e0be0",
+      "name": "SendEmail",
       "webhookId": "9d836195-3a6d-48a7-a95f-ef9a5c055267",
       "credentials": {
         "gmailOAuth2": {
@@ -257,7 +313,7 @@
       "main": [
         [
           {
-            "node": "FilterTasksToBeExecuted",
+            "node": "GetEmails",
             "type": "main",
             "index": 0
           }
@@ -279,6 +335,17 @@
       "main": [
         [
           {
+            "node": "SplitByEmails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitByEmails": {
+      "main": [
+        [
+          {
             "node": "AppendExecutions",
             "type": "main",
             "index": 0
@@ -290,7 +357,18 @@
       "main": [
         [
           {
-            "node": "Send a message",
+            "node": "SendEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetEmails": {
+      "main": [
+        [
+          {
+            "node": "FilterTasksToBeExecuted",
             "type": "main",
             "index": 0
           }
@@ -307,7 +385,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "f7d19405-8342-46ba-b263-601ad3ba24ce",
+  "versionId": "39c1fa5d-da86-4439-b64f-8cb697da0532",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"

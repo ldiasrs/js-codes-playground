@@ -351,7 +351,8 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve filtrar e retornar tasks que devem executar', () => {
       const today = new Date(2025, 10, 8); // Sábado, 08/11/2025
-      const result = filterTasksToExecute(tasks, executions, today);
+      const emails = [];
+      const result = filterTasksToExecute(tasks, executions, emails, today);
       
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('Prompt');
@@ -360,7 +361,8 @@ describe('FilterTasksToBeExecuted', () => {
 
     it('deve enriquecer prompts com histórico', () => {
       const today = new Date(2025, 10, 8);
-      const result = filterTasksToExecute(tasks, executions, today);
+      const emails = [];
+      const result = filterTasksToExecute(tasks, executions, emails, today);
       
       const taskWithHistory = result.find(t => t.Id === 1);
       if (taskWithHistory) {
@@ -374,14 +376,16 @@ describe('FilterTasksToBeExecuted', () => {
       const futureExecs = [
         { Id: 1, ExecutionTime: '09/11/2025 10:00:00', Saida: 'Output' }
       ];
-      const result = filterTasksToExecute(tasks, futureExecs, today);
+      const emails = [];
+      const result = filterTasksToExecute(tasks, futureExecs, emails, today);
       
       expect(result).toHaveLength(0);
     });
 
     it('deve manter propriedades originais das tasks', () => {
       const today = new Date(2025, 10, 8);
-      const result = filterTasksToExecute(tasks, executions, today);
+      const emails = [];
+      const result = filterTasksToExecute(tasks, executions, emails, today);
       
       result.forEach(task => {
         expect(task).toHaveProperty('Id');
