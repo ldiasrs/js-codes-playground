@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const NODE_PATH = path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/index.js');
+const WRAPPER_PATH = path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/n8n-wrapper.js');
 const WORKFLOW_PATH = path.join(__dirname, '../flows/task-flow.json');
 
 console.log('🔄 Sincronizando código do nodo com workflow...\n');
@@ -16,6 +17,11 @@ console.log('🔄 Sincronizando código do nodo com workflow...\n');
 // Verificar se arquivos existem
 if (!fs.existsSync(NODE_PATH)) {
   console.error(`❌ Arquivo não encontrado: ${NODE_PATH}`);
+  process.exit(1);
+}
+
+if (!fs.existsSync(WRAPPER_PATH)) {
+  console.error(`❌ Arquivo não encontrado: ${WRAPPER_PATH}`);
   process.exit(1);
 }
 
@@ -27,6 +33,9 @@ if (!fs.existsSync(WORKFLOW_PATH)) {
 try {
   // Ler código do módulo
   const nodeCode = fs.readFileSync(NODE_PATH, 'utf8');
+  
+  // Ler código do wrapper
+  const wrapperCode = fs.readFileSync(WRAPPER_PATH, 'utf8');
 
   // Ler workflow
   const workflow = JSON.parse(fs.readFileSync(WORKFLOW_PATH, 'utf8'));
@@ -51,20 +60,18 @@ try {
   // 3. Limpar espaços extras
   n8nCode = n8nCode.trim();
 
-  // 4. Adicionar wrapper n8n
-  const n8nWrapper = `
-// Wrapper n8n - Executar lógica
-const tasksItems = $('GetTasks').all();
-const executionsItems = $('GetExecutions').all();
-const tasks = tasksItems.map(item => item.json);
-const executions = executionsItems.map(item => item.json);
-const tasksWithHistory = filterTasksToExecute(tasks, executions);
-return tasksWithHistory.map((task, index) => ({
-  json: task,
-  pairedItem: { item: index }
-}));`;
+  // 4. Extrair wrapper do n8n-wrapper.js
+  // Remover imports, exports e comentários, manter apenas o corpo da função executeN8nNode
+  let n8nWrapper = wrapperCode
+    .replace(/\/\*\*[\s\S]*?\*\//g, '') // Remove JSDoc
+    .replace(/\/\/[^\n]*/g, '') // Remove comentários inline
+    .replace(/const\s*\{[^}]+\}\s*=\s*require\([^)]+\);?\s*/g, '') // Remove require
+    .replace(/module\.exports\s*=\s*\{[\s\S]*$/m, '') // Remove exports até o final
+    .replace(/function\s+executeN8nNode\(\)\s*\{/, '') // Remove function declaration
+    .replace(/\}\s*$/, '') // Remove último closing brace
+    .trim();
 
-  const finalCode = n8nCode + '\n' + n8nWrapper;
+  const finalCode = n8nCode + '\n\n' + n8nWrapper;
 
   // Atualizar workflow
   workflow.nodes[nodeIndex].parameters.jsCode = finalCode;
@@ -79,6 +86,8 @@ return tasksWithHistory.map((task, index) => ({
 
   console.log('✅ Código sincronizado com sucesso!');
   console.log(`📝 Nodo: ${workflow.nodes[nodeIndex].name}`);
+  console.log(`📦 Fonte: ${path.basename(NODE_PATH)}`);
+  console.log(`🔌 Wrapper: ${path.basename(WRAPPER_PATH)}`);
   console.log(`📊 Tamanho do código: ${finalCode.length} caracteres`);
   console.log(`📄 Linhas: ${finalCode.split('\n').length}`);
   console.log('\n🎯 Próximos passos:');
