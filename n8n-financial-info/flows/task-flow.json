@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "Workflow 1",
   "nodes": [
     {
       "parameters": {
@@ -14,10 +14,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -656,
-        -64
+        256,
+        -112
       ],
-      "id": "165bf56c-77a3-4fe8-9f2b-ee2cfb7ed1ec",
+      "id": "64e2a209-c101-422b-bbf9-4aab1f13364a",
       "name": "Schedule Trigger"
     },
     {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -448,
-        -64
+        464,
+        -112
       ],
-      "id": "a6790ae8-e726-4f88-940f-b4dc71f0fb5b",
+      "id": "ad9951ba-962b-4d21-82b7-f9e22274763d",
       "name": "GetTasks",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -240,
-        -64
+        672,
+        -112
       ],
-      "id": "77e2200d-f5b3-4376-b5e5-2313ac6cbb06",
+      "id": "092d8588-6e9d-45e6-bae2-62e7bd9bb6a6",
       "name": "GetExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -93,10 +93,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -32,
-        -64
+        880,
+        -112
       ],
-      "id": "507dc636-d9b5-469b-bd75-d8347a825599",
+      "id": "98e27daa-6b97-4e05-a082-f2cbac3c0c47",
       "name": "FilterTasksToBeExecuted"
     },
     {
@@ -119,10 +119,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        176,
-        -64
+        1088,
+        -112
       ],
-      "id": "6c4dafd7-3972-4189-8d99-3334edf4f478",
+      "id": "752ad0fb-1ae7-45e7-ab42-50baddbb46cf",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -193,15 +193,38 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        512,
-        -64
+        1424,
+        -112
       ],
-      "id": "83eab61d-73ab-4901-8028-7b08ab61acab",
+      "id": "bb46f269-ef54-46f3-a4d8-e43c9cfb0b9c",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "TcsAIidzUoiqPfyA",
           "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "ldias.rs@gmail.com",
+        "subject": "={{ $('FilterTasksToBeExecuted').item.json.Subject }}",
+        "message": "={{ $('AI-Process').item.json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1632,
+        -112
+      ],
+      "id": "231eb908-a4b0-4cb6-aed7-edca5af80c50",
+      "name": "Send a message",
+      "webhookId": "9d836195-3a6d-48a7-a95f-ef9a5c055267",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Mx40O4DWSK5YGsKn",
+          "name": "Gmail account"
         }
       }
     }
@@ -262,17 +285,33 @@
           }
         ]
       ]
+    },
+    "AppendExecutions": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "HOB5DNjfjjnwHLUg",
+    "executionTimeout": 3600,
+    "timeSavedPerExecution": 30
   },
-  "versionId": "f3645b44-977b-4dcb-b6e0-e99672c426ef",
+  "versionId": "f7d19405-8342-46ba-b263-601ad3ba24ce",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
   },
-  "id": "G5cy85soKfPjjlJb",
+  "id": "HOB5DNjfjjnwHLUg",
   "tags": []
 }
