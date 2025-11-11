@@ -12,20 +12,23 @@ const { splitByEmails } = require('./index');
  * No n8n, este código é executado diretamente
  */
 function executeN8nNode() {
-  // Get AI output and task data
-  const items = $input.all();
+
+ // Get AI output and task data
+ const items = $('FilterTasksToBeExecuted');
   
-  // Extrair tasks dos items
-  const tasks = items.map(item => item.json);
-  
-  // Dividir tasks por emails
-  const splitItems = splitByEmails(tasks);
-  
-  // Retornar no formato n8n
-  return splitItems.map((item, index) => ({
-    json: item,
-    pairedItem: { item: index }
-  }));
+ // Extrair tasks dos items
+ const tasks = items.all().map(item => item.json)
+
+ console.log('task', tasks)
+ 
+ // Dividir tasks por emails
+ const splitItems = splitByEmails(tasks);
+ 
+ // Retornar no formato n8n
+ return splitItems.map((item, index) => ({
+   json: item,
+   pairedItem: { item: index }
+ }));
 }
 
 // Exportar para testes (opcional)
