@@ -259,10 +259,11 @@ function filterTasksToExecute(tasks, executions, emails = [], today = new Date()
     const lastExecutions = getLastNExecutions(task.Id, executions, 3);
     const enrichedPrompt = buildPromptWithHistory(task, lastExecutions);
     
-    // Get emails for this task
+    // Get emails for this task and remove duplicates
     const taskEmails = emails
       .filter(e => e.Id === task.Id)
-      .map(e => e.email);
+      .map(e => e.email)
+      .filter((email, index, self) => self.indexOf(email) === index); // Remove duplicados
     
     console.log(`\n📝 Task "${task.Subject}" - Histórico: ${lastExecutions.length} execuções anteriores`);
     console.log(`📧 Emails: ${taskEmails.length > 0 ? taskEmails.join(', ') : 'nenhum'}`);
