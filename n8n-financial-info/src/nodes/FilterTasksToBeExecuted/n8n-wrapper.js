@@ -15,13 +15,15 @@ function executeN8nNode() {
   // Acessar nodes usando $() syntax
   const tasksItems = $('GetTasks').all();
   const executionsItems = $('GetExecutions').all();
+  const emailsItems = $('GetEmails').all();
 
   // Extrair dados JSON
   const tasks = tasksItems.map(item => item.json);
   const executions = executionsItems.map(item => item.json);
+  const emails = emailsItems.map(item => item.json);
 
   // Processar usando a lógica principal
-  const tasksWithHistory = filterTasksToExecute(tasks, executions);
+  const tasksWithHistory = filterTasksToExecute(tasks, executions, emails);
 
   // Retornar no formato n8n
   return tasksWithHistory.map((task, index) => ({
