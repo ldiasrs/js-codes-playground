@@ -99,7 +99,8 @@
         -112
       ],
       "id": "f8a8bf8c-9358-430a-bfaf-0e800749869c",
-      "name": "FilterTasksToBeExecuted"
+      "name": "FilterTasksToBeExecuted",
+      "executeOnce": true
     },
     {
       "parameters": {
