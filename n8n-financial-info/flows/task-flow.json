@@ -14,15 +14,14 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -1136,
-        -16
+        224,
+        -112
       ],
-      "id": "ea24342b-3191-4e13-906c-66327b9ea750",
+      "id": "ab792fbb-0c3e-45e4-814e-b8a7ac6585bc",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "operation": "getAll",
         "documentId": {
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
@@ -42,11 +41,12 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -928,
-        -16
+        432,
+        -112
       ],
-      "id": "cd110cf7-0444-4be6-b560-683c09635376",
+      "id": "ede45426-2ca1-427d-9cda-222816ae303c",
       "name": "GetTasks",
+      "executeOnce": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "TcsAIidzUoiqPfyA",
@@ -56,7 +56,6 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
         "documentId": {
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
@@ -76,11 +75,12 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -720,
-        -16
+        640,
+        -112
       ],
-      "id": "75e87e68-85f7-402a-97ad-0ba2a8aee037",
+      "id": "ed106e3e-e53d-4d8a-80c7-3e47c0aec57a",
       "name": "GetExecutions",
+      "executeOnce": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "TcsAIidzUoiqPfyA",
@@ -95,10 +95,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -272,
-        -16
+        1088,
+        -112
       ],
-      "id": "76aaf292-360f-4b8a-a0f1-67cb214ac140",
+      "id": "f8a8bf8c-9358-430a-bfaf-0e800749869c",
       "name": "FilterTasksToBeExecuted"
     },
     {
@@ -121,10 +121,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        -96,
-        -16
+        1264,
+        -112
       ],
-      "id": "6df3cfc6-bd45-4706-a195-86c22df02471",
+      "id": "d1403921-d996-4580-bfbe-4c4c30d82feb",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -140,10 +140,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        -16
+        1600,
+        -112
       ],
-      "id": "d1286c63-b883-46a9-bac3-61f47a01b46b",
+      "id": "8cd9c56d-fbe5-4e56-8284-412b3aa9ee27",
       "name": "SplitByEmails"
     },
     {
@@ -218,10 +218,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        464,
-        -16
+        1824,
+        -112
       ],
-      "id": "6fb454c1-10b2-4325-b122-e5a2ff81748b",
+      "id": "88a91ea2-c4a0-42e1-8a58-486ad19b27c3",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -232,7 +232,6 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
         "documentId": {
           "__rl": true,
           "value": "1Gav5wJnn-w-SffIATp_OVKfDdiIbE3AIPqxvZD8_zTI",
@@ -252,11 +251,12 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -496,
-        -16
+        864,
+        -112
       ],
-      "id": "bc637093-e099-4437-9396-c81ebad0a93a",
+      "id": "7443e436-101e-479d-9f58-c1f1e7f87401",
       "name": "GetEmails",
+      "executeOnce": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "TcsAIidzUoiqPfyA",
@@ -274,10 +274,10 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        672,
-        -16
+        2032,
+        -112
       ],
-      "id": "a5a05be0-bbbd-4267-bd6f-73cac4704ba6",
+      "id": "cf6c476c-4840-48e7-8698-355a2a423100",
       "name": "SendEmail",
       "webhookId": "9d836195-3a6d-48a7-a95f-ef9a5c055267",
       "credentials": {
@@ -388,7 +388,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "d30ed601-a5c7-42cf-ac99-b2bcfbed74f2",
+  "versionId": "2a8a88cc-6748-4075-9b0c-5e554c9a01ea",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
