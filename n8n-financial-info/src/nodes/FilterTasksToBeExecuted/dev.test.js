@@ -18,7 +18,7 @@ describe('Teste de desenvolvimento manual', () => {
         Subject: 'Tarefa Diária',
         ScheduledType: 'DAILY',
         ScheduledPeriod: 1,
-        ScheduledDay: null,
+        ScheduledDay: 1,
         ScheduledTime: '09:00',
         Prompt: 'Prompt da tarefa diária'
       },
@@ -64,7 +64,7 @@ describe('Teste de desenvolvimento manual', () => {
     // ========================================
     // Formato: new Date(ano, mês-1, dia, hora, minuto)
     // Exemplo: new Date(2025, 10, 10, 17, 0) = 10/11/2025 às 17:00
-    const today = new Date(2025, 10, 10, 17, 0); // Segunda-feira, 10/11/2025 às 17:00
+    const today = new Date(2025, 10, 12, 18, 0); // Segunda-feira, 10/11/2025 às 17:00
 
     // ========================================
     // Executar filtro
