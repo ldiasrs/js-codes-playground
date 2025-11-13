@@ -6,15 +6,11 @@ Cada node segue uma estrutura padronizada:
 
 ```
 src/nodes/
-├── FilterTasksToBeExecuted/
-│   ├── index.js           # Lógica principal (testável)
-│   ├── n8n-wrapper.js     # Wrapper para n8n
-│   ├── index.test.js      # Testes unitários
-│   └── dev.test.js        # Testes de desenvolvimento
-└── SplitByEmails/
+└── FilterTasksToBeExecuted/
     ├── index.js           # Lógica principal (testável)
     ├── n8n-wrapper.js     # Wrapper para n8n
-    └── index.test.js      # Testes unitários
+    ├── index.test.js      # Testes unitários
+    └── dev.test.js        # Testes de desenvolvimento
 ```
 
 ## 🎯 Propósito de Cada Arquivo
@@ -27,12 +23,12 @@ src/nodes/
 
 **Exemplo:**
 ```javascript
-function splitByEmails(tasks) {
+function filterTasksToExecute(tasks, executions, emails) {
   // Lógica pura
-  return processedTasks;
+  return filteredTasks;
 }
 
-module.exports = { splitByEmails };
+module.exports = { filterTasksToExecute };
 ```
 
 ### `n8n-wrapper.js` - Integração n8n
@@ -43,15 +39,21 @@ module.exports = { splitByEmails };
 
 **Exemplo:**
 ```javascript
-const { splitByEmails } = require('./index');
+const { filterTasksToExecute } = require('./index');
 
 function executeN8nNode() {
-  const items = $input.all();
-  const tasks = items.map(item => item.json);
-  const result = splitByEmails(tasks);
-  
-  return result.map((item, index) => ({
-    json: item,
+  const tasksItems = $('GetTasks').all();
+  const executionsItems = $('GetExecutions').all();
+  const emailsItems = $('GetEmails').all();
+
+  const tasks = tasksItems.map(item => item.json);
+  const executions = executionsItems.map(item => item.json);
+  const emails = emailsItems.map(item => item.json);
+
+  const tasksToProcess = filterTasksToExecute(tasks, executions, emails);
+
+  return tasksToProcess.map((task, index) => ({
+    json: task,
     pairedItem: { item: index }
   }));
 }
@@ -95,11 +97,6 @@ const NODES_CONFIG = [
     name: 'FilterTasksToBeExecuted',
     indexPath: path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/index.js'),
     wrapperPath: path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/n8n-wrapper.js')
-  },
-  {
-    name: 'SplitByEmails',
-    indexPath: path.join(__dirname, '../src/nodes/SplitByEmails/index.js'),
-    wrapperPath: path.join(__dirname, '../src/nodes/SplitByEmails/n8n-wrapper.js')
   }
   // Adicione novos nodes aqui
 ];
@@ -255,15 +252,8 @@ Filtra tasks que devem ser executadas com base em agendamento, histórico e emai
 - `shouldExecuteTask()` - Verifica se deve executar
 - `enrichTask()` - Adiciona histórico e emails
 - `getTaskEmails()` - Obtém emails únicos
-
-### SplitByEmails
-Divide tasks em múltiplos itens, um para cada email destinatário.
-
-**Funções principais:**
-- `splitByEmails()` - Função principal
-- `splitTaskByEmails()` - Divide uma task
-- `createTaskForEmail()` - Cria item para email
-- `hasEmails()` - Verifica se tem emails
+- `filterTasksWithEmails()` - Filtra tasks que têm emails configurados
+- `validateTasksExist()` - Valida se há tasks para processar
 
 ## 🔍 Debugging
 

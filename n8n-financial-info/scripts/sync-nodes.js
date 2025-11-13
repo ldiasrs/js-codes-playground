@@ -16,11 +16,6 @@ const NODES_CONFIG = [
     name: 'FilterTasksToBeExecuted',
     indexPath: path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/index.js'),
     wrapperPath: path.join(__dirname, '../src/nodes/FilterTasksToBeExecuted/n8n-wrapper.js')
-  },
-  {
-    name: 'SplitByEmails',
-    indexPath: path.join(__dirname, '../src/nodes/SplitByEmails/index.js'),
-    wrapperPath: path.join(__dirname, '../src/nodes/SplitByEmails/n8n-wrapper.js')
   }
 ];
 

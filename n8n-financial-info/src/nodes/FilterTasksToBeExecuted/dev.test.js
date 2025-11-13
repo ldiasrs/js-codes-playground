@@ -46,7 +46,7 @@ describe('Teste de desenvolvimento manual', () => {
     // EDITE AQUI: Histórico de execuções
     // ========================================
     const executions = [
-      { Id: 1, ExecutionTime: '10/11/2025 09:30:00', Saida: 'Output da execução' }
+      { Id: 1, ExecutionTime: '10/11/2025 08:30:00', Saida: 'Output da execução' }
     ];
 
     // ========================================
