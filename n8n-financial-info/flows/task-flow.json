@@ -106,9 +106,9 @@
       "parameters": {
         "modelId": {
           "__rl": true,
-          "value": "models/gemini-2.5-flash",
+          "value": "models/gemini-2.0-flash",
           "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
+          "cachedResultName": "models/gemini-2.0-flash"
         },
         "messages": {
           "values": [
@@ -156,7 +156,7 @@
           "value": {
             "Id": "={{ $('FilterTasksToBeExecuted').item.json.Id }}",
             "ExecutionTime": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
-            "Saida": "={{ $json.Saida }}",
+            "Saida": "={{ $json.content.parts[0].text }}",
             "Emails": "={{ $('FilterTasksToBeExecuted').item.json.Emails }}"
           },
           "matchingColumns": [],
@@ -254,9 +254,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $('FilterTasksToBeExecuted').item.json.Emails }}",
-        "subject": "={{ $('GetTasks').item.json.Subject }}",
-        "message": "={{ $json.Saida }}",
+        "sendTo": "={{ $('FilterTasksToBeExecuted').item.json.Emails.join(', ') }}",
+        "subject": "={{ $('FilterTasksToBeExecuted').item.json.Subject  }}-{{ $('FilterTasksToBeExecuted').item.json.Id  }}",
+        "message": "={{ $json.content.parts[0].text }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
@@ -359,7 +359,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "b8132eca-a7f5-460f-a4df-24c64a228554",
+  "versionId": "8a128807-7406-44c7-a4e3-d3ec5753d0a3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
