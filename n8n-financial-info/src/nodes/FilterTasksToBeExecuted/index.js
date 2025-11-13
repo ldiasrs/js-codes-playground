@@ -109,6 +109,10 @@ function hasScheduledTimePassed(scheduledTime, currentTime) {
  * @returns {boolean}
  */
 function shouldExecuteDaily(task, lastExecution, today) {
+  // Verifica se o horário agendado já passou
+  if (!hasScheduledTimePassed(task.ScheduledTime, today)) return false;
+  
+  // Nunca executou antes - pode executar
   if (!lastExecution) return true;
   
   // Se já executou hoje, não executar

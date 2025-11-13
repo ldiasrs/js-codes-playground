@@ -164,6 +164,36 @@ describe('FilterTasksToBeExecuted', () => {
       
       expect(shouldExecuteDaily(task, lastExecution, today)).toBe(true);
     });
+
+    it('NÃO deve executar se o horário agendado ainda não passou', () => {
+      const task = { 
+        ScheduledPeriod: 1,
+        ScheduledTime: '09:00'
+      };
+      const today = new Date(2025, 10, 8, 8, 0); // 08:00
+      
+      expect(shouldExecuteDaily(task, null, today)).toBe(false);
+    });
+
+    it('deve executar se o horário agendado já passou', () => {
+      const task = { 
+        ScheduledPeriod: 1,
+        ScheduledTime: '09:00'
+      };
+      const today = new Date(2025, 10, 8, 10, 0); // 10:00
+      
+      expect(shouldExecuteDaily(task, null, today)).toBe(true);
+    });
+
+    it('deve executar exatamente no horário agendado', () => {
+      const task = { 
+        ScheduledPeriod: 1,
+        ScheduledTime: '09:00'
+      };
+      const today = new Date(2025, 10, 8, 9, 0); // 09:00
+      
+      expect(shouldExecuteDaily(task, null, today)).toBe(true);
+    });
   });
 
   describe('shouldExecuteWeekly', () => {
@@ -196,6 +226,28 @@ describe('FilterTasksToBeExecuted', () => {
       
       expect(shouldExecuteWeekly(task, lastExecution, today)).toBe(false);
     });
+
+    it('NÃO deve executar se o horário semanal ainda não passou', () => {
+      const task = { 
+        ScheduledDay: 'Monday',
+        ScheduledPeriod: 1,
+        ScheduledTime: '17:00'
+      };
+      const today = new Date(2025, 10, 10, 16, 0); // Segunda 16:00
+      
+      expect(shouldExecuteWeekly(task, null, today)).toBe(false);
+    });
+
+    it('deve executar se o horário semanal já passou', () => {
+      const task = { 
+        ScheduledDay: 'Monday',
+        ScheduledPeriod: 1,
+        ScheduledTime: '17:00'
+      };
+      const today = new Date(2025, 10, 10, 18, 0); // Segunda 18:00
+      
+      expect(shouldExecuteWeekly(task, null, today)).toBe(true);
+    });
   });
 
   describe('shouldExecuteMonthly', () => {
@@ -227,6 +279,28 @@ describe('FilterTasksToBeExecuted', () => {
       const today = new Date(2025, 10, 8);
       
       expect(shouldExecuteMonthly(task, lastExecution, today)).toBe(false);
+    });
+
+    it('NÃO deve executar se o horário mensal ainda não passou', () => {
+      const task = { 
+        ScheduledDay: '1',
+        ScheduledPeriod: 1,
+        ScheduledTime: '09:00'
+      };
+      const today = new Date(2025, 10, 1, 8, 0); // Dia 1, 08:00
+      
+      expect(shouldExecuteMonthly(task, null, today)).toBe(false);
+    });
+
+    it('deve executar se o horário mensal já passou', () => {
+      const task = { 
+        ScheduledDay: '1',
+        ScheduledPeriod: 1,
+        ScheduledTime: '09:00'
+      };
+      const today = new Date(2025, 10, 1, 10, 0); // Dia 1, 10:00
+      
+      expect(shouldExecuteMonthly(task, null, today)).toBe(true);
     });
   });
 
