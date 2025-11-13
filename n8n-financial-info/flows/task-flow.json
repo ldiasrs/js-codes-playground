@@ -14,10 +14,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -192,
-        -192
+        -2176,
+        -48
       ],
-      "id": "5149240b-cc4e-46b4-95d0-66b7411687b0",
+      "id": "c8d206d4-e3ff-40ad-9740-d82c9afe6798",
       "name": "Schedule Trigger"
     },
     {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        16,
-        -192
+        -1968,
+        -48
       ],
-      "id": "55682cb1-2042-48e9-9d70-6a322f1465c0",
+      "id": "1c1699bd-9be5-44b1-9ce7-b2d390f8f741",
       "name": "GetTasks",
       "executeOnce": true,
       "credentials": {
@@ -75,10 +75,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        224,
-        -192
+        -1760,
+        -48
       ],
-      "id": "e4e47bec-a660-482c-b8fb-9005cd1a3b66",
+      "id": "e07334ba-acde-4003-ac40-5b5f70af1d5f",
       "name": "GetExecutions",
       "executeOnce": true,
       "credentials": {
@@ -95,10 +95,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        672,
-        -192
+        -1312,
+        -48
       ],
-      "id": "d5075dc0-2d58-4502-8dd5-51b12c678a35",
+      "id": "f1b9f281-00fc-49de-ab73-e68a9721f0f7",
       "name": "FilterTasksToBeExecuted",
       "executeOnce": true
     },
@@ -122,10 +122,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        848,
-        -192
+        -1136,
+        -48
       ],
-      "id": "59f3680c-a72e-431f-ac55-4746a5e87b34",
+      "id": "f6541678-fb3e-4a03-bf33-213c35b56aa6",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -206,10 +206,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1168,
-        -288
+        -816,
+        -144
       ],
-      "id": "c51d1d3d-6011-46ac-8db9-4bcba97aaea2",
+      "id": "a87e8822-d667-49fb-b72d-78d240ef3202",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -239,10 +239,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        448,
-        -192
+        -1536,
+        -48
       ],
-      "id": "c85040eb-b2f6-4988-84d5-63ba743c6e94",
+      "id": "cdaccea4-e438-4ef9-83d2-556c890a10c9",
       "name": "GetEmails",
       "executeOnce": true,
       "credentials": {
@@ -262,10 +262,10 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        1136,
-        16
+        -848,
+        160
       ],
-      "id": "c15c6ab2-5ecb-43c3-a146-93d98add5c5a",
+      "id": "6c861cfc-99c5-406a-a74a-9d3bda88dc0a",
       "name": "SendEmail1",
       "webhookId": "9d836195-3a6d-48a7-a95f-ef9a5c055267",
       "credentials": {
@@ -276,26 +276,7 @@
       }
     }
   ],
-  "pinData": {
-    "AI-Process": [
-      {
-        "json": {
-          "Id": 2,
-          "ExecutionTime": "12/11/2025 19:01:31",
-          "Saida": "<html> <body style=\"font-family: Arial, sans-serif; color:#222; margin:0; padding:24px; background:#f9fafb;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px;\"> <tr> <td style=\"padding:24px;\"> <h1 style=\"font-size:20px; margin-bottom:8px;\">Sabedoria Estoica para o Dia a Dia</h1> <p style=\"font-size:14px; color:#555;\">Olá [Nome do Destinatário],</p> <p style=\"font-size:14px; color:#555; margin-bottom:20px;\"> Espero que este e-mail te encontre bem! Separei cinco frases de grandes filósofos estoicos que nos lembram o valor da serenidade, da razão e do foco no que podemos controlar. </p>\n      <ol style=\"padding-left:20px; margin-bottom:24px; font-size:14px; color:#333;\">\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Algumas coisas estão sob nosso controle, e outras não.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">Um lembrete poderoso para concentrar nossa energia apenas no que depende de nós.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“O obstáculo para a ação avança a ação. O que está no caminho torna-se o caminho.”</strong> — <em>Marco Aurélio</em><br>\n          <span style=\"color:#666;\">Um convite para transformar desafios em oportunidades de crescimento.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Sofremos mais frequentemente na imaginação do que na realidade.”</strong> — <em>Sêneca</em><br>\n          <span style=\"color:#666;\">Um lembrete para não deixar que preocupações irreais dominem nossa mente.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não é o que acontece com você que importa, mas como você reage a isso.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">A essência da resiliência — o poder está sempre em nossa resposta.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não deseje que as coisas aconteçam do seu jeito, mas deseje que elas aconteçam como acontecem.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">Aceitar a realidade como ela é nos aproxima da verdadeira paz interior.</span>\n        </li>\n      </ol>\n\n      <p style=\"font-size:14px; color:#555;\">\n        Que essas reflexões tragam um pouco de calma e clareza ao seu dia.\n      </p>\n\n      <p style=\"font-size:14px; color:#555; margin-top:20px;\">Com serenidade,<br><strong>[Seu Nome]</strong></p>\n    </td>\n  </tr>\n</table>\n\n</body> </html>",
-          "Emails": "ldias.rs@gmail.com"
-        }
-      },
-      {
-        "json": {
-          "Id": 5,
-          "ExecutionTime": "12/11/2025 19:01:31",
-          "Saida": "<html> <body style=\"font-family: Arial, sans-serif; color:#222; margin:0; padding:24px; background:#f9fafb;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px;\"> <tr> <td style=\"padding:24px;\"> <h1 style=\"font-size:20px; margin-bottom:8px;\">Sabedoria Budista</h1> <p style=\"font-size:14px; color:#555;\">Olá [Nome do Destinatário],</p> <p style=\"font-size:14px; color:#555; margin-bottom:20px;\"> Espero que este e-mail te encontre bem! Separei cinco frases de mestres budistas que nos convidam à reflexão, à paz interior e à atenção plena em nosso dia a dia. </p>\n      <ol style=\"padding-left:20px; margin-bottom:24px; font-size:14px; color:#333;\">\n        <li style=\"margin-bottom:16px;\">\n          <strong>“A dor é inevitável, o sofrimento é opcional.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Um lembrete poderoso de que nossa atitude perante a dor determina o nosso sofrimento.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Você mesmo, tanto quanto qualquer pessoa em todo o universo, merece seu amor e afeto.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Uma verdade fundamental sobre a importância da autocompaixão e do cuidado consigo mesmo.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não viva no passado, não sonhe com o futuro, concentre a mente no momento presente.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">A essência da atenção plena, ensinando a encontrar paz e clareza no aqui e agora.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Três coisas não podem ser escondidas por muito tempo: o sol, a lua e a verdade.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Sugere que a verdade e a realidade sempre virão à tona, incentivando a autenticidade.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“A raiva nunca é superada pela raiva. Ela é superada pelo amor.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Uma profunda lição sobre a natureza da compaixão e como o amor dissolve a aversão.</span>\n        </li>\n      </ol>\n\n      <p style=\"font-size:14px; color:#555;\">\n        Que essas reflexões tragam um pouco de calma e clareza ao seu dia.\n      </p>\n\n      <p style=\"font-size:14px; color:#555; margin-top:20px;\">Com paz e clareza,<br><strong>[Seu Nome]</strong></p>\n    </td>\n  </tr>\n</table>\n\n</body> </html>",
-          "Emails": "ldias.rs@gmail.com"
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Schedule Trigger": {
       "main": [
@@ -378,7 +359,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "55346662-a62d-473a-887f-9f0179a1ec9e",
+  "versionId": "b8132eca-a7f5-460f-a4df-24c64a228554",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
