@@ -81,6 +81,7 @@
       "id": "e07334ba-acde-4003-ac40-5b5f70af1d5f",
       "name": "GetExecutions",
       "executeOnce": true,
+      "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "TcsAIidzUoiqPfyA",
@@ -359,7 +360,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "8a128807-7406-44c7-a4e3-d3ec5753d0a3",
+  "versionId": "3eb23f8d-5cfc-464d-8841-40d5a2bc44df",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
