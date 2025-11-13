@@ -12,22 +12,29 @@
  * @returns {Array}
  */
 function splitByEmails(tasks) {
-  console.log(tasks)
   const splitItems = [];
   
-  tasks.map(task => {
-
+  tasks.forEach(task => {
     const emails = task.Emails || [];
     
+    if (emails.length === 0) {
+      console.log(`⚠️ Task "${task.Subject}" has no emails`);
+      return;
+    }
+    
     // Para cada email, criar um item separado
-    emails.map(email => {
+    emails.forEach(email => {
       splitItems.push({
         ...task,
         currentEmail: email,
         allEmails: emails.join(', ')
       });
     });
+    
+    console.log(`📧 Task "${task.Subject}" split into ${emails.length} email(s)`);
   });
+  
+  console.log(`✅ Total items to send: ${splitItems.length}`);
   
   return splitItems;
 }

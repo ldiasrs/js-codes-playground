@@ -14,10 +14,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        224,
-        -112
+        -192,
+        -192
       ],
-      "id": "ab792fbb-0c3e-45e4-814e-b8a7ac6585bc",
+      "id": "5149240b-cc4e-46b4-95d0-66b7411687b0",
       "name": "Schedule Trigger"
     },
     {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        432,
-        -112
+        16,
+        -192
       ],
-      "id": "ede45426-2ca1-427d-9cda-222816ae303c",
+      "id": "55682cb1-2042-48e9-9d70-6a322f1465c0",
       "name": "GetTasks",
       "executeOnce": true,
       "credentials": {
@@ -75,10 +75,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        640,
-        -112
+        224,
+        -192
       ],
-      "id": "ed106e3e-e53d-4d8a-80c7-3e47c0aec57a",
+      "id": "e4e47bec-a660-482c-b8fb-9005cd1a3b66",
       "name": "GetExecutions",
       "executeOnce": true,
       "credentials": {
@@ -95,10 +95,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1088,
-        -112
+        672,
+        -192
       ],
-      "id": "f8a8bf8c-9358-430a-bfaf-0e800749869c",
+      "id": "d5075dc0-2d58-4502-8dd5-51b12c678a35",
       "name": "FilterTasksToBeExecuted",
       "executeOnce": true
     },
@@ -122,10 +122,10 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        1264,
-        -112
+        848,
+        -192
       ],
-      "id": "d1403921-d996-4580-bfbe-4c4c30d82feb",
+      "id": "59f3680c-a72e-431f-ac55-4746a5e87b34",
       "name": "AI-Process",
       "credentials": {
         "googlePalmApi": {
@@ -133,19 +133,6 @@
           "name": "Google Gemini(PaLM) Api account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "function splitByEmails(tasks) {\n  console.log(tasks)\n  const splitItems = [];\n  \n  tasks.map(task => {\n\n    const emails = task.Emails || [];\n    \n    // Para cada email, criar um item separado\n    emails.map(email => {\n      splitItems.push({\n        ...task,\n        currentEmail: email,\n        allEmails: emails.join(', ')\n      });\n    });\n  });\n  \n  return splitItems;\n}\n  \n\n// Exportar função para testes\n\nconst items = $('FilterTasksToBeExecuted');\n  \n \n const tasks = items.all().map(item => item.json)\n\n console.log('task', tasks)\n \n \n const splitItems = splitByEmails(tasks);\n \n \n return splitItems.map((item, index) => ({\n   json: item,\n   pairedItem: { item: index }\n }));"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1600,
-        -112
-      ],
-      "id": "8cd9c56d-fbe5-4e56-8284-412b3aa9ee27",
-      "name": "SplitByEmails"
     },
     {
       "parameters": {
@@ -169,8 +156,8 @@
           "value": {
             "Id": "={{ $('FilterTasksToBeExecuted').item.json.Id }}",
             "ExecutionTime": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
-            "Saida": "={{ $json.content.parts[0].text }}",
-            "Emails": "={{ $json.allEmails }}"
+            "Saida": "={{ $json.Saida }}",
+            "Emails": "={{ $('FilterTasksToBeExecuted').item.json.Emails }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -219,10 +206,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1824,
-        -112
+        1168,
+        -288
       ],
-      "id": "88a91ea2-c4a0-42e1-8a58-486ad19b27c3",
+      "id": "c51d1d3d-6011-46ac-8db9-4bcba97aaea2",
       "name": "AppendExecutions",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -252,10 +239,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        864,
-        -112
+        448,
+        -192
       ],
-      "id": "7443e436-101e-479d-9f58-c1f1e7f87401",
+      "id": "c85040eb-b2f6-4988-84d5-63ba743c6e94",
       "name": "GetEmails",
       "executeOnce": true,
       "credentials": {
@@ -267,19 +254,19 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.currentEmail }}",
-        "subject": "={{ $json.Subject }}",
-        "message": "={{ $json.content.parts[0].text }}",
+        "sendTo": "={{ $('FilterTasksToBeExecuted').item.json.Emails }}",
+        "subject": "={{ $('GetTasks').item.json.Subject }}",
+        "message": "={{ $json.Saida }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        2032,
-        -112
+        1136,
+        16
       ],
-      "id": "cf6c476c-4840-48e7-8698-355a2a423100",
-      "name": "SendEmail",
+      "id": "c15c6ab2-5ecb-43c3-a146-93d98add5c5a",
+      "name": "SendEmail1",
       "webhookId": "9d836195-3a6d-48a7-a95f-ef9a5c055267",
       "credentials": {
         "gmailOAuth2": {
@@ -289,7 +276,26 @@
       }
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "AI-Process": [
+      {
+        "json": {
+          "Id": 2,
+          "ExecutionTime": "12/11/2025 19:01:31",
+          "Saida": "<html> <body style=\"font-family: Arial, sans-serif; color:#222; margin:0; padding:24px; background:#f9fafb;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px;\"> <tr> <td style=\"padding:24px;\"> <h1 style=\"font-size:20px; margin-bottom:8px;\">Sabedoria Estoica para o Dia a Dia</h1> <p style=\"font-size:14px; color:#555;\">Olá [Nome do Destinatário],</p> <p style=\"font-size:14px; color:#555; margin-bottom:20px;\"> Espero que este e-mail te encontre bem! Separei cinco frases de grandes filósofos estoicos que nos lembram o valor da serenidade, da razão e do foco no que podemos controlar. </p>\n      <ol style=\"padding-left:20px; margin-bottom:24px; font-size:14px; color:#333;\">\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Algumas coisas estão sob nosso controle, e outras não.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">Um lembrete poderoso para concentrar nossa energia apenas no que depende de nós.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“O obstáculo para a ação avança a ação. O que está no caminho torna-se o caminho.”</strong> — <em>Marco Aurélio</em><br>\n          <span style=\"color:#666;\">Um convite para transformar desafios em oportunidades de crescimento.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Sofremos mais frequentemente na imaginação do que na realidade.”</strong> — <em>Sêneca</em><br>\n          <span style=\"color:#666;\">Um lembrete para não deixar que preocupações irreais dominem nossa mente.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não é o que acontece com você que importa, mas como você reage a isso.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">A essência da resiliência — o poder está sempre em nossa resposta.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não deseje que as coisas aconteçam do seu jeito, mas deseje que elas aconteçam como acontecem.”</strong> — <em>Epicteto</em><br>\n          <span style=\"color:#666;\">Aceitar a realidade como ela é nos aproxima da verdadeira paz interior.</span>\n        </li>\n      </ol>\n\n      <p style=\"font-size:14px; color:#555;\">\n        Que essas reflexões tragam um pouco de calma e clareza ao seu dia.\n      </p>\n\n      <p style=\"font-size:14px; color:#555; margin-top:20px;\">Com serenidade,<br><strong>[Seu Nome]</strong></p>\n    </td>\n  </tr>\n</table>\n\n</body> </html>",
+          "Emails": "ldias.rs@gmail.com"
+        }
+      },
+      {
+        "json": {
+          "Id": 5,
+          "ExecutionTime": "12/11/2025 19:01:31",
+          "Saida": "<html> <body style=\"font-family: Arial, sans-serif; color:#222; margin:0; padding:24px; background:#f9fafb;\"> <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px;\"> <tr> <td style=\"padding:24px;\"> <h1 style=\"font-size:20px; margin-bottom:8px;\">Sabedoria Budista</h1> <p style=\"font-size:14px; color:#555;\">Olá [Nome do Destinatário],</p> <p style=\"font-size:14px; color:#555; margin-bottom:20px;\"> Espero que este e-mail te encontre bem! Separei cinco frases de mestres budistas que nos convidam à reflexão, à paz interior e à atenção plena em nosso dia a dia. </p>\n      <ol style=\"padding-left:20px; margin-bottom:24px; font-size:14px; color:#333;\">\n        <li style=\"margin-bottom:16px;\">\n          <strong>“A dor é inevitável, o sofrimento é opcional.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Um lembrete poderoso de que nossa atitude perante a dor determina o nosso sofrimento.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Você mesmo, tanto quanto qualquer pessoa em todo o universo, merece seu amor e afeto.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Uma verdade fundamental sobre a importância da autocompaixão e do cuidado consigo mesmo.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Não viva no passado, não sonhe com o futuro, concentre a mente no momento presente.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">A essência da atenção plena, ensinando a encontrar paz e clareza no aqui e agora.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“Três coisas não podem ser escondidas por muito tempo: o sol, a lua e a verdade.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Sugere que a verdade e a realidade sempre virão à tona, incentivando a autenticidade.</span>\n        </li>\n        <li style=\"margin-bottom:16px;\">\n          <strong>“A raiva nunca é superada pela raiva. Ela é superada pelo amor.”</strong> — <em>Buddha</em><br>\n          <span style=\"color:#666;\">Uma profunda lição sobre a natureza da compaixão e como o amor dissolve a aversão.</span>\n        </li>\n      </ol>\n\n      <p style=\"font-size:14px; color:#555;\">\n        Que essas reflexões tragam um pouco de calma e clareza ao seu dia.\n      </p>\n\n      <p style=\"font-size:14px; color:#555; margin-top:20px;\">Com paz e clareza,<br><strong>[Seu Nome]</strong></p>\n    </td>\n  </tr>\n</table>\n\n</body> </html>",
+          "Emails": "ldias.rs@gmail.com"
+        }
+      }
+    ]
+  },
   "connections": {
     "Schedule Trigger": {
       "main": [
@@ -339,29 +345,12 @@
       "main": [
         [
           {
-            "node": "SplitByEmails",
+            "node": "SendEmail1",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "SplitByEmails": {
-      "main": [
-        [
+          },
           {
             "node": "AppendExecutions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AppendExecutions": {
-      "main": [
-        [
-          {
-            "node": "SendEmail",
             "type": "main",
             "index": 0
           }
@@ -389,7 +378,7 @@
     "executionTimeout": 3600,
     "timeSavedPerExecution": 30
   },
-  "versionId": "2a8a88cc-6748-4075-9b0c-5e554c9a01ea",
+  "versionId": "55346662-a62d-473a-887f-9f0179a1ec9e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d6a8d4fd80a8d9138c380c50a14cd195951e4a2b31f687a6d6dc7a33dd0c5c"
