@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for n8n-financial-info on 2025-11-08T12:14:03-03:00
+# fly.toml app configuration file generated for n8n-financial-info on 2025-11-25T07:44:04-03:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -14,8 +14,9 @@ primary_region = 'gru'
   EXECUTIONS_PROCESS = 'main'
   GENERIC_TIMEZONE = 'America/Sao_Paulo'
   N8N_CONCURRENCY_PRODUCTION_LIMIT = '1'
-  N8N_DIAGNOSTICS_ENABLED = 'false'
+  N8N_DIAGNOSTICS_ENABLED = 'true'
   N8N_EDITOR_BASE_URL = 'https://n8n-financial-info.fly.dev'
+  N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'true'
   N8N_LOG_LEVEL = 'warn'
   N8N_LOG_OUTPUT = 'console'
   N8N_METRICS = 'false'
