@@ -1,4 +1,3 @@
-import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';

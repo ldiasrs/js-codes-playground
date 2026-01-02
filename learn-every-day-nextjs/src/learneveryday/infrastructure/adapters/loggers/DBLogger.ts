@@ -1,4 +1,4 @@
-import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/LoggerPort';
+import { LoggerPort, LogLevel, LogContext } from '../../../shared/ports/LoggerPort';
 import { v4 as uuidv4 } from 'uuid';
 import { Log } from './Log';
 import { SQLLogRepository } from '../repositories/SQLLogRepository';

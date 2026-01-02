@@ -1,7 +1,7 @@
-import { TaskProcess } from '../../../../taskprocess/entities/TaskProcess';
-import { TaskProcessRepositoryPort } from '../../../../taskprocess/ports/TaskProcessRepositoryPort';
-import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { Topic } from '../../../../../features/topic/domain/Topic';
+import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
+import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
+import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { LoggerPort } from "@/learneveryday/shared";
 
 /**
  * Schedules CLOSE_TOPIC tasks when needed.

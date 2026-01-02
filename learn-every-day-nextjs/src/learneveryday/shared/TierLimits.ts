@@ -1,4 +1,4 @@
-import { CustomerTier } from '../customer/entities/Customer';
+import { CustomerTier } from '../features/auth/domain/Customer';
 
 /**
  * Utility class to handle tier-based limits for various features

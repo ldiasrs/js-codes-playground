@@ -1,4 +1,4 @@
-import { TaskProcess } from '../entities/TaskProcess';
+import { TaskProcess } from '../../domain/TaskProcess';
 
 export interface TaskProcessRunner {
   /**

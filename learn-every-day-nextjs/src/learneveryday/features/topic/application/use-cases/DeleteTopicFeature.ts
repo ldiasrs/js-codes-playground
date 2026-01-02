@@ -1,8 +1,8 @@
-import { TopicRepositoryPort } from '../../../features/topic/application/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../topic-history/ports/TopicHistoryRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../taskprocess/ports/TaskProcessRepositoryPort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { TaskProcess } from '../../taskprocess/entities/TaskProcess';
+import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
+import { TopicHistoryRepositoryPort } from '../../../topic-histoy/application/ports/TopicHistoryRepositoryPort';
+import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
 
 export interface DeleteTopicFeatureData {
   id: string;

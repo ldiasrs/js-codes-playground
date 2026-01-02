@@ -1,4 +1,4 @@
-import { Customer, CustomerTier } from '../../../domain/customer/entities/Customer';
+import { Customer, CustomerTier } from '../../../features/auth/domain/Customer';
 import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../../features/auth/application/ports/CustomerRepositoryPort';
 import { GovIdentificationType } from '../../../features/auth/domain/GovIdentification';
 import { DatabaseManager } from '../../database/DatabaseManager';

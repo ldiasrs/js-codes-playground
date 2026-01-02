@@ -1,4 +1,4 @@
-import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/LoggerPort';
+import { LoggerPort, LogLevel, LogContext } from '../../../shared/ports/LoggerPort';
 
 /**
  * Composite logger that delegates to multiple loggers

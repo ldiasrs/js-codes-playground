@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { Customer } from '../entities/Customer';
+import { Customer } from '../../domain/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
-import { LoggerPort } from '../../../../domain/shared/ports/LoggerPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { JwtConfiguration } from '../../../../infrastructure/config/jwt.config';
 
 export interface VerifyAuthCodeFeatureData {

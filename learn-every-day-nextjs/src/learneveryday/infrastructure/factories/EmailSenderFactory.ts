@@ -1,4 +1,4 @@
-import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
+import { SendTopicHistoryByEmailPort } from '../../features/topic-histoy/application/ports/SendTopicHistoryByEmailPort';
 import { SendVerificationCodePort } from '../../features/auth/application/ports/SendVerificationCodePort';
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
 import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';

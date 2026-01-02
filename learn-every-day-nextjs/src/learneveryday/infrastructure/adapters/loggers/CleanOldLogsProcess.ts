@@ -1,5 +1,5 @@
 import { SQLLogRepository } from '../repositories/SQLLogRepository';
-import { LoggerPort } from '../../../domain/shared/ports/LoggerPort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
 
 /**
  * Process that cleans old logs from the database

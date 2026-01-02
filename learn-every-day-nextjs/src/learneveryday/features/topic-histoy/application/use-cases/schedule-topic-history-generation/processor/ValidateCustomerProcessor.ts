@@ -1,6 +1,6 @@
-import { CustomerRepositoryPort } from "@/learneveryday/domain/customer";
-import { LoggerPort } from "@/learneveryday/domain/shared";
-import { Customer } from "@/learneveryday/domain/customer";
+import { CustomerRepositoryPort } from "../../../../../auth/application/ports/CustomerRepositoryPort";
+import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
+import { Customer } from "../../../../../auth/domain/Customer";
 
 /**
  * Validates and loads the customer or returns null and logs when not found.

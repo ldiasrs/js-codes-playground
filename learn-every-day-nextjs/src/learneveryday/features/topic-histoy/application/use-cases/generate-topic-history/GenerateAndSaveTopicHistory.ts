@@ -1,9 +1,9 @@
-import { TopicHistory } from '../../entities/TopicHistory';
-import { Topic } from '../../../../features/topic/domain/Topic';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { AIPromptExecutorPort } from '../../ports/AIPromptExecutorPort';
-import { PromptBuilder, PromptBuilderData } from '../../services/PromptBuilder';
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { LoggerPort } from "@/learneveryday/shared";
+import { PromptBuilder, PromptBuilderData } from "../../../domain/PromptBuilder";
+import { TopicHistory } from "../../../domain/TopicHistory";
+import { AIPromptExecutorPort } from "../../ports/AIPromptExecutorPort";
+import { TopicHistoryRepositoryPort } from "../../ports/TopicHistoryRepositoryPort";
 
 /**
  * Feature responsible for generating and saving topic history content

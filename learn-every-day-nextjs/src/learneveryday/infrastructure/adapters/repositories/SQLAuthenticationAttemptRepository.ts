@@ -1,5 +1,5 @@
 import { AuthenticationAttempt } from '../../../features/auth/domain/AuthenticationAttempt';
-import { AuthenticationAttemptRepositoryPort } from '../../../domain/customer/ports/AuthenticationAttemptRepositoryPort';
+import { AuthenticationAttemptRepositoryPort } from '../../../features/auth/application/ports/AuthenticationAttemptRepositoryPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import { EncryptionService } from '../../services/EncryptionService';
 

@@ -1,5 +1,6 @@
-import { LoggerPort } from "@/learneveryday/domain/shared";
-import { TaskProcessRepositoryPort, TaskProcess } from "@/learneveryday/domain/taskprocess";
+import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
+import { TaskProcessRepositoryPort } from "../../../../../taskprocess/application/ports/TaskProcessRepositoryPort";
+import { TaskProcess } from "../../../../../taskprocess/domain/TaskProcess";
 
 /**
  * Retrieves all stuck tasks (failed or running) for a customer.

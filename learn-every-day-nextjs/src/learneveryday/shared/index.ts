@@ -1,7 +1,7 @@
 // Shared Domain Exports
 
 // Shared Types
-export type { GovIdentification, GovIdentificationType } from '../../features/auth/domain/GovIdentification';
+export type { GovIdentification, GovIdentificationType } from '../features/auth/domain/GovIdentification';
 
 // Shared Ports
 export type { LoggerPort, LogLevel, LogContext } from './ports/LoggerPort';

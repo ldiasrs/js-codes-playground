@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { EmailConfiguration } from '../config/email.config';
 import { SendTopicClosedEmailPort, SendTopicClosedEmailPortData } from '@/learneveryday/features/topic/application/ports/SendTopicClosedEmailPort';
 

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { marked } from 'marked';
-import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
-import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { SendTopicHistoryByEmailPort, SendTopicHistoryByEmailPortData } from '../../features/topic-histoy/application/ports/SendTopicHistoryByEmailPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { EmailConfiguration } from '../config/email.config';
 
 export class NodemailerTopicHistoryEmailSender implements SendTopicHistoryByEmailPort {

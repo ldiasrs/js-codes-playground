@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { GovIdentification, GovIdentificationType } from '../../topic/domain/GovIdentification';
+import { GovIdentification, GovIdentificationType } from './GovIdentification';
 
 export enum CustomerTier {
   Basic = 'Basic',

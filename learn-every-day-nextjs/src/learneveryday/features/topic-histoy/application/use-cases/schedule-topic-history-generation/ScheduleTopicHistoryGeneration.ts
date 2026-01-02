@@ -1,5 +1,5 @@
-import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
-import { LoggerPort } from "../../../shared/ports/LoggerPort";
+import { TaskProcess } from "../../../../taskprocess/domain/TaskProcess";
+import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
 import { ValidateCustomerProcessor } from "./processor/ValidateCustomerProcessor";
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from "./processor/CreateConfigProcessor";
 import { AnalyzeTasksProcessor, TaskAnalysis } from "./processor/AnalyzeTasksProcessor";

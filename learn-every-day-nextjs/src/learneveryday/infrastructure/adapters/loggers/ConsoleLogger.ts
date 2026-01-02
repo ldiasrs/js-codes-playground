@@ -1,4 +1,4 @@
-import { LoggerPort, LogLevel, LogContext } from '../../../domain/shared/ports/LoggerPort';
+import { LoggerPort, LogLevel, LogContext } from '../../../shared/ports/LoggerPort';
 
 /**
  * Console logger that outputs to stdout/stderr

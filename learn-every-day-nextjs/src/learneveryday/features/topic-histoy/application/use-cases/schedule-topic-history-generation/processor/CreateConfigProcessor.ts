@@ -1,5 +1,6 @@
-import { Customer } from "@/learneveryday/domain/customer";
-import { LoggerPort, TierLimits } from "@/learneveryday/domain/shared";
+import { Customer } from "@/learneveryday/features/auth/domain/Customer";
+import { LoggerPort } from "@/learneveryday/shared/ports/LoggerPort";
+import { TierLimits } from "@/learneveryday/shared/TierLimits";
 
 export interface ReGenerateTopicHistoryConfig {
   maxTopicsPer24h: number;

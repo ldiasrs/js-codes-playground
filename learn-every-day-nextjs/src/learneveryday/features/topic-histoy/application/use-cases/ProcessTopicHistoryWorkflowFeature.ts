@@ -1,12 +1,12 @@
 import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
-import { LoggerPort } from '../../../../domain/shared/ports/LoggerPort';
-import { TaskProcessRepositoryPort } from '../../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
 import { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
-import { SendTopicHistoryTaskRunner } from '../../../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
+import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ScheduleTopicHistoryGeneration } from './schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
 import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
 import { ProcessFailedTopicsTaskRunner } from './process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { TasksProcessExecutor } from '../../../../domain/taskprocess';
+import { TasksProcessExecutor } from '../../../taskprocess/application/use-cases/TasksProcessExecutor';
 
 export interface ProcessTopicHistoryWorkflowFeatureData {
   limit?: number;

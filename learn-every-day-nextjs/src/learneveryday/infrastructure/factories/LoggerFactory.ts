@@ -1,4 +1,4 @@
-import { LoggerPort } from "@/learneveryday/domain";
+import { LoggerPort } from "../../shared/ports/LoggerPort";
 import { ConsoleLogger } from "../adapters/loggers/ConsoleLogger";
 import { DBLogger } from "../adapters/loggers/DBLogger";
 import { CompositeLogger } from "../adapters/loggers/CompositeLogger";

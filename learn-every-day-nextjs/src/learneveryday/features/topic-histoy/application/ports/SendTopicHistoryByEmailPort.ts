@@ -1,4 +1,4 @@
-import { TopicHistory } from '../entities/TopicHistory';
+import { TopicHistory } from '../../domain/TopicHistory';
 
 export interface SendTopicHistoryByEmailPortData {
   email: string;

@@ -1,6 +1,6 @@
-import { TaskProcess } from "../../../taskprocess/entities/TaskProcess";
-import { TaskProcessRunner } from "../../../taskprocess/ports/TaskProcessRunner";
-import { LoggerPort } from "../../../shared/ports/LoggerPort";
+import { TaskProcess } from "../../../../taskprocess/domain/TaskProcess";
+import { TaskProcessRunner } from "../../../../taskprocess/application/ports/TaskProcessRunner";
+import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from "./processor/CheckAndCloseTopicsWithManyHistoriesProcessor";
 import { RemoveTasksFromClosedTopicsProcessor } from "./processor/RemoveTasksFromClosedTopicsProcessor";
 

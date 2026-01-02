@@ -1,5 +1,6 @@
-import { LoggerPort } from "@/learneveryday/domain/shared";
-import { TaskProcess, TaskProcessRepositoryPort } from "@/learneveryday/domain/taskprocess";
+import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
+import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
+import { LoggerPort } from "@/learneveryday/shared";
 
 export interface TaskAnalysis {
   allTasks: TaskProcess[];

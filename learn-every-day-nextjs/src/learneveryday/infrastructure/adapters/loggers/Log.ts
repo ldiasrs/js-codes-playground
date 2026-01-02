@@ -1,4 +1,4 @@
-import { LogLevel } from '../../../domain/shared/ports/LoggerPort';
+import { LogLevel } from '../../../shared/ports/LoggerPort';
 
 /**
  * Log entity representing a log entry in the system

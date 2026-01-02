@@ -1,7 +1,7 @@
 import { TaskProcessType } from '../../domain/TaskProcess';
 import { TaskProcessRepositoryPort } from '../ports/TaskProcessRepositoryPort';
 import { TaskProcessRunner } from '../ports/TaskProcessRunner';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 
 export interface TasksProcessExecutorData {
   processType: TaskProcessType;

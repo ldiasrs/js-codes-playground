@@ -4,10 +4,10 @@ import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './processor
 import { AnalyzeTasksProcessor, TaskAnalysis } from './processor/AnalyzeTasksProcessor';
 import { SelectTopicsProcessor } from './processor/SelectTopicsProcessor';
 import { ScheduleGenerateTasksBatchProcessor } from './processor/ScheduleGenerateTasksBatchProcessor';
-import { TaskProcess } from '@/learneveryday/domain/taskprocess';
-import { Topic } from '@/learneveryday/features/topic/domain/Topic';
-import { LoggerPort } from '@/learneveryday/domain/shared';
-import { Customer, CustomerTier } from '@/learneveryday/domain/customer';
+import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
+import { Topic } from '../../../topic/domain/Topic';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { Customer, CustomerTier } from '../../../auth/domain/Customer';
 
 describe('ScheduleTopicHistoryGeneration', () => {
   let taskRunner: ScheduleTopicHistoryGeneration;

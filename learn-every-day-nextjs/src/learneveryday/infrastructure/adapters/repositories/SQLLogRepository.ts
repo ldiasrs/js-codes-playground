@@ -1,5 +1,5 @@
 import { Log } from '../loggers/Log';
-import { LogLevel } from '../../../domain/shared/ports/LoggerPort';
+import { LogLevel } from '../../../shared/ports/LoggerPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 
 interface LogData {

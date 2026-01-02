@@ -1,4 +1,4 @@
-import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
+import { LoggerPort } from '../../shared/ports/LoggerPort';
 import { CleanOldLogsProcess } from '../adapters/loggers/CleanOldLogsProcess';
 
 

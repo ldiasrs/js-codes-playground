@@ -1,8 +1,8 @@
-import { TaskProcess } from '../../../../taskprocess/entities/TaskProcess';
-import { TaskProcessRepositoryPort } from '../../../../taskprocess/ports/TaskProcessRepositoryPort';
-import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { Topic } from '../../../../../features/topic/domain/Topic';
-import { TopicHistory } from '../../../entities/TopicHistory';
+import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
+import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
+import { TopicHistory } from "@/learneveryday/features/topic-histoy/domain/TopicHistory";
+import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { LoggerPort } from "@/learneveryday/shared";
 
 /**
  * Schedules SEND_TOPIC_HISTORY tasks when needed.

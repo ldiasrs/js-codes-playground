@@ -1,5 +1,5 @@
-import { LoggerPort } from "@/learneveryday/domain/shared";
-import { TaskProcess } from "@/learneveryday/domain/taskprocess";
+import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
+import { TaskProcess } from "../../../../../taskprocess/domain/TaskProcess";
 
 /**
  * Filters stuck tasks to find which ones are eligible for reprocessing.

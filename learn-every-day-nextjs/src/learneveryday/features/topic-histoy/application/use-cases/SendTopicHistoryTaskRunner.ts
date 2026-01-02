@@ -1,11 +1,11 @@
 import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
-import { TaskProcessRunner } from '../../../../domain/taskprocess/ports/TaskProcessRunner';
-import { TaskProcessRepositoryPort } from '../../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
+import { TaskProcessRunner } from '../../../taskprocess/application/ports/TaskProcessRunner';
+import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
 import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
 import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
-import { SendTopicHistoryByEmailPort } from '../../../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
-import { LoggerPort } from '../../../../domain/shared/ports/LoggerPort';
+import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
+import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 
 export class SendTopicHistoryTaskRunner implements TaskProcessRunner {
   constructor(
