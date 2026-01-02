@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/ProcessTopicHistoryWorkflowFeature';
+import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/taskprocess/application/use-cases/ProcessTopicHistoryWorkflowFeature';
 
 // Vercel function timeout protection (8 seconds to stay under 10s limit)
 const MAX_EXECUTION_TIME_MS = 30000;

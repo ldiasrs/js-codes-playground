@@ -38,7 +38,7 @@ import { ProcessFailedTopicsTaskRunner } from '@/learneveryday/features/taskproc
 import { FilterReprocessableTasksProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/process-failed-topics/processor/FilterReprocessableTasksProcessor';
 import { GetStuckTasksProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/process-failed-topics/processor/GetStuckTasksProcessor';
 import { ReprocessStuckTasksProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/process-failed-topics/processor/ReprocessStuckTasksProcessor';
-import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/ProcessTopicHistoryWorkflowFeature';
+import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/taskprocess/application/use-cases/ProcessTopicHistoryWorkflowFeature';
 import { AnalyzeTasksProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
 import { CreateConfigProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/CreateConfigProcessor';
 import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor';
@@ -60,6 +60,7 @@ import { TopicCreationSaga } from '@/learneveryday/features/topic/application/sa
 import { TopicDeletionSaga } from '@/learneveryday/features/topic/application/sagas/TopicDeletionSaga';
 import { TopicClosedNotificationService } from '@/learneveryday/features/topic/application/services/TopicClosedNotificationService';
 import { TopicDeletionService } from '@/learneveryday/features/topic/application/services/TopicDeletionService';
+import { TopicLifecycleCleanupService } from '@/learneveryday/features/taskprocess/application/services/TopicLifecycleCleanupService';
 import { CustomerValidationService } from '@/learneveryday/features/auth/application/services/CustomerValidationService';
 import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/services/CustomerCreationPolicy';
 import { CustomerDeletionService } from '@/learneveryday/features/auth/application/services/CustomerDeletionService';
@@ -159,10 +160,14 @@ export class NextJSContainer implements Container {
       this.get('SendTopicClosedEmailPort'),
       LoggerFactory.createLoggerForClass('TopicClosedNotificationService')
     ));
+    this.registerSingleton('TopicLifecycleCleanup', () => new TopicLifecycleCleanupService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('TopicLifecycleCleanupService')
+    ));
     this.registerSingleton('TopicDeletionService', () => new TopicDeletionService(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
-      this.get('TaskProcessRepository'),
+      this.get('TopicLifecycleCleanup'),
       LoggerFactory.createLoggerForClass('TopicDeletionService')
     ));
     this.registerSingleton('CustomerDeletionService', () => new CustomerDeletionService(
@@ -196,7 +201,7 @@ export class NextJSContainer implements Container {
     this.registerSingleton('TopicDeletionSaga', () => new TopicDeletionSaga(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
-      this.get('TaskProcessRepository'),
+      this.get('TopicLifecycleCleanup'),
       LoggerFactory.createLoggerForClass('TopicDeletionSaga')
     ));
     this.registerSingleton('CustomerDeletionSaga', () => new CustomerDeletionSaga(

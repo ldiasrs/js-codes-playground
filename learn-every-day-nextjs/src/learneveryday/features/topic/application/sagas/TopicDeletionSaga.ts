@@ -1,6 +1,6 @@
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../../topic-histoy/application/ports/TopicHistoryRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
+import { TopicLifecycleCleanupPort } from '../ports/TopicLifecycleCleanupPort';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 
 /**
@@ -11,7 +11,7 @@ export class TopicDeletionSaga {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly topicLifecycleCleanup: TopicLifecycleCleanupPort,
     private readonly logger: LoggerPort
   ) {}
 

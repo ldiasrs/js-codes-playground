@@ -1,7 +1,6 @@
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicHistoryRepositoryPort } from '../../../topic-histoy/application/ports/TopicHistoryRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
-import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
+import { TopicLifecycleCleanupPort } from '../ports/TopicLifecycleCleanupPort';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 
 /**
@@ -12,7 +11,7 @@ export class TopicDeletionService {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
-    private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly topicLifecycleCleanup: TopicLifecycleCleanupPort,
     private readonly logger: LoggerPort
   ) {}
 
@@ -22,41 +21,23 @@ export class TopicDeletionService {
    * @returns Promise<void>
    */
   async deleteRelatedEntities(topicId: string): Promise<void> {
-    await this.deleteTaskProcesses(topicId);
+    await this.deleteRelatedOperations(topicId);
     await this.deleteTopicHistories(topicId);
   }
 
   /**
-   * Deletes all task processes related to the topic
+   * Deletes all related operations for the topic
    * @param topicId The topic ID
    */
-  private async deleteTaskProcesses(topicId: string): Promise<void> {
-    // Delete topic history generation tasks
-    const generationTasks = await this.taskProcessRepository.findByEntityIdAndType(
-      topicId,
-      TaskProcess.GENERATE_TOPIC_HISTORY
-    );
-    
-    for (const task of generationTasks) {
-      await this.taskProcessRepository.delete(task.id);
-    }
-
-    // Delete topic history send tasks (these use topic history IDs as entityId)
+  private async deleteRelatedOperations(topicId: string): Promise<void> {
     const topicHistories = await this.topicHistoryRepository.findByTopicId(topicId);
-    for (const topicHistory of topicHistories) {
-      const sendTasks = await this.taskProcessRepository.findByEntityIdAndType(
-        topicHistory.id,
-        TaskProcess.SEND_TOPIC_HISTORY
-      );
-      for (const task of sendTasks) {
-        await this.taskProcessRepository.delete(task.id);
-      }
-    }
+    const topicHistoryIds = topicHistories.map(th => th.id);
 
-    this.logger.info(`Deleted ${generationTasks.length} generation tasks and related send tasks for topic: ${topicId}`, {
+    await this.topicLifecycleCleanup.cleanupOnDeletion(topicId, topicHistoryIds);
+
+    this.logger.info(`Cleaned up related operations for topic: ${topicId}`, {
       topicId,
-      deletedGenerationTasks: generationTasks.length,
-      deletedSendTasks: topicHistories.length
+      relatedEntityCount: topicHistories.length
     });
   }
 
