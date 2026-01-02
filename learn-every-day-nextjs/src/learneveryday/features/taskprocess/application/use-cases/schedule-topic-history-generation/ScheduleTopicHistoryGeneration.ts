@@ -1,4 +1,4 @@
-import { TaskProcess } from "../../../../taskprocess/domain/TaskProcess";
+import { TaskProcess } from "../../../domain/TaskProcess";
 import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
 import { ValidateCustomerProcessor } from "./processor/ValidateCustomerProcessor";
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from "./processor/CreateConfigProcessor";

@@ -1,6 +1,6 @@
 import { Customer, CustomerTier } from '../../domain/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
-import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
+import { CustomerCreationPolicy } from '../../domain/services/CustomerCreationPolicy';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { CustomerDTO } from '../dto/CustomerDTO';
 import { CustomerMapper } from '../dto/CustomerMapper';
@@ -19,7 +19,7 @@ export interface CreateCustomerFeatureData {
 export class CreateCustomerFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
-    private readonly topicRepository: TopicRepositoryPort,
+    private readonly customerCreationPolicy: CustomerCreationPolicy,
     private readonly logger: LoggerPort
   ) {}
 
@@ -32,7 +32,29 @@ export class CreateCustomerFeature {
   async execute(data: CreateCustomerFeatureData): Promise<CustomerDTO> {
     const { customerName, govIdentification, email, phoneNumber, tier = CustomerTier.Basic } = data;
 
-    // Step 1: Create customer based on identification type
+    await this.customerCreationPolicy.canCreateCustomer(email, govIdentification);
+
+    const customer = await this.createCustomer(customerName, govIdentification, email, phoneNumber, tier);
+
+    return CustomerMapper.toDTO(customer);
+  }
+
+  /**
+   * Creates and saves a customer based on identification type
+   * @param customerName The customer name
+   * @param govIdentification The government identification
+   * @param email The customer email
+   * @param phoneNumber The customer phone number
+   * @param tier The customer tier
+   * @returns Promise<Customer> The created customer entity
+   */
+  private async createCustomer(
+    customerName: string,
+    govIdentification: { type: string; content: string },
+    email: string,
+    phoneNumber: string,
+    tier: CustomerTier
+  ): Promise<Customer> {
     let customer: Customer;
     if (govIdentification.type === 'CPF') {
       customer = Customer.createWithCPF(customerName, govIdentification.content, email, phoneNumber, undefined, tier);
@@ -40,16 +62,15 @@ export class CreateCustomerFeature {
       customer = Customer.createWithOtherId(customerName, govIdentification.content, email, phoneNumber, undefined, tier);
     }
 
-    // Step 2: Save the customer
     const savedCustomer = await this.customerRepository.save(customer);
 
-    this.logger.info(`Created customer ${savedCustomer.id}`, { 
+    this.logger.info(`Created customer ${savedCustomer.id}`, {
       customerId: savedCustomer.id,
       customerName: savedCustomer.customerName,
       email: savedCustomer.email,
       tier: savedCustomer.tier
     });
 
-    return CustomerMapper.toDTO(savedCustomer);
+    return savedCustomer;
   }
 } 

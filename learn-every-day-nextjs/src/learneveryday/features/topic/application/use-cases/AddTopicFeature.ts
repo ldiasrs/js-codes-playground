@@ -1,10 +1,10 @@
 import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
-import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
-import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
+import { TopicCreationPolicy } from '../../domain/services/TopicCreationPolicy';
+import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
+import { TopicHistoryTaskScheduler } from '../../../taskprocess/application/services/TopicHistoryTaskScheduler';
+import { TopicCreationSaga } from '../sagas/TopicCreationSaga';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { TierLimits } from '../../../../shared/TierLimits';
 import { DomainError } from '../../../../shared/errors/DomainError';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
@@ -14,11 +14,18 @@ export interface AddTopicFeatureData {
   subject: string;
 }
 
+/**
+ * Use case for adding a new topic.
+ * Orchestrates domain services and application services to create a topic
+ * and schedule its history generation task.
+ */
 export class AddTopicFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly customerRepository: CustomerRepositoryPort,
-    private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly customerValidationService: CustomerValidationService,
+    private readonly topicCreationPolicy: TopicCreationPolicy,
+    private readonly topicHistoryTaskScheduler: TopicHistoryTaskScheduler,
+    private readonly topicCreationSaga: TopicCreationSaga,
     private readonly logger: LoggerPort
   ) {}
 
@@ -26,73 +33,45 @@ export class AddTopicFeature {
    * Executes the AddTopic feature with validation
    * @param data The data containing customerId and subject
    * @returns Promise<TopicDTO> The created topic DTO
-   * @throws Error if customer doesn't exist, topic already exists, or tier limit exceeded
+   * @throws DomainError if customer doesn't exist, topic already exists, or tier limit exceeded
    */
   async execute(data: AddTopicFeatureData): Promise<TopicDTO> {
     const { customerId, subject } = data;
 
-    // Step 1: Verify customer exists
-    const customer = await this.customerRepository.findById(customerId);
-    if (!customer) {
-      throw new DomainError(DomainError.CUSTOMER_NOT_FOUND, `Customer with ID ${customerId} not found`);
-    }
+    const customer = await this.customerValidationService.ensureCustomerExists(customerId);
+    await this.topicCreationPolicy.canCreateTopic(customer, subject);
 
-    // Step 2: Check tier-based topic limits
-    const currentTopicCount = await this.topicRepository.countByCustomerId(customerId);
-    const canAddMore = TierLimits.canAddMoreTopics(customer.tier, currentTopicCount);
-    
-    if (!canAddMore) {
-      const maxTopics = TierLimits.getMaxTopicsForTier(customer.tier);
+    const topic = await this.createTopic(customerId, subject);
+
+    try {
+      await this.topicHistoryTaskScheduler.scheduleForTopic(topic.id, customerId);
+    } catch (error) {
+      await this.topicCreationSaga.compensate(topic.id, error);
       throw new DomainError(
-        DomainError.TOPIC_LIMIT_REACHED,
-        `Customer ${customer.customerName} (${customer.tier} tier) has reached the maximum limit of ${maxTopics} topics. ` +
-        `Current topics: ${currentTopicCount}. Please upgrade your tier to add more topics.`
+        DomainError.TASK_SCHEDULING_FAILED,
+        `Topic creation failed due to task scheduling error: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
-    // Step 3: Check if topic with same subject already exists for this customer
-    const topicExists = await this.topicRepository.existsByCustomerIdAndSubject(customerId, subject);
+    return TopicMapper.toDTO(topic);
+  }
 
-    if (topicExists) {
-      throw new DomainError(DomainError.TOPIC_ALREADY_EXISTS, `Topic with subject "${subject}" already exists for customer ${customer.customerName}`);
-    }
-
-    // Step 4: Create and save the new topic
+  /**
+   * Creates and saves a new topic
+   * @param customerId The customer ID
+   * @param subject The topic subject
+   * @returns Promise<Topic> The created topic entity
+   */
+  private async createTopic(customerId: string, subject: string): Promise<Topic> {
     const newTopic = new Topic(customerId, subject);
     const savedTopic = await this.topicRepository.save(newTopic);
 
     this.logger.info(`Created topic: ${savedTopic.id}`, {
       topicId: savedTopic.id,
       customerId: savedTopic.customerId,
-      subject: savedTopic.subject,
-      customerTier: customer.tier,
-      topicsCount: currentTopicCount + 1
+      subject: savedTopic.subject
     });
 
-    // Step 5: Create and save a new topic-history-generation task
-    const scheduledTime = new Date();
-    scheduledTime.setMinutes(scheduledTime.getMinutes()); // Schedule for immediate execution
-    
-    const newTaskProcess = new TaskProcess(
-      savedTopic.id, // Use the topic ID as entityId
-      customerId,
-      TaskProcess.GENERATE_TOPIC_HISTORY,
-      'pending',
-      undefined, // id will be auto-generated
-      undefined, // errorMsg
-      new Date()
-    );
-
-    // Save the new task process
-    await this.taskProcessRepository.save(newTaskProcess);
-
-    this.logger.info(`Scheduled topic history generation task for topic ${savedTopic.id}`, {
-      topicId: savedTopic.id,
-      customerId: customerId,
-      scheduledTime: scheduledTime.toISOString(),
-      taskType: TaskProcess.GENERATE_TOPIC_HISTORY
-    });
-
-    return TopicMapper.toDTO(savedTopic);
+    return savedTopic;
   }
 } 

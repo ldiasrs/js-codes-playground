@@ -1,6 +1,7 @@
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
+import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { DomainError } from '../../../../shared/errors/DomainError';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
 
@@ -11,7 +12,7 @@ export interface GetTopicByIdFeatureData {
 export class GetTopicByIdFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly customerRepository: CustomerRepositoryPort,
+    private readonly customerValidationService: CustomerValidationService,
     private readonly logger: LoggerPort
   ) {}
 
@@ -27,14 +28,11 @@ export class GetTopicByIdFeature {
     // Step 1: Get topic by ID
     const topic = await this.topicRepository.findById(topicId);
     if (!topic) {
-      throw new Error(`Topic with ID ${topicId} not found`);
+      throw new DomainError(DomainError.TOPIC_NOT_FOUND, `Topic with ID ${topicId} not found`);
     }
 
     // Step 2: Verify customer exists
-    const customer = await this.customerRepository.findById(topic.customerId);
-    if (!customer) {
-      throw new Error(`Customer with ID ${topic.customerId} not found`);
-    }
+    await this.customerValidationService.ensureCustomerExists(topic.customerId);
 
     this.logger.info(`Retrieved topic ${topicId} for customer ${topic.customerId}`, {
       topicId: topicId,

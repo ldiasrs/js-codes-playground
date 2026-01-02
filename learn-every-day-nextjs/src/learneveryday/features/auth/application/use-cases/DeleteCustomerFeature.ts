@@ -1,5 +1,8 @@
+import { Customer } from '../../domain/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
-import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
+import { CustomerDeletionService } from '../services/CustomerDeletionService';
+import { CustomerDeletionSaga } from '../sagas/CustomerDeletionSaga';
+import { DomainError } from '../../../../shared/errors/DomainError';
 
 export interface DeleteCustomerFeatureData {
   id: string;
@@ -8,7 +11,8 @@ export interface DeleteCustomerFeatureData {
 export class DeleteCustomerFeature {
   constructor(
     private readonly customerRepository: CustomerRepositoryPort,
-    private readonly topicRepository: TopicRepositoryPort
+    private readonly customerDeletionService: CustomerDeletionService,
+    private readonly customerDeletionSaga: CustomerDeletionSaga
   ) {}
 
   /**
@@ -20,24 +24,42 @@ export class DeleteCustomerFeature {
   async execute(data: DeleteCustomerFeatureData): Promise<boolean> {
     const { id } = data;
 
-    // Step 1: Check if customer exists
-    const existingCustomer = await this.customerRepository.findById(id);
-    if (!existingCustomer) {
-      throw new Error(`Customer with ID ${id} not found`);
-    }
+    await this.validateCustomerExists(id);
 
-    // Step 2: Delete customer's topics first (if any)
-    const customerTopics = await this.topicRepository.findByCustomerId(id);
-    for (const topic of customerTopics) {
-      await this.topicRepository.delete(topic.id);
-    }
-
-    // Step 3: Delete the customer
-    const deleted = await this.customerRepository.delete(id);
-    if (!deleted) {
-      throw new Error(`Failed to delete customer with ID ${id}`);
+    try {
+      await this.customerDeletionService.deleteCustomerTopics(id);
+      await this.deleteCustomer(id);
+    } catch (error) {
+      await this.customerDeletionSaga.compensate(id, error);
+      throw error;
     }
 
     return true;
+  }
+
+  /**
+   * Validates that the customer exists
+   * @param customerId The customer ID
+   * @returns Promise<Customer> The customer entity
+   * @throws DomainError if customer is not found
+   */
+  private async validateCustomerExists(customerId: string): Promise<Customer> {
+    const customer = await this.customerRepository.findById(customerId);
+    if (!customer) {
+      throw new DomainError(DomainError.CUSTOMER_NOT_FOUND, `Customer with ID ${customerId} not found`);
+    }
+    return customer;
+  }
+
+  /**
+   * Deletes the customer
+   * @param customerId The customer ID
+   * @throws DomainError if deletion fails
+   */
+  private async deleteCustomer(customerId: string): Promise<void> {
+    const deleted = await this.customerRepository.delete(customerId);
+    if (!deleted) {
+      throw new DomainError(DomainError.CUSTOMER_DELETION_FAILED, `Failed to delete customer with ID ${customerId}`);
+    }
   }
 } 

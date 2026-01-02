@@ -6,16 +6,16 @@ import { ProcessFailedTopicsTaskRunner } from './process-failed-topics/ProcessFa
 import { GetStuckTasksProcessor } from './process-failed-topics/processor/GetStuckTasksProcessor';
 import { FilterReprocessableTasksProcessor } from './process-failed-topics/processor/FilterReprocessableTasksProcessor';
 import { ReprocessStuckTasksProcessor } from './process-failed-topics/processor/ReprocessStuckTasksProcessor';
-import { CloseTopicsTaskRunner } from './close-topic/CloseTopicsTaskRunner';
+import { CloseTopicsTaskRunner } from '../../../taskprocess/application/use-cases/CloseTopicsTaskRunner';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from './close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from './close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
 import { CloseTopicFeature } from '../../../topic/application/use-cases/CloseTopicFeature';
-import { ScheduleTopicHistoryGeneration } from './schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
-import { ValidateCustomerProcessor } from './schedule-topic-history-generation/processor/ValidateCustomerProcessor';
-import { CreateConfigProcessor } from './schedule-topic-history-generation/processor/CreateConfigProcessor';
-import { AnalyzeTasksProcessor } from './schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
-import { SelectTopicsProcessor } from './schedule-topic-history-generation/processor/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from './schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
+import { ScheduleTopicHistoryGeneration } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+import { ValidateCustomerProcessor } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+import { CreateConfigProcessor } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/processor/CreateConfigProcessor';
+import { AnalyzeTasksProcessor } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
+import { SelectTopicsProcessor } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/processor/SelectTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
 import { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
 import { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistory';
 import { PromptBuilder } from '../../domain/PromptBuilder';
@@ -24,7 +24,7 @@ import { ReGenerateTopicsTaskScheduler } from './generate-topic-history/schedule
 import { CloseTopicTaskScheduler } from './generate-topic-history/schedulers/CloseTopicTaskScheduler';
 import { ProcessFailedTopicsTaskScheduler } from './generate-topic-history/schedulers/ProcessFailedTopicsTaskScheduler';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
-import { CreateNewSimilarTopicsProcessor } from './schedule-topic-history-generation/processor/CreateNewSimilarTopicsProcessor';
+import { CreateNewSimilarTopicsProcessor } from './CreateNewSimilarTopicsProcessor';
 import { AddTopicFeature } from '../../../topic/application/use-cases/AddTopicFeature';
 import { DeleteTopicFeature } from '../../../topic/application/use-cases/DeleteTopicFeature';
 

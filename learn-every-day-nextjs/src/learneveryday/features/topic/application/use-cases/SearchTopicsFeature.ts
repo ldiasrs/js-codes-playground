@@ -1,5 +1,5 @@
 import { TopicRepositoryPort, TopicSearchCriteria } from '../ports/TopicRepositoryPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
+import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
@@ -11,7 +11,7 @@ export interface SearchTopicsFeatureData {
 export class SearchTopicsFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly customerRepository: CustomerRepositoryPort,
+    private readonly customerValidationService: CustomerValidationService,
     private readonly logger: LoggerPort
   ) {}
 
@@ -26,10 +26,7 @@ export class SearchTopicsFeature {
 
     // Step 1: Verify customer exists if customerId is provided
     if (criteria.customerId) {
-      const customer = await this.customerRepository.findById(criteria.customerId);
-      if (!customer) {
-        throw new Error(`Customer with ID ${criteria.customerId} not found`);
-      }
+      await this.customerValidationService.ensureCustomerExists(criteria.customerId);
     }
 
     // Step 2: Search topics using the repository

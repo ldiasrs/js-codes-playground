@@ -24,7 +24,7 @@ import { DeleteCustomerFeature } from '@/learneveryday/features/auth/application
 import { LoginFeature } from '@/learneveryday/features/auth/application/use-cases/LoginFeature';
 import { VerifyAuthCodeFeature } from '@/learneveryday/features/auth/application/use-cases/VerifyAuthCodeFeature';
 import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/application/use-cases/TasksProcessExecutor';
-import { CloseTopicsTaskRunner } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/CloseTopicsTaskRunner';
+import { CloseTopicsTaskRunner } from '@/learneveryday/features/taskprocess/application/use-cases/CloseTopicsTaskRunner';
 import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/GetTopicHistoriesFeature';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
@@ -39,13 +39,13 @@ import { FilterReprocessableTasksProcessor } from '@/learneveryday/features/topi
 import { GetStuckTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/processor/GetStuckTasksProcessor';
 import { ReprocessStuckTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/processor/ReprocessStuckTasksProcessor';
 import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/ProcessTopicHistoryWorkflowFeature';
-import { AnalyzeTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
-import { CreateConfigProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/CreateConfigProcessor';
-import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/CreateNewSimilarTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
-import { SelectTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/SelectTopicsProcessor';
-import { ValidateCustomerProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
-import { ScheduleTopicHistoryGeneration } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+import { AnalyzeTasksProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
+import { CreateConfigProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/CreateConfigProcessor';
+import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
+import { SelectTopicsProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/SelectTopicsProcessor';
+import { ValidateCustomerProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+import { ScheduleTopicHistoryGeneration } from '@/learneveryday/features/taskprocess/application/use-cases/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
 import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/topic-histoy/application/use-cases/SendTopicHistoryTaskRunner';
 import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
 import { CloseTopicFeature } from '@/learneveryday/features/topic/application/use-cases/CloseTopicFeature';
@@ -54,6 +54,21 @@ import { GetAllTopicsFeature } from '@/learneveryday/features/topic/application/
 import { GetTopicByIdFeature } from '@/learneveryday/features/topic/application/use-cases/GetTopicByIdFeature';
 import { SearchTopicsFeature } from '@/learneveryday/features/topic/application/use-cases/SearchTopicsFeature';
 import { UpdateTopicFeature } from '@/learneveryday/features/topic/application/use-cases/UpdateTopicFeature';
+import { TopicCreationPolicy } from '@/learneveryday/features/topic/domain/services/TopicCreationPolicy';
+import { TopicUpdatePolicy } from '@/learneveryday/features/topic/domain/services/TopicUpdatePolicy';
+import { TopicCreationSaga } from '@/learneveryday/features/topic/application/sagas/TopicCreationSaga';
+import { TopicDeletionSaga } from '@/learneveryday/features/topic/application/sagas/TopicDeletionSaga';
+import { TopicClosedNotificationService } from '@/learneveryday/features/topic/application/services/TopicClosedNotificationService';
+import { TopicDeletionService } from '@/learneveryday/features/topic/application/services/TopicDeletionService';
+import { CustomerValidationService } from '@/learneveryday/features/auth/application/services/CustomerValidationService';
+import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/services/CustomerCreationPolicy';
+import { CustomerDeletionService } from '@/learneveryday/features/auth/application/services/CustomerDeletionService';
+import { CustomerDeletionSaga } from '@/learneveryday/features/auth/application/sagas/CustomerDeletionSaga';
+import { AuthenticationService } from '@/learneveryday/features/auth/application/services/AuthenticationService';
+import { AuthenticationVerificationService } from '@/learneveryday/features/auth/application/services/AuthenticationVerificationService';
+import { EmailValidationService } from '@/learneveryday/features/auth/application/services/EmailValidationService';
+import { TokenGenerationService } from '@/learneveryday/features/auth/application/services/TokenGenerationService';
+import { TopicHistoryTaskSchedulerService } from '@/learneveryday/features/taskprocess/application/services/TopicHistoryTaskScheduler';
 
 export interface Container {
   get<T>(token: string): T;
@@ -104,69 +119,135 @@ export class NextJSContainer implements Container {
     // Register use cases
     this.registerSingleton('CreateCustomerFeature', () => new CreateCustomerFeature(
       this.get('CustomerRepository'),
-      this.get('TopicRepository'),
+      this.get('CustomerCreationPolicy'),
       LoggerFactory.createLoggerForClass('CreateCustomerFeature')
     ));
 
     this.registerSingleton('DeleteCustomerFeature', () => new DeleteCustomerFeature(
       this.get('CustomerRepository'),
-      this.get('TopicRepository')
+      this.get('CustomerDeletionService'),
+      this.get('CustomerDeletionSaga')
     ));
 
     this.registerSingleton('LoginFeature', () => new LoginFeature(
-      this.get('CustomerRepository'),
-      this.get('VerificationCodeSender'),
-      this.get('AuthenticationAttemptRepository'),
-      LoggerFactory.createLoggerForClass('LoginFeature')
+      this.get('AuthenticationService')
     ));
 
     this.registerSingleton('VerifyAuthCodeFeature', () => new VerifyAuthCodeFeature(
+      this.get('AuthenticationVerificationService')
+    ));
+
+    // Register domain services (pure business logic, no infrastructure)
+    this.registerSingleton('TopicCreationPolicy', () => new TopicCreationPolicy(
+      this.get('TopicRepository')
+    ));
+    this.registerSingleton('TopicUpdatePolicy', () => new TopicUpdatePolicy(
+      this.get('TopicRepository')
+    ));
+    this.registerSingleton('CustomerCreationPolicy', () => new CustomerCreationPolicy(
+      this.get('CustomerRepository')
+    ));
+
+    // Register application services (orchestration with infrastructure)
+    this.registerSingleton('CustomerValidationService', () => new CustomerValidationService(
+      this.get('CustomerRepository')
+    ));
+    this.registerSingleton('EmailValidationService', () => new EmailValidationService());
+    this.registerSingleton('TokenGenerationService', () => new TokenGenerationService());
+    this.registerSingleton('TopicClosedNotificationService', () => new TopicClosedNotificationService(
+      this.get('CustomerRepository'),
+      this.get('SendTopicClosedEmailPort'),
+      LoggerFactory.createLoggerForClass('TopicClosedNotificationService')
+    ));
+    this.registerSingleton('TopicDeletionService', () => new TopicDeletionService(
+      this.get('TopicRepository'),
+      this.get('TopicHistoryRepository'),
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('TopicDeletionService')
+    ));
+    this.registerSingleton('CustomerDeletionService', () => new CustomerDeletionService(
+      this.get('CustomerRepository'),
+      this.get('TopicRepository'),
+      LoggerFactory.createLoggerForClass('CustomerDeletionService')
+    ));
+    this.registerSingleton('AuthenticationService', () => new AuthenticationService(
+      this.get('CustomerRepository'),
+      this.get('VerificationCodeSender'),
+      this.get('AuthenticationAttemptRepository'),
+      this.get('EmailValidationService'),
+      LoggerFactory.createLoggerForClass('AuthenticationService')
+    ));
+    this.registerSingleton('AuthenticationVerificationService', () => new AuthenticationVerificationService(
       this.get('CustomerRepository'),
       this.get('AuthenticationAttemptRepository'),
-      LoggerFactory.createLoggerForClass('VerifyAuthCodeFeature')
+      this.get('TokenGenerationService'),
+      LoggerFactory.createLoggerForClass('AuthenticationVerificationService')
+    ));
+    this.registerSingleton('TopicHistoryTaskScheduler', () => new TopicHistoryTaskSchedulerService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('TopicHistoryTaskScheduler')
+    ));
+
+    // Register sagas
+    this.registerSingleton('TopicCreationSaga', () => new TopicCreationSaga(
+      this.get('TopicRepository'),
+      LoggerFactory.createLoggerForClass('TopicCreationSaga')
+    ));
+    this.registerSingleton('TopicDeletionSaga', () => new TopicDeletionSaga(
+      this.get('TopicRepository'),
+      this.get('TopicHistoryRepository'),
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('TopicDeletionSaga')
+    ));
+    this.registerSingleton('CustomerDeletionSaga', () => new CustomerDeletionSaga(
+      this.get('CustomerRepository'),
+      this.get('TopicRepository'),
+      LoggerFactory.createLoggerForClass('CustomerDeletionSaga')
     ));
 
     this.registerSingleton('AddTopicFeature', () => new AddTopicFeature(
       this.get('TopicRepository'),
-      this.get('CustomerRepository'),
-      this.get('TaskProcessRepository'),
+      this.get('CustomerValidationService'),
+      this.get('TopicCreationPolicy'),
+      this.get('TopicHistoryTaskScheduler'),
+      this.get('TopicCreationSaga'),
       LoggerFactory.createLoggerForClass('AddTopicFeature')
     ));
 
     this.registerSingleton('UpdateTopicFeature', () => new UpdateTopicFeature(
       this.get('TopicRepository'),
+      this.get('TopicUpdatePolicy'),
       LoggerFactory.createLoggerForClass('UpdateTopicFeature')
     ));
 
     this.registerSingleton('CloseTopicFeature', () => new CloseTopicFeature(
       this.get('TopicRepository'),
-      LoggerFactory.createLoggerForClass('CloseTopicFeature'),
-      this.get('CustomerRepository'),
-      this.get('SendTopicClosedEmailPort')
+      this.get('TopicClosedNotificationService'),
+      LoggerFactory.createLoggerForClass('CloseTopicFeature')
     ));
 
     this.registerSingleton('DeleteTopicFeature', () => new DeleteTopicFeature(
       this.get('TopicRepository'),
-      this.get('TopicHistoryRepository'),
-      this.get('TaskProcessRepository'),
+      this.get('TopicDeletionService'),
+      this.get('TopicDeletionSaga'),
       LoggerFactory.createLoggerForClass('DeleteTopicFeature')
     ));
 
     this.registerSingleton('GetAllTopicsFeature', () => new GetAllTopicsFeature(
       this.get('TopicRepository'),
-      this.get('CustomerRepository'),
+      this.get('CustomerValidationService'),
       LoggerFactory.createLoggerForClass('GetAllTopicsFeature')
     ));
 
     this.registerSingleton('GetTopicByIdFeature', () => new GetTopicByIdFeature(
       this.get('TopicRepository'),
-      this.get('CustomerRepository'),
+      this.get('CustomerValidationService'),
       LoggerFactory.createLoggerForClass('GetTopicByIdFeature')
     ));
 
     this.registerSingleton('SearchTopicsFeature', () => new SearchTopicsFeature(
       this.get('TopicRepository'),
-      this.get('CustomerRepository'),
+      this.get('CustomerValidationService'),
       LoggerFactory.createLoggerForClass('SearchTopicsFeature')
     ));
 

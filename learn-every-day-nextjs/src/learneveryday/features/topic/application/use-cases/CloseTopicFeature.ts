@@ -1,24 +1,21 @@
 import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
+import { TopicClosedNotificationService } from '../services/TopicClosedNotificationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
+import { DomainError } from '../../../../shared/errors/DomainError';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
-import { SendTopicClosedEmailPort } from '../ports/SendTopicClosedEmailPort';
 
 export interface CloseTopicFeatureData {
   id: string;
 }
 
 export class CloseTopicFeature {
-
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly logger: LoggerPort,
-    private readonly customerRepository: CustomerRepositoryPort,
-    private readonly sendTopicClosedEmailPort: SendTopicClosedEmailPort,
-  ) {
-  }
+    private readonly topicClosedNotificationService: TopicClosedNotificationService,
+    private readonly logger: LoggerPort
+  ) {}
 
 
   /**
@@ -30,33 +27,56 @@ export class CloseTopicFeature {
   async execute(data: CloseTopicFeatureData): Promise<TopicDTO> {
     const { id } = data;
 
-    // Step 1: Verify topic exists
-    const existingTopic = await this.topicRepository.findById(id);
-    if (!existingTopic) {
-      throw new Error(`Topic with ID ${id} not found`);
-    }
+    const existingTopic = await this.validateTopicExists(id);
+    this.validateTopicNotClosed(existingTopic);
 
-    // Step 2: Check if topic is already closed
-    if (existingTopic.closed) {
-      throw new Error(`Topic with ID ${id} is already closed`);
-    }
+    const closedTopic = await this.closeTopic(existingTopic);
+    await this.topicClosedNotificationService.sendNotification(closedTopic.customerId, closedTopic);
 
-    // Step 3: Create updated topic with closed set to true
+    return TopicMapper.toDTO(closedTopic);
+  }
+
+  /**
+   * Validates that the topic exists
+   * @param topicId The topic ID
+   * @returns Promise<Topic> The topic entity
+   * @throws DomainError if topic is not found
+   */
+  private async validateTopicExists(topicId: string): Promise<Topic> {
+    const topic = await this.topicRepository.findById(topicId);
+    if (!topic) {
+      throw new DomainError(DomainError.TOPIC_NOT_FOUND, `Topic with ID ${topicId} not found`);
+    }
+    return topic;
+  }
+
+  /**
+   * Validates that the topic is not already closed
+   * @param topic The topic entity
+   * @throws DomainError if topic is already closed
+   */
+  private validateTopicNotClosed(topic: Topic): void {
+    if (topic.closed) {
+      throw new DomainError(DomainError.TOPIC_ALREADY_CLOSED, `Topic with ID ${topic.id} is already closed`);
+    }
+  }
+
+  /**
+   * Closes and saves the topic
+   * @param topic The topic entity to close
+   * @returns Promise<Topic> The closed topic entity
+   */
+  private async closeTopic(topic: Topic): Promise<Topic> {
     const closedTopic = new Topic(
-      existingTopic.customerId,
-      existingTopic.subject,
-      existingTopic.id,
-      existingTopic.dateCreated,
+      topic.customerId,
+      topic.subject,
+      topic.id,
+      topic.dateCreated,
       true
     );
 
-    // Step 4: Save the updated topic
     const savedTopic = await this.topicRepository.save(closedTopic);
 
-    // Step 5: Send notification email
-    await this.sendTopicClosedNotification(savedTopic.customerId, savedTopic);
-
-    // Step 6: Log the closure
     this.logger.info(`Closed topic: ${savedTopic.id}`, {
       topicId: savedTopic.id,
       customerId: savedTopic.customerId,
@@ -64,25 +84,6 @@ export class CloseTopicFeature {
       closed: savedTopic.closed
     });
 
-    return TopicMapper.toDTO(savedTopic);
-  }
-
-  async sendTopicClosedNotification(customerId: string, topic: Topic): Promise<void> {
-    try {
-      const customer = await this.customerRepository.findById(customerId);
-      if (customer) {
-        await this.sendTopicClosedEmailPort.send({
-          customerId: customerId,
-          email: customer.email,
-          topicSubject: topic.subject,
-        });
-      }
-    } catch (error) {
-      this.logger.error(`Failed to send topic closed email for topic ${topic.id}`, error instanceof Error ? error : new Error(String(error)), {
-        customerId: customerId,
-        topicId: topic.id,
-        topicSubject: topic.subject,
-      });
-    }
+    return savedTopic;
   }
 }

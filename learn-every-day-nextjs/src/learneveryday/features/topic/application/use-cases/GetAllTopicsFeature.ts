@@ -1,5 +1,5 @@
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
+import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
@@ -11,7 +11,7 @@ export interface GetAllTopicsFeatureData {
 export class GetAllTopicsFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly customerRepository: CustomerRepositoryPort,
+    private readonly customerValidationService: CustomerValidationService,
     private readonly logger: LoggerPort
   ) {}
 
@@ -25,10 +25,7 @@ export class GetAllTopicsFeature {
     const { customerId } = data;
 
     // Step 1: Verify customer exists
-    const customer = await this.customerRepository.findById(customerId);
-    if (!customer) {
-      throw new Error(`Customer with ID ${customerId} not found`);
-    }
+    await this.customerValidationService.ensureCustomerExists(customerId);
 
     // Step 2: Get all topics for the customer
     const topics = await this.topicRepository.findByCustomerId(customerId);
