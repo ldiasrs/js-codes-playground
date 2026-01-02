@@ -1,8 +1,8 @@
 import { TaskProcess } from "../../domain/TaskProcess";
 import { TaskProcessRunner } from "../ports/TaskProcessRunner";
 import { LoggerPort } from "../../../../shared/ports/LoggerPort";
-import { CheckAndCloseTopicsWithManyHistoriesProcessor } from "../../../topic-histoy/application/use-cases/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor";
-import { RemoveTasksFromClosedTopicsProcessor } from "../../../topic-histoy/application/use-cases/close-topic/processor/RemoveTasksFromClosedTopicsProcessor";
+import { CheckAndCloseTopicsWithManyHistoriesProcessor } from "./CheckAndCloseTopicsWithManyHistoriesProcessor";
+import { RemoveTasksFromClosedTopicsProcessor } from "./RemoveTasksFromClosedTopicsProcessor";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   constructor(

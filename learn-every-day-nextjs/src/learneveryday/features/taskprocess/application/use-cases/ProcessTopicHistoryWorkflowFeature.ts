@@ -1,7 +1,7 @@
 import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { TaskProcessRepositoryPort } from '../../../taskprocess/application/ports/TaskProcessRepositoryPort';
-import { ExecuteTopicHistoryGeneration } from './generate-topic-history/ExecuteTopicHistoryGeneration';
+import { ExecuteTopicHistoryGeneration } from '../../../taskprocess/application/use-cases/ExecuteTopicHistoryGeneration';
 import { SendTopicHistoryTaskRunner } from './SendTopicHistoryTaskRunner';
 import { ScheduleTopicHistoryGeneration } from '../../../taskprocess/application/use-cases/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
 import { CloseTopicsTaskRunner } from '../../../taskprocess/application/use-cases/CloseTopicsTaskRunner';

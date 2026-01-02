@@ -1,5 +1,5 @@
 import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
-import { TaskProcess } from "../../../../../taskprocess/domain/TaskProcess";
+import { TaskProcess } from "../../../../domain/TaskProcess";
 
 /**
  * Filters stuck tasks to find which ones are eligible for reprocessing.

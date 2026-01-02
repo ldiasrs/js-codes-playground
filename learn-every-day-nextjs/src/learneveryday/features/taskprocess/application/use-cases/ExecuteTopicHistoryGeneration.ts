@@ -3,11 +3,11 @@ import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskPro
 import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/ports/TopicRepositoryPort";
 import { Topic } from "@/learneveryday/features/topic/domain/Topic";
 import { LoggerPort } from "@/learneveryday/shared";
-import { GenerateAndSaveTopicHistoryFeature } from "./GenerateAndSaveTopicHistory";
-import { CloseTopicTaskScheduler } from "./schedulers/CloseTopicTaskScheduler";
-import { ProcessFailedTopicsTaskScheduler } from "./schedulers/ProcessFailedTopicsTaskScheduler";
-import { ReGenerateTopicsTaskScheduler } from "./schedulers/ReGenerateTopicsTaskScheduler";
-import { SendTopicHistoryTaskScheduler } from "./schedulers/SendTopicHistoryTaskScheduler";
+import { GenerateAndSaveTopicHistoryFeature } from "../../../topic-histoy/application/use-cases/generate-topic-history/GenerateAndSaveTopicHistory";
+import { CloseTopicTaskScheduler } from "../services/schedulers/CloseTopicTaskScheduler";
+import { ProcessFailedTopicsTaskScheduler } from "../services/schedulers/ProcessFailedTopicsTaskScheduler";
+import { ReGenerateTopicsTaskScheduler } from "../services/schedulers/ReGenerateTopicsTaskScheduler";
+import { SendTopicHistoryTaskScheduler } from "../services/schedulers/SendTopicHistoryTaskScheduler";
 
 export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
   constructor(

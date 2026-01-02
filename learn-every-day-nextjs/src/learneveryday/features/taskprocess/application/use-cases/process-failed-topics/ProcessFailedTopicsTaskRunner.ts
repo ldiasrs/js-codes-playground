@@ -1,5 +1,5 @@
-import { TaskProcess } from "../../../../taskprocess/domain/TaskProcess";
-import { TaskProcessRunner } from "../../../../taskprocess/application/ports/TaskProcessRunner";
+import { TaskProcess } from "../../../domain/TaskProcess";
+import { TaskProcessRunner } from "../../ports/TaskProcessRunner";
 import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
 import { GetStuckTasksProcessor } from "./processor/GetStuckTasksProcessor";
 import { FilterReprocessableTasksProcessor } from "./processor/FilterReprocessableTasksProcessor";
