@@ -29,7 +29,7 @@ import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/RemoveTasksFromClosedTopicsProcessor';
 import { ExecuteTopicHistoryGeneration } from '@/learneveryday/features/taskprocess/application/use-cases/ExecuteTopicHistoryGeneration';
-import { CreateTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateTopicHistoryFeature';
+import { GenerateTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GenerateTopicHistoryFeature';
 import { CloseTopicTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/CloseTopicTaskScheduler';
 import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/ProcessFailedTopicsTaskScheduler';
 import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/ReGenerateTopicsTaskScheduler';
@@ -54,8 +54,8 @@ import { GetAllTopicsFeature } from '@/learneveryday/features/topic/application/
 import { GetTopicByIdFeature } from '@/learneveryday/features/topic/application/use-cases/GetTopicByIdFeature';
 import { SearchTopicsFeature } from '@/learneveryday/features/topic/application/use-cases/SearchTopicsFeature';
 import { UpdateTopicFeature } from '@/learneveryday/features/topic/application/use-cases/UpdateTopicFeature';
-import { TopicCreationPolicy } from '@/learneveryday/features/topic/domain/services/TopicCreationPolicy';
-import { TopicUpdatePolicy } from '@/learneveryday/features/topic/domain/services/TopicUpdatePolicy';
+import { TopicCreationPolicy } from '@/learneveryday/features/topic/domain/TopicCreationPolicy';
+import { TopicUpdatePolicy } from '@/learneveryday/features/topic/domain/TopicUpdatePolicy';
 import { TopicCreationSaga } from '@/learneveryday/features/topic/application/sagas/TopicCreationSaga';
 import { TopicDeletionSaga } from '@/learneveryday/features/topic/application/sagas/TopicDeletionSaga';
 import { TopicClosedNotificationService } from '@/learneveryday/features/topic/application/services/TopicClosedNotificationService';
@@ -63,7 +63,7 @@ import { TopicDeletionService } from '@/learneveryday/features/topic/application
 import { TopicLifecycleCleanupService } from '@/learneveryday/features/taskprocess/application/services/TopicLifecycleCleanupService';
 import { TopicHistorySchedulingService } from '@/learneveryday/features/taskprocess/application/services/TopicHistorySchedulingService';
 import { CustomerValidationService } from '@/learneveryday/features/auth/application/services/CustomerValidationService';
-import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/services/CustomerCreationPolicy';
+import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/CustomerCreationPolicy';
 import { CustomerDeletionService } from '@/learneveryday/features/auth/application/services/CustomerDeletionService';
 import { CustomerDeletionSaga } from '@/learneveryday/features/auth/application/sagas/CustomerDeletionSaga';
 import { AuthenticationService } from '@/learneveryday/features/auth/application/services/AuthenticationService';
@@ -267,7 +267,7 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('GetTopicHistoriesFeature')
     ));
 
-    this.registerSingleton('GenerateAndSaveTopicHistoryFeature', () => new CreateTopicHistoryFeature(
+    this.registerSingleton('GenerateAndSaveTopicHistoryFeature', () => new GenerateTopicHistoryFeature(
       this.get('TopicHistoryRepository'),
       this.get('AIPromptExecutorPort'),
       this.get('PromptBuilder'),

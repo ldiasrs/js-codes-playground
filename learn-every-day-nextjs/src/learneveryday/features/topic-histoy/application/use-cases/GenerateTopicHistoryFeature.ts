@@ -10,7 +10,7 @@ import { TopicHistoryMapper } from "../dto/TopicHistoryMapper";
 /**
  * Feature responsible for generating and saving topic history content
  */
-export class CreateTopicHistoryFeature {
+export class GenerateTopicHistoryFeature {
   constructor(
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly aiPromptExecutorPort: AIPromptExecutorPort,

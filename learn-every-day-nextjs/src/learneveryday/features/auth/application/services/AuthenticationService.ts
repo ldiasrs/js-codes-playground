@@ -2,7 +2,7 @@ import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { SendVerificationCodePort } from '../ports/SendVerificationCodePort';
 import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
 import { AuthenticationAttempt } from '../../domain/AuthenticationAttempt';
-import { VerificationCodeGenerator } from '../../domain/services/VerificationCodeGenerator';
+import { VerificationCodeGenerator } from '../../domain/VerificationCodeGenerator';
 import { EmailValidationService } from './EmailValidationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 

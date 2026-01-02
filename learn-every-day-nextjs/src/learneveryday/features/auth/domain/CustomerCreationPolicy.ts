@@ -1,5 +1,5 @@
-import { CustomerRepositoryPort } from '../../application/ports/CustomerRepositoryPort';
-import { DomainError } from '../../../../shared/errors/DomainError';
+import { CustomerRepositoryPort } from '../application/ports/CustomerRepositoryPort';
+import { DomainError } from '../../../shared/errors/DomainError';
 
 /**
  * Domain service that encapsulates business rules for customer creation.

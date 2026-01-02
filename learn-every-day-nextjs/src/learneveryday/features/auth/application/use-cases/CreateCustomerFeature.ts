@@ -1,6 +1,6 @@
 import { Customer, CustomerTier } from '../../domain/Customer';
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
-import { CustomerCreationPolicy } from '../../domain/services/CustomerCreationPolicy';
+import { CustomerCreationPolicy } from '../../domain/CustomerCreationPolicy';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { CustomerDTO } from '../dto/CustomerDTO';
 import { CustomerMapper } from '../dto/CustomerMapper';

@@ -4,7 +4,7 @@ import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/
 import { Topic } from "@/learneveryday/features/topic/domain/Topic";
 import { TopicMapper } from "@/learneveryday/features/topic/application/dto/TopicMapper";
 import { LoggerPort } from "@/learneveryday/shared";
-import { CreateTopicHistoryFeature } from "../../../topic-histoy/application/use-cases/CreateTopicHistoryFeature";
+import { GenerateTopicHistoryFeature } from "../../../topic-histoy/application/use-cases/GenerateTopicHistoryFeature";
 import { CloseTopicTaskScheduler } from "../services/schedulers/CloseTopicTaskScheduler";
 import { ProcessFailedTopicsTaskScheduler } from "../services/schedulers/ProcessFailedTopicsTaskScheduler";
 import { ReGenerateTopicsTaskScheduler } from "../services/schedulers/ReGenerateTopicsTaskScheduler";
@@ -13,7 +13,7 @@ import { SendTopicHistoryTaskScheduler } from "../services/schedulers/SendTopicH
 export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly generateAndSaveTopicHistoryFeature: CreateTopicHistoryFeature,
+    private readonly generateAndSaveTopicHistoryFeature: GenerateTopicHistoryFeature,
     private readonly sendTopicHistoryTaskScheduler: SendTopicHistoryTaskScheduler,
     private readonly reGenerateTopicsTaskScheduler: ReGenerateTopicsTaskScheduler,
     private readonly closeTopicTaskScheduler: CloseTopicTaskScheduler,

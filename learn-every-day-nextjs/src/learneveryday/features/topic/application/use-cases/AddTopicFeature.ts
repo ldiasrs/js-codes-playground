@@ -1,6 +1,6 @@
 import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { TopicCreationPolicy } from '../../domain/services/TopicCreationPolicy';
+import { TopicCreationPolicy } from '../../domain/TopicCreationPolicy';
 import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
 import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
 import { TopicCreationSaga } from '../sagas/TopicCreationSaga';

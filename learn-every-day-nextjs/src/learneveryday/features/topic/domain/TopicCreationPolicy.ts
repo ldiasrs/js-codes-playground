@@ -1,7 +1,7 @@
-import { Customer } from '../../../auth/domain/Customer';
-import { TopicRepositoryPort } from '../../application/ports/TopicRepositoryPort';
-import { TierLimits } from '../../../../shared/TierLimits';
-import { DomainError } from '../../../../shared/errors/DomainError';
+import { Customer } from '../../auth/domain/Customer';
+import { TopicRepositoryPort } from '../application/ports/TopicRepositoryPort';
+import { TierLimits } from '../../../shared/TierLimits';
+import { DomainError } from '../../../shared/errors/DomainError';
 
 /**
  * Domain service that encapsulates business rules for topic creation.

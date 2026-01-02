@@ -1,6 +1,6 @@
 import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
-import { TopicUpdatePolicy } from '../../domain/services/TopicUpdatePolicy';
+import { TopicUpdatePolicy } from '../../domain/TopicUpdatePolicy';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { DomainError } from '../../../../shared/errors/DomainError';
 import { TopicDTO } from '../dto/TopicDTO';

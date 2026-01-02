@@ -1,6 +1,6 @@
-import { Topic } from '../Topic';
-import { TopicRepositoryPort } from '../../application/ports/TopicRepositoryPort';
-import { DomainError } from '../../../../shared/errors/DomainError';
+import { Topic } from './Topic';
+import { TopicRepositoryPort } from '../application/ports/TopicRepositoryPort';
+import { DomainError } from '../../../shared/errors/DomainError';
 
 /**
  * Domain service that encapsulates business rules for topic updates.
