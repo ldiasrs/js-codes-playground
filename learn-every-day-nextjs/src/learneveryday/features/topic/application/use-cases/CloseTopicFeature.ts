@@ -2,9 +2,9 @@ import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
-import { SendTopicClosedEmailPort } from '../ports/SendTopicClosedEmailPort';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
+import { SendTopicClosedEmailPort } from '../ports/SendTopicClosedEmailPort';
 
 export interface CloseTopicFeatureData {
   id: string;

@@ -1,8 +1,8 @@
 import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
 import { Topic } from "../../../../../topic/domain/Topic";
 import { TopicRepositoryPort } from "../../../../../topic/application/ports/TopicRepositoryPort";
-import { TopicHistoryRepositoryPort } from "../../../../ports/TopicHistoryRepositoryPort";
 import { CreateNewSimilarTopicsProcessor } from "./CreateNewSimilarTopicsProcessor";
+import { TopicHistoryRepositoryPort } from "../../../ports/TopicHistoryRepositoryPort";
 
 interface TopicWithHistoryCount {
   topic: Topic;

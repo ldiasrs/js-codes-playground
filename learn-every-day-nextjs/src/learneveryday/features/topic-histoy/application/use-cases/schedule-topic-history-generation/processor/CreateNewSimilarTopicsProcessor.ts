@@ -1,11 +1,11 @@
 import { LoggerPort } from "../../../../../../shared/ports/LoggerPort";
-import { AIPromptExecutorPort } from "../../../../ports/AIPromptExecutorPort";
 import { Topic } from "../../../../../topic/domain/Topic";
 import { TopicRepositoryPort } from "../../../../../topic/application/ports/TopicRepositoryPort";
 import { CustomerRepositoryPort } from "../../../../../auth/application/ports/CustomerRepositoryPort";
 import { AddTopicFeature } from "../../../../../topic/application/use-cases/AddTopicFeature";
 import { DeleteTopicFeature } from "../../../../../topic/application/use-cases/DeleteTopicFeature";
 import { DomainError } from "../../../../../../shared/errors/DomainError";
+import { AIPromptExecutorPort } from "../../../ports/AIPromptExecutorPort";
 
 /**
  * Creates new topics similar to the user's interests using AI suggestions.

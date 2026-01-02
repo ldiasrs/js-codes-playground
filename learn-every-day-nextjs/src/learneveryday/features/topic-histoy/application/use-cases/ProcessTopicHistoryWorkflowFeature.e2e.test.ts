@@ -30,14 +30,14 @@ import { DeleteTopicFeature } from '../../../topic/application/use-cases/DeleteT
 
 // Domain ports
 import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { CustomerRepositoryPort } from '../../../auth/application/ports/CustomerRepositoryPort';
-import { Customer, CustomerTier } from '../../../auth/domain/Customer';
-import { SendTopicClosedEmailPort } from '../../../topic/application/ports/SendTopicClosedEmailPort';
-import { Topic } from '../../../topic/domain/Topic';
+import { CustomerRepositoryPort } from '@/learneveryday/features/auth/application/ports/CustomerRepositoryPort';
+import { Customer, CustomerTier } from '@/learneveryday/features/auth/domain/Customer';
+import { SendTopicClosedEmailPort } from '@/learneveryday/features/topic/application/ports/SendTopicClosedEmailPort';
+import { Topic } from '@/learneveryday/features/topic/domain/Topic';
 import { TopicHistory } from '../../domain/TopicHistory';
-import { AIPromptExecutorPort } from '../../ports/AIPromptExecutorPort';
-import { SendTopicHistoryByEmailPort } from '../../ports/SendTopicHistoryByEmailPort';
+import { AIPromptExecutorPort } from '../ports/AIPromptExecutorPort';
+import { SendTopicHistoryByEmailPort } from '../ports/SendTopicHistoryByEmailPort';
+import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
 
 describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
   let logger: jest.Mocked<LoggerPort>;
