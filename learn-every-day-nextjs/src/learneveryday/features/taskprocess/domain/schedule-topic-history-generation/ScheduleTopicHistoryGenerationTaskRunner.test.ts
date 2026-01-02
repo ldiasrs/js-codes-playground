@@ -1,4 +1,4 @@
-import { ScheduleTopicHistoryGeneration } from './ScheduleTopicHistoryGeneration';
+import { ScheduleTopicHistoryGeneration } from './ScheduleTopicHistoryGenerationTaskRunner';
 import { ValidateCustomerProcessor } from './processor/ValidateCustomerProcessor';
 import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './processor/CreateConfigProcessor';
 import { AnalyzeTasksProcessor, TaskAnalysis } from './processor/AnalyzeTasksProcessor';

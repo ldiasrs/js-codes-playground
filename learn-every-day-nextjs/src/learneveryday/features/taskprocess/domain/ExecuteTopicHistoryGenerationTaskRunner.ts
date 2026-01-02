@@ -10,7 +10,7 @@ import { ProcessFailedTopicsTaskScheduler } from "./services/schedulers/ProcessF
 import { ReGenerateTopicsTaskScheduler } from "./services/schedulers/ReGenerateTopicsTaskScheduler";
 import { SendTopicHistoryTaskScheduler } from "./services/schedulers/SendTopicHistoryTaskScheduler";
 
-export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
+export class ExecuteTopicHistoryGenerationTaskRunner implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly generateTopicHistoryFeature: GenerateTopicHistoryFeature,

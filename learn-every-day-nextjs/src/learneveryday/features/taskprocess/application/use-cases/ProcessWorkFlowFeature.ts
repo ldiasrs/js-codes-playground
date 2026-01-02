@@ -1,8 +1,8 @@
 import { LoggerPort } from "@/learneveryday/shared";
 import { CloseTopicsTaskRunner } from "../../domain/CloseTopicsTaskRunner";
-import { ExecuteTopicHistoryGeneration } from "../../domain/ExecuteTopicHistoryGeneration";
+import { ExecuteTopicHistoryGenerationTaskRunner } from "../../domain/ExecuteTopicHistoryGenerationTaskRunner";
 import { ProcessFailedTopicsTaskRunner } from "../../domain/process-failed-topics/ProcessFailedTopicsTaskRunner";
-import { ScheduleTopicHistoryGeneration } from "../../domain/schedule-topic-history-generation/ScheduleTopicHistoryGeneration";
+import { ScheduleTopicHistoryGenerationTaskRunner } from "../../domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner";
 import { SendTopicHistoryTaskRunner } from "../../domain/SendTopicHistoryTaskRunner";
 import { TaskProcess } from "../../domain/TaskProcess";
 import { TasksProcessExecutor } from "../../domain/TasksProcessExecutor";
@@ -19,8 +19,8 @@ export class ProcessWorkFlowFeature {
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly processFailedTopicsTaskRunner: ProcessFailedTopicsTaskRunner,
     private readonly closeTopicsTaskRunner: CloseTopicsTaskRunner,
-    private readonly scheduleTopicHistoryGeneration: ScheduleTopicHistoryGeneration,
-    private readonly executeTopicHistoryGeneration: ExecuteTopicHistoryGeneration,
+    private readonly scheduleTopicHistoryGenerationTaskRunner: ScheduleTopicHistoryGenerationTaskRunner,
+    private readonly executeTopicHistoryGenerationTaskRunner: ExecuteTopicHistoryGenerationTaskRunner,
     private readonly sendTopicHistoryTaskRunner: SendTopicHistoryTaskRunner,
     private readonly logger: LoggerPort
   ) {
@@ -67,7 +67,7 @@ export class ProcessWorkFlowFeature {
         limit,
         maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
       },
-      this.scheduleTopicHistoryGeneration
+      this.scheduleTopicHistoryGenerationTaskRunner
     );
 
     await executor.execute(
@@ -76,7 +76,7 @@ export class ProcessWorkFlowFeature {
         limit,
         maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
       },
-      this.executeTopicHistoryGeneration
+      this.executeTopicHistoryGenerationTaskRunner
     );
 
 

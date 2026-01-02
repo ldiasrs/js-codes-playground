@@ -16,7 +16,7 @@ import { CreateConfigProcessor } from './schedule-topic-history-generation/proce
 import { AnalyzeTasksProcessor } from './schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
 import { SelectTopicsProcessor } from './schedule-topic-history-generation/processor/SelectTopicsProcessor';
 import { ScheduleGenerateTasksBatchProcessor } from './schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
-import { ExecuteTopicHistoryGeneration } from '../../domain/ExecuteTopicHistoryGeneration';
+import { ExecuteTopicHistoryGenerationTaskRunner } from '../../domain/ExecuteTopicHistoryGenerationTaskRunner';
 import { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistory';
 import { PromptBuilder } from '../../domain/PromptBuilder';
 import { SendTopicHistoryTaskScheduler } from '../services/schedulers/SendTopicHistoryTaskScheduler';
@@ -274,7 +274,7 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
     const regenerateScheduler = new ReGenerateTopicsTaskScheduler(taskProcessRepository, logger);
     const closeScheduler = new CloseTopicTaskScheduler(taskProcessRepository, logger);
     const failedScheduler = new ProcessFailedTopicsTaskScheduler(taskProcessRepository, logger);
-    const generateRunner = new ExecuteTopicHistoryGeneration(
+    const generateRunner = new ExecuteTopicHistoryGenerationTaskRunner(
       topicRepository,
       generateAndSave,
       sendScheduler,

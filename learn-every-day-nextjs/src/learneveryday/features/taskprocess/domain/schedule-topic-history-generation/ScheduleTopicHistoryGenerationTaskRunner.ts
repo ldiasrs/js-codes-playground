@@ -5,10 +5,11 @@ import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from "./processor
 import { AnalyzeTasksProcessor, TaskAnalysis } from "./processor/AnalyzeTasksProcessor";
 import { SelectTopicsProcessor } from "./processor/SelectTopicsProcessor";
 import { ScheduleGenerateTasksBatchProcessor } from "./processor/ScheduleGenerateTasksBatchProcessor";
+import { TaskProcessRunner } from "../TaskProcessRunner";
 
 // Interfaces moved to dedicated features
 
-export class ScheduleTopicHistoryGeneration {
+export class ScheduleTopicHistoryGenerationTaskRunner implements TaskProcessRunner {
   private static readonly BATCH_SIZE_LIMIT = 50;
   private static readonly CONCURRENCY_LIMIT = 5;
   private static readonly HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
@@ -83,9 +84,9 @@ export class ScheduleTopicHistoryGeneration {
 
   private calculateNextScheduleTime(lastSendTask: TaskProcess | null): Date {
     if (lastSendTask) {
-      return new Date(lastSendTask.createdAt.getTime() + ScheduleTopicHistoryGeneration.HOURS_24_IN_MS);
+      return new Date(lastSendTask.createdAt.getTime() + ScheduleTopicHistoryGenerationTaskRunner.HOURS_24_IN_MS);
     }
-    return new Date(Date.now() + ScheduleTopicHistoryGeneration.HOURS_24_IN_MS);
+    return new Date(Date.now() + ScheduleTopicHistoryGenerationTaskRunner.HOURS_24_IN_MS);
   }
 
   private logTaskLimitReached(customerId: string, pendingCount: number, maxTopics: number): void {

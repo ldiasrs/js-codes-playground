@@ -28,7 +28,7 @@ import { CloseTopicsTaskRunner } from '@/learneveryday/features/taskprocess/doma
 import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GetTopicHistoriesFeature';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/taskprocess/domain/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/taskprocess/domain/RemoveTasksFromClosedTopicsProcessor';
-import { ExecuteTopicHistoryGeneration } from '@/learneveryday/features/taskprocess/domain/ExecuteTopicHistoryGeneration';
+import { ExecuteTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/ExecuteTopicHistoryGenerationTaskRunner';
 import { GenerateTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GenerateTopicHistoryFeature';
 import { CloseTopicTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/CloseTopicTaskScheduler';
 import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/ProcessFailedTopicsTaskScheduler';
@@ -45,7 +45,7 @@ import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-
 import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
 import { SelectTopicsProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/SelectTopicsProcessor';
 import { ValidateCustomerProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
-import { ScheduleTopicHistoryGeneration } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+import { ScheduleTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner';
 import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/taskprocess/domain/SendTopicHistoryTaskRunner';
 import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
 import { CloseTopicFeature } from '@/learneveryday/features/topic/application/use-cases/CloseTopicFeature';
@@ -309,7 +309,7 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ProcessFailedTopicsTaskScheduler')
     ));
 
-    this.registerSingleton('ExecuteTopicHistoryGeneration', () => new ExecuteTopicHistoryGeneration(
+    this.registerSingleton('ExecuteTopicHistoryGeneration', () => new ExecuteTopicHistoryGenerationTaskRunner(
       this.get('TopicRepository'),
       this.get('GenerateAndSaveTopicHistoryFeature'),
       this.get('SendTopicHistoryTaskScheduler'),
@@ -402,7 +402,7 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ScheduleGenerateTasksBatchFeature')
     ));
 
-    this.registerSingleton('ScheduleTopicHistoryGeneration', () => new ScheduleTopicHistoryGeneration(
+    this.registerSingleton('ScheduleTopicHistoryGeneration', () => new ScheduleTopicHistoryGenerationTaskRunner(
       this.get('ValidateCustomerProcessor'),
       this.get('CreateConfigProcessor'),
       this.get('AnalyzeTasksProcessor'),
