@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreateCustomerCommandData } from '../learneveryday/application/commands/customer/CreateCustomerCommand';
+import { CreateCustomerFeatureData } from '../learneveryday/features/auth/application/use-cases/CreateCustomerFeature';
 
 interface RegistrationResult {
   success: boolean;
@@ -11,7 +11,7 @@ export const useRegistration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const register = async (data: CreateCustomerCommandData): Promise<RegistrationResult> => {
+  const register = async (data: CreateCustomerFeatureData): Promise<RegistrationResult> => {
     setIsLoading(true);
     setError(null);
 

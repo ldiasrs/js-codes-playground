@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../../learneveryday/infrastructure/di/server-container';
-import { GetTopicHistoriesQuery } from '../../../../../learneveryday/application/queries/topic/GetTopicHistoriesQuery';
+import { GetTopicHistoriesFeature } from '../../../../../learneveryday/features/topic-histoy/application/use-cases/close-topic/GetTopicHistoriesFeature';
 
 export async function GET(
   request: NextRequest,
@@ -19,9 +19,9 @@ export async function GET(
     console.log('Topic histories API request for topic:', id);
 
     const container = ServerContainerBuilder.build();
-    const query = container.get<GetTopicHistoriesQuery>('GetTopicHistoriesQuery');
+    const getTopicHistoriesFeature = container.get<GetTopicHistoriesFeature>('GetTopicHistoriesFeature');
     
-    const topicHistories = await query.execute({ topicId: id });
+    const topicHistories = await getTopicHistoriesFeature.execute({ topicId: id });
 
     return NextResponse.json({
       success: true,

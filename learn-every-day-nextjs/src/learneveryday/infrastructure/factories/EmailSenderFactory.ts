@@ -1,5 +1,5 @@
 import { SendTopicHistoryByEmailPort } from '../../domain/topic-history/ports/SendTopicHistoryByEmailPort';
-import { SendVerificationCodePort } from '../../domain/customer/ports/SendVerificationCodePort';
+import { SendVerificationCodePort } from '../../features/auth/application/ports/SendVerificationCodePort';
 import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
 import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
 import { LoggerFactory } from './LoggerFactory';

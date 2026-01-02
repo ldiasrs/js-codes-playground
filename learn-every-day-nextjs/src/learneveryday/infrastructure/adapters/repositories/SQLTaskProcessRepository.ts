@@ -1,4 +1,4 @@
-import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../../domain/taskprocess/entities/TaskProcess';
+import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../../features/taskprocess/domain/TaskProcess';
 import { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from '../../../domain/taskprocess/ports/TaskProcessRepositoryPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import moment from 'moment';

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../learneveryday/infrastructure/di/server-container';
-import { GetAllTopicsQuery } from '../../../learneveryday/application/queries/topic/GetAllTopicsQuery';
-import { AddTopicCommand } from '../../../learneveryday/application/commands/topic/AddTopicCommand';
+import { GetAllTopicsFeature } from '../../../learneveryday/features/topic/application/use-cases/GetAllTopicsFeature';
+import { AddTopicFeature } from '../../../learneveryday/features/topic/application/use-cases/AddTopicFeature';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
     console.log('Topics API request for customer:', customerId);
 
     const container = ServerContainerBuilder.build();
-    const getAllTopicsQuery = container.get<GetAllTopicsQuery>('GetAllTopicsQuery');
+    const getAllTopicsFeature = container.get<GetAllTopicsFeature>('GetAllTopicsFeature');
     
-    const topics = await getAllTopicsQuery.execute({ customerId });
+    const topics = await getAllTopicsFeature.execute({ customerId });
 
     return NextResponse.json({
       success: true,
@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.get<AddTopicCommand>('AddTopicCommand');
+    const addTopicFeature = container.get<AddTopicFeature>('AddTopicFeature');
     
-    const topic = await command.execute({
+    const topic = await addTopicFeature.execute({
       customerId,
       subject: subject.trim()
     });

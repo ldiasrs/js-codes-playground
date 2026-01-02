@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { SearchTopicsQuery } from '../../../../learneveryday/application/queries/topic/SearchTopicsQuery';
+import { SearchTopicsFeature } from '../../../../learneveryday/features/topic/application/use-cases/SearchTopicsFeature';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const searchQuery = container.get<SearchTopicsQuery>('SearchTopicsQuery');
+    const searchTopicsFeature = container.get<SearchTopicsFeature>('SearchTopicsFeature');
     
-    const topics = await searchQuery.execute({
+    const topics = await searchTopicsFeature.execute({
       criteria: {
         subject: query.trim(),
         customerId

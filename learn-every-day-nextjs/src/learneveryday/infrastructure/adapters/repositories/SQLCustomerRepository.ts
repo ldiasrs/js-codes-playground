@@ -1,6 +1,6 @@
 import { Customer, CustomerTier } from '../../../domain/customer/entities/Customer';
-import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../../domain/customer/ports/CustomerRepositoryPort';
-import { GovIdentificationType } from '../../../domain/customer/entities/GovIdentification';
+import { CustomerRepositoryPort, CustomerSearchCriteria } from '../../../features/auth/application/ports/CustomerRepositoryPort';
+import { GovIdentificationType } from '../../../features/auth/domain/GovIdentification';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import moment from 'moment';
 

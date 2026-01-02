@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { ProcessTopicHistoryWorkflowCommand } from '@/learneveryday/application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
+import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/ProcessTopicHistoryWorkflowFeature';
 
 // Vercel function timeout protection (8 seconds to stay under 10s limit)
 const MAX_EXECUTION_TIME_MS = 30000;
@@ -20,10 +20,10 @@ export async function GET() {
     }
 
     const container = ServerContainerBuilder.build();
-    const processTopicHistoryWorkflowCommand = container.get<ProcessTopicHistoryWorkflowCommand>('ProcessTopicHistoryWorkflowCommand');
+    const processTopicHistoryWorkflowFeature = container.get<ProcessTopicHistoryWorkflowFeature>('ProcessTopicHistoryWorkflowFeature');
 
     // Pass configuration for Vercel compatibility
-    await processTopicHistoryWorkflowCommand.execute({
+    await processTopicHistoryWorkflowFeature.execute({
       limit: 5, // Process fewer tasks per run
       maxExecutionTimeMs: MAX_EXECUTION_TIME_MS - 1000 // Leave 1 second buffer
     });

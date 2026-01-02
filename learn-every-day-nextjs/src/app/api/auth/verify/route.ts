@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { VerifyCustomerCommand } from '../../../../learneveryday/application/commands/customer/VerifyCustomerCommand';
+import { VerifyAuthCodeFeature } from '../../../../learneveryday/features/auth/application/use-cases/VerifyAuthCodeFeature';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const verifyCommand = container.get<VerifyCustomerCommand>('VerifyCustomerCommand');
-    const result = await verifyCommand.execute({ 
+    const verifyAuthCodeFeature = container.get<VerifyAuthCodeFeature>('VerifyAuthCodeFeature');
+    const result = await verifyAuthCodeFeature.execute({ 
       customerId, 
       verificationCode 
     });

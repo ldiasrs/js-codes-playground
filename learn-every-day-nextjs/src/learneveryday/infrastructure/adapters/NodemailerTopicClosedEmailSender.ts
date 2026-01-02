@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 import { EmailConfiguration } from '../config/email.config';
-import { SendTopicClosedEmailPort, SendTopicClosedEmailPortData } from '@/learneveryday/domain/topic/ports/SendTopicClosedEmailPort';
+import { SendTopicClosedEmailPort, SendTopicClosedEmailPortData } from '@/learneveryday/features/topic/application/ports/SendTopicClosedEmailPort';
 
 export class NodemailerTopicClosedEmailSender implements SendTopicClosedEmailPort {
   private transporter: nodemailer.Transporter;

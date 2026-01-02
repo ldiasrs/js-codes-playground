@@ -1,5 +1,5 @@
-import { Topic } from '../../../domain/topic/entities/Topic';
-import { TopicRepositoryPort, TopicSearchCriteria } from '../../../domain/topic/ports/TopicRepositoryPort';
+import { Topic } from '../../../features/topic/domain/Topic';
+import { TopicRepositoryPort, TopicSearchCriteria } from '../../../features/topic/application/ports/TopicRepositoryPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import moment from 'moment';
 

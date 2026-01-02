@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { LoginCommand } from '../../../../learneveryday/application/commands/customer/LoginCommand';
+import { LoginFeature } from '../../../../learneveryday/features/auth/application/use-cases/LoginFeature';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     const container = ServerContainerBuilder.build();
-    const authCommand = container.get<LoginCommand>('LoginCommand');
-    const result = await authCommand.execute({ email });
+    const loginFeature = container.get<LoginFeature>('LoginFeature');
+    const result = await loginFeature.execute({ email });
 
     if (result.success) {
       return NextResponse.json({

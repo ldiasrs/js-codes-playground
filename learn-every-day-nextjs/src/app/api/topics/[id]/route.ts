@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { GetTopicByIdQuery } from '../../../../learneveryday/application/queries/topic/GetTopicByIdQuery';
-import { UpdateTopicCommand } from '../../../../learneveryday/application/commands/topic/UpdateTopicCommand';
-import { DeleteTopicCommand } from '../../../../learneveryday/application/commands/topic/DeleteTopicCommand';
+import { GetTopicByIdFeature } from '../../../../learneveryday/features/topic/application/use-cases/GetTopicByIdFeature';
+import { UpdateTopicFeature } from '../../../../learneveryday/features/topic/application/use-cases/UpdateTopicFeature';
+import { DeleteTopicFeature } from '../../../../learneveryday/features/topic/application/use-cases/DeleteTopicFeature';
 
 export async function GET(
   request: NextRequest,
@@ -28,9 +28,9 @@ export async function GET(
     }
 
     const container = ServerContainerBuilder.build();
-    const query = container.get<GetTopicByIdQuery>('GetTopicByIdQuery');
+    const getTopicByIdFeature = container.get<GetTopicByIdFeature>('GetTopicByIdFeature');
     
-    const topic = await query.execute({ topicId: id });
+    const topic = await getTopicByIdFeature.execute({ topicId: id });
 
     if (!topic) {
       return NextResponse.json(
@@ -92,9 +92,9 @@ export async function PUT(
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.get<UpdateTopicCommand>('UpdateTopicCommand');
+    const updateTopicFeature = container.get<UpdateTopicFeature>('UpdateTopicFeature');
     
-    const topic = await command.execute({
+    const topic = await updateTopicFeature.execute({
       id,
       subject: subject.trim()
     });
@@ -137,9 +137,9 @@ export async function DELETE(
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.get<DeleteTopicCommand>('DeleteTopicCommand');
+    const deleteTopicFeature = container.get<DeleteTopicFeature>('DeleteTopicFeature');
     
-    await command.execute({ id });
+    await deleteTopicFeature.execute({ id });
 
     return NextResponse.json({
       success: true,

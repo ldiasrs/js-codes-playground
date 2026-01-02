@@ -1,7 +1,7 @@
 import { DatabaseManager } from '../database/DatabaseManager';
 import { AIPromptExecutorFactory } from '../factories/AIPromptExecutorFactory';
 import { LoggerFactory } from '../factories/LoggerFactory';
-import { PromptBuilder } from '../../domain/topic-history/services/PromptBuilder';
+import { PromptBuilder } from '../../features/topic-histoy/domain/PromptBuilder';
 
 // Repositories
 import { SQLCustomerRepository } from '../adapters/repositories/SQLCustomerRepository';
@@ -16,63 +16,44 @@ import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHi
 import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
 import { NodemailerTopicClosedEmailSender } from '../adapters/NodemailerTopicClosedEmailSender';
 
-// Use Cases
-import { CreateCustomerFeature } from '../../domain/customer/usecase/CreateCustomerFeature';
-import { DeleteCustomerFeature } from '../../domain/customer/usecase/DeleteCustomerFeature';
-import { LoginFeature } from '../../domain/customer/usecase/LoginFeature';
-import { AddTopicFeature } from '../../domain/topic/usecase/AddTopicFeature';
-import { UpdateTopicFeature } from '../../domain/topic/usecase/UpdateTopicFeature';
-import { CloseTopicFeature } from '../../domain/topic/usecase/CloseTopicFeature';
-import { DeleteTopicFeature } from '../../domain/topic/usecase/DeleteTopicFeature';
-import { GetAllTopicsFeature } from '../../domain/topic/usecase/GetAllTopicsFeature';
-import { ProcessTopicHistoryWorkflowFeature } from '../../domain/topic-history/usecase/ProcessTopicHistoryWorkflowFeature';
-import { GetTopicHistoriesFeature } from '../../domain/topic-history/usecase/GetTopicHistoriesFeature';
-import { GenerateAndSaveTopicHistoryFeature } from '../../domain/topic-history/usecase/generate-topic-history/GenerateAndSaveTopicHistory';
-import { SendTopicHistoryTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
-import { ReGenerateTopicsTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/ReGenerateTopicsTaskScheduler';
-import { CloseTopicTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/CloseTopicTaskScheduler';
-import { ProcessFailedTopicsTaskScheduler } from '../../domain/topic-history/usecase/generate-topic-history/schedulers/ProcessFailedTopicsTaskScheduler';
-import { TasksProcessExecutor } from '../../domain/taskprocess/usecase/TasksProcessExecutor';
-
-// Runners
-import { ExecuteTopicHistoryGeneration } from '../../domain/topic-history/usecase/generate-topic-history/ExecuteTopicHistoryGeneration';
-import { SendTopicHistoryTaskRunner } from '../../domain/topic-history/usecase/SendTopicHistoryTaskRunner';
-import { CloseTopicsTaskRunner } from '../../domain/topic-history/usecase/close-topic/CloseTopicsTaskRunner';
-import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '../../domain/topic-history/usecase/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
-import { RemoveTasksFromClosedTopicsProcessor } from '../../domain/topic-history/usecase/close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
-import { ProcessFailedTopicsTaskRunner } from '../../domain/topic-history/usecase/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { GetStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/processor/GetStuckTasksProcessor';
-import { ReprocessStuckTasksProcessor } from '../../domain/topic-history/usecase/process-failed-topics/processor/ReprocessStuckTasksProcessor';
-
-// Commands
-import { CreateCustomerCommand } from '../../application/commands/customer/CreateCustomerCommand';
-import { DeleteCustomerCommand } from '../../application/commands/customer/DeleteCustomerCommand';
-import { LoginCommand } from '../../application/commands/customer/LoginCommand';
-import { VerifyCustomerCommand } from '../../application/commands/customer/VerifyCustomerCommand';
-import { AddTopicCommand } from '../../application/commands/topic/AddTopicCommand';
-import { UpdateTopicCommand } from '../../application/commands/topic/UpdateTopicCommand';
-import { CloseTopicCommand } from '../../application/commands/topic/CloseTopicCommand';
-import { DeleteTopicCommand } from '../../application/commands/topic/DeleteTopicCommand';
-import { ProcessTopicHistoryWorkflowCommand } from '../../application/commands/topic-history/ProcessTopicHistoryWorkflowCommand';
-
-// Queries
-import { GetAllTopicsQuery } from '../../application/queries/topic/GetAllTopicsQuery';
-import { GetTopicByIdQuery } from '../../application/queries/topic/GetTopicByIdQuery';
-import { SearchTopicsQuery } from '../../application/queries/topic/SearchTopicsQuery';
-import { GetTopicHistoriesQuery } from '../../application/queries/topic/GetTopicHistoriesQuery';
-import { ScheduleTopicHistoryGeneration } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
-import { ValidateCustomerProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
-import { CreateConfigProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/CreateConfigProcessor';
-import { SelectTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
-import { VerifyAuthCodeFeature } from '@/learneveryday/domain/customer/usecase/VerifyAuthCodeFeature';
-import { AnalyzeTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
-import { FilterReprocessableTasksProcessor } from '@/learneveryday/domain/topic-history/usecase/process-failed-topics/processor/FilterReprocessableTasksProcessor';
-import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/domain/topic-history/usecase/schedule-topic-history-generation/processor/CreateNewSimilarTopicsProcessor';
-
 // Infrastructure Services
 import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';
 import { CleanOldLogsProcess } from '../adapters/loggers/CleanOldLogsProcess';
+import { CreateCustomerFeature } from '@/learneveryday/features/auth/application/use-cases/CreateCustomerFeature';
+import { DeleteCustomerFeature } from '@/learneveryday/features/auth/application/use-cases/DeleteCustomerFeature';
+import { LoginFeature } from '@/learneveryday/features/auth/application/use-cases/LoginFeature';
+import { VerifyAuthCodeFeature } from '@/learneveryday/features/auth/application/use-cases/VerifyAuthCodeFeature';
+import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/application/use-cases/TasksProcessExecutor';
+import { CloseTopicsTaskRunner } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/CloseTopicsTaskRunner';
+import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/GetTopicHistoriesFeature';
+import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
+import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
+import { ExecuteTopicHistoryGeneration } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/ExecuteTopicHistoryGeneration';
+import { GenerateAndSaveTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/GenerateAndSaveTopicHistory';
+import { CloseTopicTaskScheduler } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/schedulers/CloseTopicTaskScheduler';
+import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/schedulers/ProcessFailedTopicsTaskScheduler';
+import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/schedulers/ReGenerateTopicsTaskScheduler';
+import { SendTopicHistoryTaskScheduler } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
+import { ProcessFailedTopicsTaskRunner } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/ProcessFailedTopicsTaskRunner';
+import { FilterReprocessableTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/processor/FilterReprocessableTasksProcessor';
+import { GetStuckTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/processor/GetStuckTasksProcessor';
+import { ReprocessStuckTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/process-failed-topics/processor/ReprocessStuckTasksProcessor';
+import { ProcessTopicHistoryWorkflowFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/ProcessTopicHistoryWorkflowFeature';
+import { AnalyzeTasksProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
+import { CreateConfigProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/CreateConfigProcessor';
+import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/CreateNewSimilarTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
+import { SelectTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/SelectTopicsProcessor';
+import { ValidateCustomerProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+import { ScheduleTopicHistoryGeneration } from '@/learneveryday/features/topic-histoy/application/use-cases/schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
+import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/topic-histoy/application/use-cases/SendTopicHistoryTaskRunner';
+import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
+import { CloseTopicFeature } from '@/learneveryday/features/topic/application/use-cases/CloseTopicFeature';
+import { DeleteTopicFeature } from '@/learneveryday/features/topic/application/use-cases/DeleteTopicFeature';
+import { GetAllTopicsFeature } from '@/learneveryday/features/topic/application/use-cases/GetAllTopicsFeature';
+import { GetTopicByIdFeature } from '@/learneveryday/features/topic/application/use-cases/GetTopicByIdFeature';
+import { SearchTopicsFeature } from '@/learneveryday/features/topic/application/use-cases/SearchTopicsFeature';
+import { UpdateTopicFeature } from '@/learneveryday/features/topic/application/use-cases/UpdateTopicFeature';
 
 export interface Container {
   get<T>(token: string): T;
@@ -175,6 +156,18 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('CustomerRepository'),
       LoggerFactory.createLoggerForClass('GetAllTopicsFeature')
+    ));
+
+    this.registerSingleton('GetTopicByIdFeature', () => new GetTopicByIdFeature(
+      this.get('TopicRepository'),
+      this.get('CustomerRepository'),
+      LoggerFactory.createLoggerForClass('GetTopicByIdFeature')
+    ));
+
+    this.registerSingleton('SearchTopicsFeature', () => new SearchTopicsFeature(
+      this.get('TopicRepository'),
+      this.get('CustomerRepository'),
+      LoggerFactory.createLoggerForClass('SearchTopicsFeature')
     ));
 
     this.registerSingleton('GetTopicHistoriesFeature', () => new GetTopicHistoriesFeature(
@@ -325,61 +318,6 @@ export class NextJSContainer implements Container {
       this.get('SelectTopicsProcessor'),
       this.get('ScheduleGenerateTasksBatchProcessor'),
       LoggerFactory.createLoggerForClass('ScheduleTopicHistoryGeneration')
-    ));
-
-    // Register commands
-    this.registerSingleton('CreateCustomerCommand', () => new CreateCustomerCommand(
-      this.get('CreateCustomerFeature')
-    ));
-
-    this.registerSingleton('DeleteCustomerCommand', () => new DeleteCustomerCommand(
-      this.get('DeleteCustomerFeature')
-    ));
-
-    this.registerSingleton('LoginCommand', () => new LoginCommand(
-      this.get('LoginFeature')
-    ));
-
-    this.registerSingleton('VerifyCustomerCommand', () => new VerifyCustomerCommand(
-      this.get('VerifyAuthCodeFeature')
-    ));
-
-    this.registerSingleton('AddTopicCommand', () => new AddTopicCommand(
-      this.get('AddTopicFeature')
-    ));
-
-    this.registerSingleton('UpdateTopicCommand', () => new UpdateTopicCommand(
-      this.get('UpdateTopicFeature')
-    ));
-
-    this.registerSingleton('CloseTopicCommand', () => new CloseTopicCommand(
-      this.get('CloseTopicFeature')
-    ));
-
-    this.registerSingleton('DeleteTopicCommand', () => new DeleteTopicCommand(
-      this.get('DeleteTopicFeature')
-    ));
-
-    this.registerSingleton('ProcessTopicHistoryWorkflowCommand', () => new ProcessTopicHistoryWorkflowCommand(
-      this.get('ProcessTopicHistoryWorkflowFeature'),
-      this.get('ProcessInfrastuctureWorkflow')
-    ));
-
-    // Register query factories
-    this.registerSingleton('GetAllTopicsQuery', () => new GetAllTopicsQuery(
-      this.get('GetAllTopicsFeature')
-    ));
-
-    this.registerSingleton('GetTopicByIdQuery', () => new GetTopicByIdQuery(
-      this.get('TopicRepository')
-    ));
-
-    this.registerSingleton('SearchTopicsQuery', () => new SearchTopicsQuery(
-      this.get('TopicRepository')
-    ));
-
-    this.registerSingleton('GetTopicHistoriesQuery', () => new GetTopicHistoriesQuery(
-      this.get('GetTopicHistoriesFeature')
     ));
 
   }

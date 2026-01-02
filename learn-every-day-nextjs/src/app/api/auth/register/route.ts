@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../learneveryday/infrastructure/di/server-container';
-import { CreateCustomerCommand, CreateCustomerCommandData } from '../../../../learneveryday/application/commands/customer/CreateCustomerCommand';
+import { CreateCustomerFeature, CreateCustomerFeatureData } from '../../../../learneveryday/features/auth/application/use-cases/CreateCustomerFeature';
 
 export async function POST(request: NextRequest) {
   try {
-    const body: CreateCustomerCommandData = await request.json();
+    const body: CreateCustomerFeatureData = await request.json();
     
     // Validate required fields
     const { customerName, govIdentification, email, phoneNumber } = body;
@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get server container and create command
+    // Get server container and create feature
     const container = ServerContainerBuilder.build();
-    const createCustomerCommand = container.get<CreateCustomerCommand>('CreateCustomerCommand');
+    const createCustomerFeature = container.get<CreateCustomerFeature>('CreateCustomerFeature');
     
-    // Execute the command
-    const customerDTO = await createCustomerCommand.execute(body);
+    // Execute the feature
+    const customerDTO = await createCustomerFeature.execute(body);
     
     return NextResponse.json(
       { 

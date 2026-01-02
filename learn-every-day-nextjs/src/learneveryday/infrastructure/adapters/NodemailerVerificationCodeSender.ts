@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { SendVerificationCodePort, SendVerificationCodePortData } from '../../domain/customer/ports/SendVerificationCodePort';
+import { SendVerificationCodePort, SendVerificationCodePortData } from '../../features/auth/application/ports/SendVerificationCodePort';
 import { LoggerPort } from '../../domain/shared/ports/LoggerPort';
 import { EmailConfiguration } from '../config/email.config';
 

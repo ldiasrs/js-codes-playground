@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../../learneveryday/infrastructure/di/server-container';
-import { CloseTopicCommand } from '../../../../../learneveryday/application/commands/topic/CloseTopicCommand';
+import { CloseTopicFeature } from '../../../../../learneveryday/features/topic/application/use-cases/CloseTopicFeature';
 
 export async function PATCH(
   request: NextRequest,
@@ -26,9 +26,9 @@ export async function PATCH(
     }
 
     const container = ServerContainerBuilder.build();
-    const command = container.get<CloseTopicCommand>('CloseTopicCommand');
+    const closeTopicFeature = container.get<CloseTopicFeature>('CloseTopicFeature');
     
-    const topic = await command.execute({ id });
+    const topic = await closeTopicFeature.execute({ id });
 
     return NextResponse.json({
       success: true,

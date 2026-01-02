@@ -1,5 +1,5 @@
-import { TopicHistory } from '../../../domain/topic-history/entities/TopicHistory';
-import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../../domain/topic-history/ports/TopicHistoryRepositoryPort';
+import { TopicHistory } from '../../../features/topic-histoy/domain/TopicHistory';
+import { TopicHistoryRepositoryPort, TopicHistorySearchCriteria } from '../../../features/topic-histoy/application/ports/TopicHistoryRepositoryPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import moment from 'moment';
 
