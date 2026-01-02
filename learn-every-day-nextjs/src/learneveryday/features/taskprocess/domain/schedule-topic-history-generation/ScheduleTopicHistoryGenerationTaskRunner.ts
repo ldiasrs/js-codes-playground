@@ -19,8 +19,8 @@ export class ScheduleTopicHistoryGenerationTaskRunner implements TaskProcessRunn
     private readonly validateCustomerFeature: ValidateCustomerProcessor,
     private readonly createConfigProcessor: CreateConfigProcessor,
     private readonly analyzeTasksFeature: AnalyzeTasksProcessor,
-    private readonly selectTopicsForProcessingFeature: SelectTopicsProcessor,
-    private readonly scheduleGenerateTasksBatchFeature: ScheduleGenerateTasksBatchProcessor,
+    private readonly selectTopicsProcessor: SelectTopicsProcessor,
+    private readonly scheduleGenerateTasksBatchProcessor: ScheduleGenerateTasksBatchProcessor,
     private readonly logger: LoggerPort
   ) {}
 
@@ -61,13 +61,13 @@ export class ScheduleTopicHistoryGenerationTaskRunner implements TaskProcessRunn
     this.logGeneratingMoreTasks(customerId, config.maxTopicsPer24h, taskAnalysis.pendingTasksCount);
 
     const topicsNeeded = this.calculateTopicsNeeded(config.maxTopicsPer24h, taskAnalysis.pendingTasksCount);
-    const selectedTopics = await this.selectTopicsForProcessingFeature.execute(
+    const selectedTopics = await this.selectTopicsProcessor.execute(
       customerId,
       topicsNeeded,
       config.maxTopicsToProcess
     );
     const nextScheduleTime = this.calculateNextScheduleTime(taskAnalysis.lastSendTask);
-    await this.scheduleGenerateTasksBatchFeature.execute(selectedTopics, customerId, nextScheduleTime);
+    await this.scheduleGenerateTasksBatchProcessor.execute(selectedTopics, customerId, nextScheduleTime);
   }
 
   private logGeneratingMoreTasks(customerId: string, maxTopics: number, pendingCount: number): void {
