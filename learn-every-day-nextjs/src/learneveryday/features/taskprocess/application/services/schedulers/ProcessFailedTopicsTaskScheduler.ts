@@ -1,6 +1,6 @@
 import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
 import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
-import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicDTO } from "@/learneveryday/features/topic/application/dto/TopicDTO";
 import { LoggerPort } from "@/learneveryday/shared";
 
 /**
@@ -15,7 +15,7 @@ export class ProcessFailedTopicsTaskScheduler {
   /**
    * Schedule a process-failed-topics task for the topic's customer if there is no pending one.
    */
-  async scheduleIfNeeded(topic: Topic): Promise<void> {
+  async scheduleIfNeeded(topic: TopicDTO): Promise<void> {
     const hasPending = await this.hasPendingProcessFailedTopicTask(topic.customerId);
     if (hasPending) {
       this.logSkippedProcessFailedTopicTask(topic);
@@ -33,7 +33,7 @@ export class ProcessFailedTopicsTaskScheduler {
     return existingTasks.length > 0;
   }
 
-  private async createProcessFailedTopicTask(topic: Topic): Promise<void> {
+  private async createProcessFailedTopicTask(topic: TopicDTO): Promise<void> {
     const scheduledTime = new Date();
     const task = this.createProcessFailedTopicTaskProcess(topic, scheduledTime);
     await this.taskProcessRepository.save(task);
@@ -45,7 +45,7 @@ export class ProcessFailedTopicsTaskScheduler {
     });
   }
 
-  private createProcessFailedTopicTaskProcess(topic: Topic, scheduledTime: Date): TaskProcess {
+  private createProcessFailedTopicTaskProcess(topic: TopicDTO, scheduledTime: Date): TaskProcess {
     return new TaskProcess(
       topic.id,
       topic.customerId,
@@ -57,7 +57,7 @@ export class ProcessFailedTopicsTaskScheduler {
     );
   }
 
-  private logSkippedProcessFailedTopicTask(topic: Topic): void {
+  private logSkippedProcessFailedTopicTask(topic: TopicDTO): void {
     this.logger.info(`Skipped creating process failed topic task for customer ${topic.customerId} - pending task already exists`, {
       topicId: topic.id,
       customerId: topic.customerId

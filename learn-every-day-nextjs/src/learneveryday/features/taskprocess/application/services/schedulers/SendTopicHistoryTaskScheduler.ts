@@ -1,7 +1,7 @@
 import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
 import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
-import { TopicHistory } from "@/learneveryday/features/topic-histoy/domain/TopicHistory";
-import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicHistoryDTO } from "@/learneveryday/features/topic-histoy/application/dto/TopicHistoryDTO";
+import { TopicDTO } from "@/learneveryday/features/topic/application/dto/TopicDTO";
 import { LoggerPort } from "@/learneveryday/shared";
 
 /**
@@ -16,7 +16,7 @@ export class SendTopicHistoryTaskScheduler {
   /**
    * Schedule a send task for the given topic history if there is no pending one.
    */
-  async scheduleIfNeeded(newHistory: TopicHistory, topic: Topic): Promise<void> {
+  async scheduleIfNeeded(newHistory: TopicHistoryDTO, topic: TopicDTO): Promise<void> {
     const hasPendingSendTask = await this.hasPendingSendTask(newHistory.id);
     if (hasPendingSendTask) {
       this.logSkippedSendTask(newHistory, topic);
@@ -34,7 +34,7 @@ export class SendTopicHistoryTaskScheduler {
     return existingSendTasks.length > 0;
   }
 
-  private async createSendTask(newHistory: TopicHistory, topic: Topic): Promise<void> {
+  private async createSendTask(newHistory: TopicHistoryDTO, topic: TopicDTO): Promise<void> {
     const scheduledTimeSend = this.calculateSendScheduledTime();
     const newSendTaskProcess = this.createSendTaskProcess(newHistory, topic, scheduledTimeSend);
     await this.taskProcessRepository.save(newSendTaskProcess);
@@ -53,7 +53,7 @@ export class SendTopicHistoryTaskScheduler {
     return scheduledTime;
   }
 
-  private createSendTaskProcess(newHistory: TopicHistory, topic: Topic, scheduledTime: Date): TaskProcess {
+  private createSendTaskProcess(newHistory: TopicHistoryDTO, topic: TopicDTO, scheduledTime: Date): TaskProcess {
     return new TaskProcess(
       newHistory.id,
       topic.customerId,
@@ -65,7 +65,7 @@ export class SendTopicHistoryTaskScheduler {
     );
   }
 
-  private logSkippedSendTask(newHistory: TopicHistory, topic: Topic): void {
+  private logSkippedSendTask(newHistory: TopicHistoryDTO, topic: TopicDTO): void {
     this.logger.info(`Skipped creating send topic history task for history ${newHistory.id} - pending task already exists`, {
       topicId: topic.id,
       customerId: topic.customerId,

@@ -4,16 +4,14 @@ import { CustomerCreationPolicy } from '../../domain/services/CustomerCreationPo
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { CustomerDTO } from '../dto/CustomerDTO';
 import { CustomerMapper } from '../dto/CustomerMapper';
+import { GovIdentificationDTO } from '../dto/GovIdentificationDTO';
 
 export interface CreateCustomerFeatureData {
   customerName: string;
-  govIdentification: {
-    type: string;
-    content: string;
-  };
+  govIdentification: GovIdentificationDTO;
   email: string;
   phoneNumber: string;
-  tier?: CustomerTier;
+  tier?: string;
 }
 
 export class CreateCustomerFeature {
@@ -30,13 +28,32 @@ export class CreateCustomerFeature {
    * @throws Error if customer creation fails
    */
   async execute(data: CreateCustomerFeatureData): Promise<CustomerDTO> {
-    const { customerName, govIdentification, email, phoneNumber, tier = CustomerTier.Basic } = data;
+    const { customerName, govIdentification, email, phoneNumber, tier } = data;
 
     await this.customerCreationPolicy.canCreateCustomer(email, govIdentification);
 
-    const customer = await this.createCustomer(customerName, govIdentification, email, phoneNumber, tier);
+    const customerTier = this.parseTier(tier);
+    const customer = await this.createCustomer(customerName, govIdentification, email, phoneNumber, customerTier);
 
     return CustomerMapper.toDTO(customer);
+  }
+
+  /**
+   * Parses and validates the tier string to CustomerTier enum
+   * @param tierString The tier as string
+   * @returns CustomerTier The validated tier enum value
+   */
+  private parseTier(tierString?: string): CustomerTier {
+    if (!tierString) {
+      return CustomerTier.Basic;
+    }
+
+    const validTiers = Object.values(CustomerTier) as string[];
+    if (!validTiers.includes(tierString)) {
+      return CustomerTier.Basic;
+    }
+
+    return tierString as CustomerTier;
   }
 
   /**

@@ -23,6 +23,11 @@ export class TopicDeletionService {
   async deleteRelatedEntities(topicId: string): Promise<void> {
     await this.deleteRelatedOperations(topicId);
     await this.deleteTopicHistories(topicId);
+    await this.deleteTopic(topicId);
+  }
+
+  private async deleteTopic(topicId: string): Promise<void> {
+    await this.topicRepository.delete(topicId);
   }
 
   /**

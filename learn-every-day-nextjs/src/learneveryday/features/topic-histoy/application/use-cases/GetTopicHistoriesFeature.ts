@@ -1,9 +1,9 @@
-import { TopicHistory } from '../../../domain/TopicHistory';
-import { TopicHistoryRepositoryPort } from '../../ports/TopicHistoryRepositoryPort';
-import { TopicRepositoryPort } from '../../../../topic/application/ports/TopicRepositoryPort';
-import { LoggerPort } from '../../../../../shared/ports/LoggerPort';
-import { TopicHistoryDTO } from '../../dto/TopicHistoryDTO';
-import { TopicHistoryMapper } from '../../dto/TopicHistoryMapper';
+import { TopicHistory } from '../../domain/TopicHistory';
+import { TopicHistoryRepositoryPort } from '../ports/TopicHistoryRepositoryPort';
+import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
+import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { TopicHistoryDTO } from '../dto/TopicHistoryDTO';
+import { TopicHistoryMapper } from '../dto/TopicHistoryMapper';
 
 export interface GetTopicHistoriesFeatureData {
   topicId: string;

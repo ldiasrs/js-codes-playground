@@ -1,14 +1,16 @@
-import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicDTO } from "@/learneveryday/features/topic/application/dto/TopicDTO";
 import { LoggerPort } from "@/learneveryday/shared";
-import { PromptBuilder, PromptBuilderData } from "../../../domain/PromptBuilder";
-import { TopicHistory } from "../../../domain/TopicHistory";
-import { AIPromptExecutorPort } from "../../ports/AIPromptExecutorPort";
-import { TopicHistoryRepositoryPort } from "../../ports/TopicHistoryRepositoryPort";
+import { PromptBuilder, PromptBuilderData } from "../../domain/PromptBuilder";
+import { TopicHistory } from "../../domain/TopicHistory";
+import { AIPromptExecutorPort } from "../ports/AIPromptExecutorPort";
+import { TopicHistoryRepositoryPort } from "../ports/TopicHistoryRepositoryPort";
+import { TopicHistoryDTO } from "../dto/TopicHistoryDTO";
+import { TopicHistoryMapper } from "../dto/TopicHistoryMapper";
 
 /**
  * Feature responsible for generating and saving topic history content
  */
-export class GenerateAndSaveTopicHistoryFeature {
+export class CreateTopicHistoryFeature {
   constructor(
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,
     private readonly aiPromptExecutorPort: AIPromptExecutorPort,
@@ -18,11 +20,11 @@ export class GenerateAndSaveTopicHistoryFeature {
 
   /**
    * Generates and saves new topic history content for a given topic
-   * @param topic The topic to generate history for
-   * @returns Promise<TopicHistory> The newly created topic history
+   * @param topic The topic DTO to generate history for
+   * @returns Promise<TopicHistoryDTO> The newly created topic history DTO
    * @throws Error if AI generation fails or saving fails
    */
-  async execute(topic: Topic): Promise<TopicHistory> {
+  async execute(topic: TopicDTO): Promise<TopicHistoryDTO> {
     const existingHistory = await this.topicHistoryRepository.findByTopicId(topic.id);
     
     const promptData: PromptBuilderData = {
@@ -53,6 +55,6 @@ export class GenerateAndSaveTopicHistoryFeature {
       contentLength: generatedContent.length
     });
 
-    return newHistory;
+    return TopicHistoryMapper.toDTO(newHistory);
   }
 }

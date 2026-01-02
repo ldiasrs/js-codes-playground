@@ -25,11 +25,11 @@ import { LoginFeature } from '@/learneveryday/features/auth/application/use-case
 import { VerifyAuthCodeFeature } from '@/learneveryday/features/auth/application/use-cases/VerifyAuthCodeFeature';
 import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/application/use-cases/TasksProcessExecutor';
 import { CloseTopicsTaskRunner } from '@/learneveryday/features/taskprocess/application/use-cases/CloseTopicsTaskRunner';
-import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/close-topic/GetTopicHistoriesFeature';
+import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GetTopicHistoriesFeature';
 import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/CheckAndCloseTopicsWithManyHistoriesProcessor';
 import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/taskprocess/application/use-cases/RemoveTasksFromClosedTopicsProcessor';
 import { ExecuteTopicHistoryGeneration } from '@/learneveryday/features/taskprocess/application/use-cases/ExecuteTopicHistoryGeneration';
-import { GenerateAndSaveTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/generate-topic-history/GenerateAndSaveTopicHistory';
+import { CreateTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateTopicHistoryFeature';
 import { CloseTopicTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/CloseTopicTaskScheduler';
 import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/ProcessFailedTopicsTaskScheduler';
 import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/application/services/schedulers/ReGenerateTopicsTaskScheduler';
@@ -61,6 +61,7 @@ import { TopicDeletionSaga } from '@/learneveryday/features/topic/application/sa
 import { TopicClosedNotificationService } from '@/learneveryday/features/topic/application/services/TopicClosedNotificationService';
 import { TopicDeletionService } from '@/learneveryday/features/topic/application/services/TopicDeletionService';
 import { TopicLifecycleCleanupService } from '@/learneveryday/features/taskprocess/application/services/TopicLifecycleCleanupService';
+import { TopicHistorySchedulingService } from '@/learneveryday/features/taskprocess/application/services/TopicHistorySchedulingService';
 import { CustomerValidationService } from '@/learneveryday/features/auth/application/services/CustomerValidationService';
 import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/services/CustomerCreationPolicy';
 import { CustomerDeletionService } from '@/learneveryday/features/auth/application/services/CustomerDeletionService';
@@ -192,6 +193,10 @@ export class NextJSContainer implements Container {
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('TopicHistoryTaskScheduler')
     ));
+    this.registerSingleton('TopicHistoryScheduling', () => new TopicHistorySchedulingService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('TopicHistorySchedulingService')
+    ));
 
     // Register sagas
     this.registerSingleton('TopicCreationSaga', () => new TopicCreationSaga(
@@ -214,7 +219,7 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('CustomerValidationService'),
       this.get('TopicCreationPolicy'),
-      this.get('TopicHistoryTaskScheduler'),
+      this.get('TopicHistoryScheduling'),
       this.get('TopicCreationSaga'),
       LoggerFactory.createLoggerForClass('AddTopicFeature')
     ));
@@ -262,7 +267,7 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('GetTopicHistoriesFeature')
     ));
 
-    this.registerSingleton('GenerateAndSaveTopicHistoryFeature', () => new GenerateAndSaveTopicHistoryFeature(
+    this.registerSingleton('GenerateAndSaveTopicHistoryFeature', () => new CreateTopicHistoryFeature(
       this.get('TopicHistoryRepository'),
       this.get('AIPromptExecutorPort'),
       this.get('PromptBuilder'),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ServerContainerBuilder } from '../../../../../learneveryday/infrastructure/di/server-container';
-import { GetTopicHistoriesFeature } from '../../../../../learneveryday/features/topic-histoy/application/use-cases/close-topic/GetTopicHistoriesFeature';
+import { GetTopicHistoriesFeature } from '../../../../../learneveryday/features/topic-histoy/application/use-cases/GetTopicHistoriesFeature';
 
 export async function GET(
   request: NextRequest,

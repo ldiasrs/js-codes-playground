@@ -2,8 +2,9 @@ import { TaskProcessRunner } from "@/learneveryday/features/taskprocess/applicat
 import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
 import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/ports/TopicRepositoryPort";
 import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicMapper } from "@/learneveryday/features/topic/application/dto/TopicMapper";
 import { LoggerPort } from "@/learneveryday/shared";
-import { GenerateAndSaveTopicHistoryFeature } from "../../../topic-histoy/application/use-cases/generate-topic-history/GenerateAndSaveTopicHistory";
+import { CreateTopicHistoryFeature } from "../../../topic-histoy/application/use-cases/CreateTopicHistoryFeature";
 import { CloseTopicTaskScheduler } from "../services/schedulers/CloseTopicTaskScheduler";
 import { ProcessFailedTopicsTaskScheduler } from "../services/schedulers/ProcessFailedTopicsTaskScheduler";
 import { ReGenerateTopicsTaskScheduler } from "../services/schedulers/ReGenerateTopicsTaskScheduler";
@@ -12,7 +13,7 @@ import { SendTopicHistoryTaskScheduler } from "../services/schedulers/SendTopicH
 export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
-    private readonly generateAndSaveTopicHistoryFeature: GenerateAndSaveTopicHistoryFeature,
+    private readonly generateAndSaveTopicHistoryFeature: CreateTopicHistoryFeature,
     private readonly sendTopicHistoryTaskScheduler: SendTopicHistoryTaskScheduler,
     private readonly reGenerateTopicsTaskScheduler: ReGenerateTopicsTaskScheduler,
     private readonly closeTopicTaskScheduler: CloseTopicTaskScheduler,
@@ -30,11 +31,12 @@ export class ExecuteTopicHistoryGeneration implements TaskProcessRunner {
     const topicId = taskProcess.entityId;
     
     const topic = await this.validateAndGetTopic(topicId);
-    const newHistory = await this.generateAndSaveTopicHistoryFeature.execute(topic);
-    await this.sendTopicHistoryTaskScheduler.scheduleIfNeeded(newHistory, topic);
-    await this.reGenerateTopicsTaskScheduler.scheduleIfNeeded(topic);
-    await this.closeTopicTaskScheduler.scheduleIfNeeded(topic);
-    await this.processFailedTopicsTaskScheduler.scheduleIfNeeded(topic);
+    const topicDTO = TopicMapper.toDTO(topic);
+    const newHistoryDTO = await this.generateAndSaveTopicHistoryFeature.execute(topicDTO);
+    await this.sendTopicHistoryTaskScheduler.scheduleIfNeeded(newHistoryDTO, topicDTO);
+    await this.reGenerateTopicsTaskScheduler.scheduleIfNeeded(topicDTO);
+    await this.closeTopicTaskScheduler.scheduleIfNeeded(topicDTO);
+    await this.processFailedTopicsTaskScheduler.scheduleIfNeeded(topicDTO);
   }
 
   /**

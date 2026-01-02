@@ -1,6 +1,6 @@
 import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/application/ports/TaskProcessRepositoryPort";
 import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
-import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicDTO } from "@/learneveryday/features/topic/application/dto/TopicDTO";
 import { LoggerPort } from "@/learneveryday/shared";
 
 /**
@@ -15,7 +15,7 @@ export class ReGenerateTopicsTaskScheduler {
   /**
    * Schedule a regenerate task for the topic's customer if there is no pending one.
    */
-  async scheduleIfNeeded(topic: Topic): Promise<void> {
+  async scheduleIfNeeded(topic: TopicDTO): Promise<void> {
     const hasPending = await this.hasPendingRegenerateTask(topic.customerId);
     if (hasPending) {
       this.logSkippedRegenerateTask(topic);
@@ -33,7 +33,7 @@ export class ReGenerateTopicsTaskScheduler {
     return existingRegenerateTasks.length > 0;
   }
 
-  private async createRegenerateTask(topic: Topic): Promise<void> {
+  private async createRegenerateTask(topic: TopicDTO): Promise<void> {
     const scheduledTime = this.calculateRegenerateScheduledTime();
     const task = this.createRegenerateTaskProcess(topic, scheduledTime);
     await this.taskProcessRepository.save(task);
@@ -51,7 +51,7 @@ export class ReGenerateTopicsTaskScheduler {
     return scheduledTime;
   }
 
-  private createRegenerateTaskProcess(topic: Topic, scheduledTime: Date): TaskProcess {
+  private createRegenerateTaskProcess(topic: TopicDTO, scheduledTime: Date): TaskProcess {
     return new TaskProcess(
       topic.id,
       topic.customerId,
@@ -63,7 +63,7 @@ export class ReGenerateTopicsTaskScheduler {
     );
   }
 
-  private logSkippedRegenerateTask(topic: Topic): void {
+  private logSkippedRegenerateTask(topic: TopicDTO): void {
     this.logger.info(`Skipped creating regenerate topic history task for customer ${topic.customerId} - pending task already exists`, {
       topicId: topic.id,
       customerId: topic.customerId

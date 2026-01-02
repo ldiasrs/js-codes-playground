@@ -2,7 +2,7 @@ import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicCreationPolicy } from '../../domain/services/TopicCreationPolicy';
 import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
-import { TopicHistoryTaskScheduler } from '../../../taskprocess/application/services/TopicHistoryTaskScheduler';
+import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
 import { TopicCreationSaga } from '../sagas/TopicCreationSaga';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { DomainError } from '../../../../shared/errors/DomainError';
@@ -17,14 +17,14 @@ export interface AddTopicFeatureData {
 /**
  * Use case for adding a new topic.
  * Orchestrates domain services and application services to create a topic
- * and schedule its history generation task.
+ * and schedule its history generation.
  */
 export class AddTopicFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly customerValidationService: CustomerValidationService,
     private readonly topicCreationPolicy: TopicCreationPolicy,
-    private readonly topicHistoryTaskScheduler: TopicHistoryTaskScheduler,
+    private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
     private readonly topicCreationSaga: TopicCreationSaga,
     private readonly logger: LoggerPort
   ) {}
@@ -44,12 +44,12 @@ export class AddTopicFeature {
     const topic = await this.createTopic(customerId, subject);
 
     try {
-      await this.topicHistoryTaskScheduler.scheduleForTopic(topic.id, customerId);
+      await this.generateTopicHistoryPort.generate(topic.id, customerId);
     } catch (error) {
       await this.topicCreationSaga.compensate(topic.id, error);
       throw new DomainError(
-        DomainError.TASK_SCHEDULING_FAILED,
-        `Topic creation failed due to task scheduling error: ${error instanceof Error ? error.message : String(error)}`
+        DomainError.HISTORY_SCHEDULING_FAILED,
+        `Topic creation failed due to history scheduling error: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
