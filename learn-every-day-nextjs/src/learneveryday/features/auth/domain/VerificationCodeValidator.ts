@@ -1,4 +1,4 @@
-import { DomainError } from '../../../../shared/errors/DomainError';
+import { DomainError } from '../../../shared/errors/DomainError';
 
 /**
  * Domain service for validating verification code format.

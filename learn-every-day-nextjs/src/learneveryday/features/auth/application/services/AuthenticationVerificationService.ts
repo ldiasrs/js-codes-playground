@@ -1,8 +1,8 @@
 import { CustomerRepositoryPort } from '../ports/CustomerRepositoryPort';
 import { AuthenticationAttemptRepositoryPort } from '../ports/AuthenticationAttemptRepositoryPort';
-import { VerificationCodeValidator } from '../../domain/services/VerificationCodeValidator';
 import { TokenGenerationService } from './TokenGenerationService';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
+import { VerificationCodeValidator } from '../../domain/VerificationCodeValidator';
 
 export interface VerificationResult {
   success: boolean;
