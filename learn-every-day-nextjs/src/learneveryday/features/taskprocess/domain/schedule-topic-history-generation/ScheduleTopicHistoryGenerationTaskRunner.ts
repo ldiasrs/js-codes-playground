@@ -1,13 +1,14 @@
-import { TaskProcess } from "../TaskProcess";
-import { LoggerPort } from "../../../../shared/ports/LoggerPort";
-import { ValidateCustomerService } from "./ValidateCustomerService";
-import { CreateConfigService, ReGenerateTopicHistoryConfig } from "./CreateConfigService";
-import { AnalyzeTasksService, TaskAnalysis } from "./AnalyzeTasksService";
-import { SelectTopicsService } from "./SelectTopicsService";
-import { ScheduleGenerateTasksBatchProcessor } from "./ScheduleGenerateTasksBatchService";
-import { TaskProcessRunner } from "../TaskProcessRunner";
 
 // Interfaces moved to dedicated features
+
+import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcess } from "../api/TaskProcess";
+import { TaskProcessRunner } from "../api/TaskProcessRunner";
+import { AnalyzeTasksService, TaskAnalysis } from "./AnalyzeTasksService";
+import { CreateConfigService, ReGenerateTopicHistoryConfig } from "./CreateConfigService";
+import { ScheduleGenerateTasksBatchProcessor } from "./ScheduleGenerateTasksBatchService";
+import { SelectTopicsService } from "./SelectTopicsService";
+import { ValidateCustomerService } from "./ValidateCustomerService";
 
 export class ScheduleTopicHistoryGenerationTaskRunner implements TaskProcessRunner {
   private static readonly BATCH_SIZE_LIMIT = 50;

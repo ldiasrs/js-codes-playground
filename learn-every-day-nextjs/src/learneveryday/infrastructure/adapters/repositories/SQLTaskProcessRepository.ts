@@ -1,4 +1,4 @@
-import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../../../features/taskprocess/domain/TaskProcess';
+import { TaskProcessType, TaskProcessStatus, TaskProcess } from '@/learneveryday/features/taskprocess/domain/api/TaskProcess';
 import { TaskProcessRepositoryPort, TaskProcessSearchCriteria } from '../../../features/taskprocess/ports/TaskProcessRepositoryPort';
 import { DatabaseManager } from '../../database/DatabaseManager';
 import moment from 'moment';

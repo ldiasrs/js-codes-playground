@@ -1,11 +1,11 @@
-import { TaskProcess } from "../TaskProcess";
-import { TaskProcessRunner } from "../TaskProcessRunner";
-import { LoggerPort } from "../../../../shared/ports/LoggerPort";
-import { GetStuckTasksService } from "./processor/GetStuckTasksService";
-import { FilterReprocessableTasksService } from "./processor/FilterReprocessableTasksService";
-import { ReprocessStuckTasksService } from "./processor/ReprocessStuckTasksService";
+import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcess } from "../api/TaskProcess";
+import { TaskProcessRunner } from "../api/TaskProcessRunner";
+import { FilterReprocessableTasksService } from "./services/FilterReprocessableTasksService";
+import { GetStuckTasksService } from "./services/GetStuckTasksService";
+import { ReprocessStuckTasksService } from "./services/ReprocessStuckTasksService";
 
-export class ProcessFailedTopicsTaskRunner implements TaskProcessRunner {
+export class ReProcessFailedTopicsTaskRunner implements TaskProcessRunner {
   constructor(
     private readonly getStuckTasksFeature: GetStuckTasksService,
     private readonly filterReprocessableTasksFeature: FilterReprocessableTasksService,

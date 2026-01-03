@@ -10,7 +10,7 @@ export class TaskProcess {
   public static readonly SEND_TOPIC_HISTORY = 'send-topic-history';
   public static readonly REGENERATE_TOPICS_HISTORIES = 'regenerate-topics-histories';
   public static readonly CLOSE_TOPIC = 'close-topic';
-  public static readonly PROCESS_FAILED_TOPICS = 'process-failed-topics';
+  public static readonly REPROCESS_FAILED_TOPICS = 'reprocess-failed-topics';
 
   public readonly id: string;
   public readonly entityId: string;
@@ -21,6 +21,7 @@ export class TaskProcess {
   public readonly scheduledTo?: Date;
   public readonly processAt?: Date;
   public readonly createdAt: Date;
+  static PROCESS_FAILED_TOPICS: any;
 
   constructor(
     entityId: string,

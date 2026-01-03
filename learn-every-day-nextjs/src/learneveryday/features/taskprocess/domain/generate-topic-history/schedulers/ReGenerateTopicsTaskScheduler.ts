@@ -1,7 +1,7 @@
 import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/ports/TaskProcessRepositoryPort";
-import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
 import { TopicDTO } from "@/learneveryday/features/topic/application/dto/TopicDTO";
 import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcess } from "../../api/TaskProcess";
 
 /**
  * Schedules REGENERATE_TOPICS_HISTORIES tasks when needed.

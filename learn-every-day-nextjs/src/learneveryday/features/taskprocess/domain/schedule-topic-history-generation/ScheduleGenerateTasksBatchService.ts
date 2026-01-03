@@ -1,7 +1,7 @@
 import { TaskProcessRepositoryPort } from "@/learneveryday/features/taskprocess/ports/TaskProcessRepositoryPort";
-import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
 import { Topic } from "@/learneveryday/features/topic/domain/Topic";
 import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcess } from "../api/TaskProcess";
 
 /**
  * Creates and saves GENERATE_TOPIC_HISTORY tasks for selected topics.

@@ -1,14 +1,14 @@
-import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { TaskProcessRepositoryPort } from "../ports/TaskProcessRepositoryPort";
-import { TaskProcess, TaskProcessType } from "./TaskProcess";
-import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { TopicHistoryRepositoryPort } from "@/learneveryday/features/topic-histoy/application/ports/TopicHistoryRepositoryPort";
 import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/ports/TopicRepositoryPort";
-import { TopicHistoryRepositoryPort } from "../../topic-histoy/application/ports/TopicHistoryRepositoryPort";
+import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcessRepositoryPort } from "../../../ports/TaskProcessRepositoryPort";
+import { TaskProcess, TaskProcessType } from "../../api/TaskProcess";
 
 /**
  * Cancels pending tasks related to closed topics for a customer.
  */
-export class RemoveTasksFromClosedTopicsProcessor {
+export class RemoveTasksFromClosedTopicsService {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,

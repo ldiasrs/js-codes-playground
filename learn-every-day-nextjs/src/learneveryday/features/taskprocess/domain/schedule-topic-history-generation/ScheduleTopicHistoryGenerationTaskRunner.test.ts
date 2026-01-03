@@ -1,20 +1,20 @@
-import { ScheduleTopicHistoryGeneration } from './ScheduleTopicHistoryGenerationTaskRunner';
-import { ValidateCustomerProcessor } from './processor/ValidateCustomerService';
-import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './CreateConfigService';
+import { ScheduleTopicHistoryGenerationTaskRunner } from './ScheduleTopicHistoryGenerationTaskRunner';
+import { ValidateCustomerService } from './ValidateCustomerService';
+import { CreateConfigService, ReGenerateTopicHistoryConfig } from './CreateConfigService';
 import { AnalyzeTasksService, TaskAnalysis } from './AnalyzeTasksService';
-import { SelectTopicsProcessor } from './SelectTopicsService';
+import { SelectTopicsService } from './SelectTopicsService';
 import { ScheduleGenerateTasksBatchProcessor } from './ScheduleGenerateTasksBatchService';
-import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
+import { TaskProcess } from '../../api/TaskProcess';
 import { Topic } from '../../../topic/domain/Topic';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { Customer, CustomerTier } from '../../../auth/domain/Customer';
 
-describe('ScheduleTopicHistoryGeneration', () => {
-  let taskRunner: ScheduleTopicHistoryGeneration;
-  let mockValidateCustomer: jest.Mocked<ValidateCustomerProcessor>;
-  let mockCreateConfig: jest.Mocked<CreateConfigProcessor>;
+describe('ScheduleTopicHistoryGenerationTaskRunner', () => {
+  let taskRunner: ScheduleTopicHistoryGenerationTaskRunner;
+  let mockValidateCustomer: jest.Mocked<ValidateCustomerService>;
+  let mockCreateConfig: jest.Mocked<CreateConfigService>;
   let mockAnalyzeTasks: jest.Mocked<AnalyzeTasksService>;
-  let mockSelectTopics: jest.Mocked<SelectTopicsProcessor>;
+  let mockSelectTopics: jest.Mocked<SelectTopicsService>;
   let mockScheduleBatch: jest.Mocked<ScheduleGenerateTasksBatchProcessor>;
   let mockLogger: jest.Mocked<LoggerPort>;
 
@@ -26,10 +26,10 @@ describe('ScheduleTopicHistoryGeneration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockValidateCustomer = ({ execute: jest.fn() } as unknown) as jest.Mocked<ValidateCustomerProcessor>;
-    mockCreateConfig = ({ execute: jest.fn() } as unknown) as jest.Mocked<CreateConfigProcessor>;
+    mockValidateCustomer = ({ execute: jest.fn() } as unknown) as jest.Mocked<ValidateCustomerService>;
+    mockCreateConfig = ({ execute: jest.fn() } as unknown) as jest.Mocked<CreateConfigService>;
     mockAnalyzeTasks = ({ execute: jest.fn() } as unknown) as jest.Mocked<AnalyzeTasksService>;
-    mockSelectTopics = ({ execute: jest.fn() } as unknown) as jest.Mocked<SelectTopicsProcessor>;
+    mockSelectTopics = ({ execute: jest.fn() } as unknown) as jest.Mocked<SelectTopicsService>;
     mockScheduleBatch = ({ execute: jest.fn() } as unknown) as jest.Mocked<ScheduleGenerateTasksBatchProcessor>;
 
     mockLogger = ({
@@ -41,7 +41,7 @@ describe('ScheduleTopicHistoryGeneration', () => {
       child: jest.fn(),
     } as unknown) as jest.Mocked<LoggerPort>;
 
-    taskRunner = new ScheduleTopicHistoryGeneration(
+    taskRunner = new ScheduleTopicHistoryGenerationTaskRunner(
       mockValidateCustomer,
       mockCreateConfig,
       mockAnalyzeTasks,

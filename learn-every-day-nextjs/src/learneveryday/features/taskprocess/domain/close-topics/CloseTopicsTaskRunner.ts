@@ -1,13 +1,13 @@
-import { TaskProcess } from "./TaskProcess";
-import { TaskProcessRunner } from "./TaskProcessRunner";
-import { LoggerPort } from "../../../shared/ports/LoggerPort";
-import { RemoveTasksFromClosedTopicsProcessor } from "./RemoveTasksFromClosedTopicsProcessor";
-import { CheckAndCloseTopicsWithManyHistoriesProcessor } from "./CheckAndCloseTopicsWithManyHistoriesProcessor";
+import { LoggerPort } from "@/learneveryday/shared";
+import { TaskProcess } from "../api/TaskProcess";
+import { TaskProcessRunner } from "../api/TaskProcessRunner";
+import { CheckAndCloseTopicsWithManyHistoriesService } from "./service/CheckAndCloseTopicsWithManyHistoriesService";
+import { RemoveTasksFromClosedTopicsService } from "./service/RemoveTasksFromClosedTopicsService";
 
 export class CloseTopicsTaskRunner implements TaskProcessRunner {
   constructor(
-    private readonly checkAndCloseTopicsFeature: CheckAndCloseTopicsWithManyHistoriesProcessor,
-    private readonly removeTasksFromClosedTopicsFeature: RemoveTasksFromClosedTopicsProcessor,
+    private readonly checkAndCloseTopicsService: CheckAndCloseTopicsWithManyHistoriesService,
+    private readonly removeTasksFromClosedTopicsService: RemoveTasksFromClosedTopicsService,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -26,10 +26,10 @@ export class CloseTopicsTaskRunner implements TaskProcessRunner {
       });
 
       // Step 1: Check and close topics with many histories
-      await this.checkAndCloseTopicsFeature.execute(customerId);
+      await this.checkAndCloseTopicsService.execute(customerId);
 
       // Step 2: Clean up tasks from closed topics
-      await this.removeTasksFromClosedTopicsFeature.execute(customerId);
+      await this.removeTasksFromClosedTopicsService.execute(customerId);
 
       this.logExecutionCompletion(customerId, startTime);
     } catch (error) {      

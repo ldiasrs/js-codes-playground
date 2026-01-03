@@ -23,21 +23,15 @@ import { CreateCustomerFeature } from '@/learneveryday/features/auth/application
 import { DeleteCustomerFeature } from '@/learneveryday/features/auth/application/use-cases/DeleteCustomerFeature';
 import { LoginFeature } from '@/learneveryday/features/auth/application/use-cases/LoginFeature';
 import { VerifyAuthCodeFeature } from '@/learneveryday/features/auth/application/use-cases/VerifyAuthCodeFeature';
-import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/domain/TasksProcessExecutor';
-import { CloseTopicsTaskRunner } from '@/learneveryday/features/taskprocess/domain/CloseTopicsTaskRunner';
+import { CloseTopicsTaskRunner } from '@/learneveryday/features/taskprocess/domain/close-topics/CloseTopicsTaskRunner';
 import { GetTopicHistoriesFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GetTopicHistoriesFeature';
-import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '@/learneveryday/features/taskprocess/domain/CheckAndCloseTopicsWithManyHistoriesProcessor';
-import { RemoveTasksFromClosedTopicsProcessor } from '@/learneveryday/features/taskprocess/domain/RemoveTasksFromClosedTopicsProcessor';
-import { ExecuteTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/ExecuteTopicHistoryGenerationTaskRunner';
+import { ExecuteTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/generate-topic-history/ExecuteTopicHistoryGenerationTaskRunner';
 import { GenerateTopicHistoryFeature } from '@/learneveryday/features/topic-histoy/application/use-cases/GenerateTopicHistoryFeature';
-import { CloseTopicTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/CloseTopicTaskScheduler';
-import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/ProcessFailedTopicsTaskScheduler';
-import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/ReGenerateTopicsTaskScheduler';
-import { SendTopicHistoryTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/SendTopicHistoryTaskScheduler';
-import { ProcessFailedTopicsTaskRunner } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { FilterReprocessableTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/FilterReprocessableTasksService';
-import { GetStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/GetStuckTasksService';
-import { ReprocessStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/ReprocessStuckTasksService';
+import { CloseTopicTaskScheduler } from '@/learneveryday/features/taskprocess/domain/generate-topic-history/schedulers/CloseTopicTaskScheduler';
+import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/generate-topic-history/schedulers/ProcessFailedTopicsTaskScheduler';
+import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/generate-topic-history/schedulers/ReGenerateTopicsTaskScheduler';
+import { SendTopicHistoryTaskScheduler } from '@/learneveryday/features/taskprocess/domain/generate-topic-history/schedulers/SendTopicHistoryTaskScheduler';
+import { ReProcessFailedTopicsTaskRunner } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/ReProcessFailedTopicsTaskRunner';
 import { ProcessWorkFlowFeature } from '@/learneveryday/features/taskprocess/application/use-cases/ProcessWorkFlowFeature';
 import { AnalyzeTasksService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/AnalyzeTasksService';
 import { CreateConfigService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/CreateConfigService';
@@ -46,7 +40,7 @@ import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/ta
 import { SelectTopicsService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/SelectTopicsService';
 import { ValidateCustomerService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ValidateCustomerService';
 import { ScheduleTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner';
-import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/taskprocess/domain/SendTopicHistoryTaskRunner';
+import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/taskprocess/domain/send-topic-history/SendTopicHistoryTaskRunner';
 import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
 import { CloseTopicFeature } from '@/learneveryday/features/topic/application/use-cases/CloseTopicFeature';
 import { DeleteTopicFeature } from '@/learneveryday/features/topic/application/use-cases/DeleteTopicFeature';
@@ -66,7 +60,12 @@ import { AuthenticationService } from '@/learneveryday/features/auth/application
 import { AuthenticationVerificationService } from '@/learneveryday/features/auth/application/services/AuthenticationVerificationService';
 import { EmailValidationService } from '@/learneveryday/features/auth/application/services/EmailValidationService';
 import { TokenGenerationService } from '@/learneveryday/features/auth/application/services/TokenGenerationService';
-import { TopicHistoryTaskSchedulerService } from '@/learneveryday/features/taskprocess/domain/services/TopicHistoryTaskScheduler';
+import { FilterReprocessableTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/services/FilterReprocessableTasksService';
+import { GetStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/services/GetStuckTasksService';
+import { ReprocessStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/services/ReprocessStuckTasksService';
+import { CheckAndCloseTopicsWithManyHistoriesService } from '@/learneveryday/features/taskprocess/domain/close-topics/service/CheckAndCloseTopicsWithManyHistoriesService';
+import { RemoveTasksFromClosedTopicsService } from '@/learneveryday/features/taskprocess/domain/close-topics/service/RemoveTasksFromClosedTopicsService';
+import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/domain/api/TasksProcessExecutor';
 
 export interface Container {
   get<T>(token: string): T;
@@ -303,13 +302,13 @@ export class NextJSContainer implements Container {
     ));
 
     // Close-topic features
-    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesProcessor', () => new CheckAndCloseTopicsWithManyHistoriesProcessor(
+    this.registerSingleton('CheckAndCloseTopicsWithManyHistoriesProcessor', () => new CheckAndCloseTopicsWithManyHistoriesService(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('CloseTopicFeature'),
       LoggerFactory.createLoggerForClass('CheckAndCloseTopicsWithManyHistoriesFeature')
     ));
-    this.registerSingleton('RemoveTasksFromClosedTopicsProcessor', () => new RemoveTasksFromClosedTopicsProcessor(
+    this.registerSingleton('RemoveTasksFromClosedTopicsProcessor', () => new RemoveTasksFromClosedTopicsService(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       this.get('TaskProcessRepository'),
@@ -335,7 +334,7 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('ReprocessStuckTasksFeature')
     ));
 
-    this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ProcessFailedTopicsTaskRunner(
+    this.registerSingleton('ProcessFailedTopicsTaskRunner', () => new ReProcessFailedTopicsTaskRunner(
       this.get('GetStuckTasksProcessor'),
       this.get('FilterReprocessableTasksProcessor'),
       this.get('ReprocessStuckTasksProcessor'),

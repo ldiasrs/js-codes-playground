@@ -1,14 +1,14 @@
-import { TaskProcessRunner } from "@/learneveryday/features/taskprocess/domain/TaskProcessRunner";
-import { TaskProcess } from "@/learneveryday/features/taskprocess/domain/TaskProcess";
+import { GenerateTopicHistoryFeature } from "@/learneveryday/features/topic-histoy/application/use-cases/GenerateTopicHistoryFeature";
+import { TopicMapper } from "@/learneveryday/features/topic/application/dto/TopicMapper";
 import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/ports/TopicRepositoryPort";
 import { Topic } from "@/learneveryday/features/topic/domain/Topic";
-import { TopicMapper } from "@/learneveryday/features/topic/application/dto/TopicMapper";
 import { LoggerPort } from "@/learneveryday/shared";
-import { GenerateTopicHistoryFeature } from "../../topic-histoy/application/use-cases/GenerateTopicHistoryFeature";
-import { CloseTopicTaskScheduler } from "./services/schedulers/CloseTopicTaskScheduler";
-import { ProcessFailedTopicsTaskScheduler } from "./services/schedulers/ProcessFailedTopicsTaskScheduler";
-import { ReGenerateTopicsTaskScheduler } from "./services/schedulers/ReGenerateTopicsTaskScheduler";
-import { SendTopicHistoryTaskScheduler } from "./services/schedulers/SendTopicHistoryTaskScheduler";
+import { TaskProcess } from "../api/TaskProcess";
+import { TaskProcessRunner } from "../api/TaskProcessRunner";
+import { CloseTopicTaskScheduler } from "./schedulers/CloseTopicTaskScheduler";
+import { ProcessFailedTopicsTaskScheduler } from "./schedulers/ProcessFailedTopicsTaskScheduler";
+import { ReGenerateTopicsTaskScheduler } from "./schedulers/ReGenerateTopicsTaskScheduler";
+import { SendTopicHistoryTaskScheduler } from "./schedulers/SendTopicHistoryTaskScheduler";
 
 export class ExecuteTopicHistoryGenerationTaskRunner implements TaskProcessRunner {
   constructor(

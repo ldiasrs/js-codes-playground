@@ -1,11 +1,11 @@
 import { LoggerPort } from "@/learneveryday/shared";
-import { CloseTopicsTaskRunner } from "../../domain/CloseTopicsTaskRunner";
-import { ExecuteTopicHistoryGenerationTaskRunner } from "../../domain/ExecuteTopicHistoryGenerationTaskRunner";
-import { ProcessFailedTopicsTaskRunner } from "../../domain/process-failed-topics/ProcessFailedTopicsTaskRunner";
+import { TaskProcess } from "../../domain/api/TaskProcess";
+import { TasksProcessExecutor } from "../../domain/api/TasksProcessExecutor";
+import { CloseTopicsTaskRunner } from "../../domain/close-topics/CloseTopicsTaskRunner";
+import { ExecuteTopicHistoryGenerationTaskRunner } from "../../domain/generate-topic-history/ExecuteTopicHistoryGenerationTaskRunner";
+import { ReProcessFailedTopicsTaskRunner } from "../../domain/process-failed-topics/ReProcessFailedTopicsTaskRunner";
 import { ScheduleTopicHistoryGenerationTaskRunner } from "../../domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner";
-import { SendTopicHistoryTaskRunner } from "../../domain/SendTopicHistoryTaskRunner";
-import { TaskProcess } from "../../domain/TaskProcess";
-import { TasksProcessExecutor } from "../../domain/TasksProcessExecutor";
+import { SendTopicHistoryTaskRunner } from "../../domain/send-topic-history/SendTopicHistoryTaskRunner";
 import { TaskProcessRepositoryPort } from "../../ports/TaskProcessRepositoryPort";
 
 export interface ProcessWorkFlowFeatureInput {
@@ -17,7 +17,7 @@ export class ProcessWorkFlowFeature {
 
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
-    private readonly processFailedTopicsTaskRunner: ProcessFailedTopicsTaskRunner,
+    private readonly reProcessFailedTopicsTaskRunner: ReProcessFailedTopicsTaskRunner,
     private readonly closeTopicsTaskRunner: CloseTopicsTaskRunner,
     private readonly scheduleTopicHistoryGenerationTaskRunner: ScheduleTopicHistoryGenerationTaskRunner,
     private readonly executeTopicHistoryGenerationTaskRunner: ExecuteTopicHistoryGenerationTaskRunner,
@@ -43,11 +43,11 @@ export class ProcessWorkFlowFeature {
 
     await executor.execute(
       {
-        processType: TaskProcess.PROCESS_FAILED_TOPICS,
+        processType: TaskProcess.REPROCESS_FAILED_TOPICS,
         limit,
         maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
       },
-      this.processFailedTopicsTaskRunner
+      this.reProcessFailedTopicsTaskRunner
     );
 
 
