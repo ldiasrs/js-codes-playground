@@ -30,10 +30,29 @@ class SimpleDatabaseSetup {
   }
 
   /**
+   * Creates the migrations table if it doesn't exist
+   */
+  private async ensureMigrationsTable(connection: DatabaseConnection): Promise<void> {
+    try {
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS migrations (
+          id SERIAL PRIMARY KEY,
+          filename VARCHAR(255) NOT NULL UNIQUE,
+          date_executed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        )
+      `);
+    } catch (error) {
+      console.error('🔄 Error creating migrations table', error);
+      throw error;
+    }
+  }
+
+  /**
    * Gets the list of already executed migrations
    */
   private async getExecutedMigrations(connection: DatabaseConnection): Promise<string[]> {
     try {
+      await this.ensureMigrationsTable(connection);
       const result = await connection.query('SELECT filename FROM migrations ORDER BY date_executed');
       return result.rows.map((row: Record<string, unknown>) => row.filename as string);
     } catch (error) {
@@ -78,7 +97,34 @@ class SimpleDatabaseSetup {
       
       const migrationFiles = fs.readdirSync(migrationsDir)
         .filter(file => file.endsWith('.sql'))
-        .sort(); // Sort files alphabetically to ensure consistent order
+        .sort((a, b) => {
+          // Prioritize initial-schema migrations to run first
+          const aIsInitial = a.includes('initial-schema');
+          const bIsInitial = b.includes('initial-schema');
+          
+          if (aIsInitial && !bIsInitial) return -1;
+          if (!aIsInitial && bIsInitial) return 1;
+          
+          // Extract date and time from filename (format: YYYY-MM-DD-HHMM-filename.sql)
+          const extractDateTime = (filename: string): Date => {
+            const match = filename.match(/^(\d{4})-(\d{2})-(\d{2})-(\d{4})-/);
+            if (match) {
+              const [, year, month, day, time] = match;
+              const hours = parseInt(time.substring(0, 2), 10);
+              const minutes = parseInt(time.substring(2, 4), 10);
+              return new Date(
+                parseInt(year, 10),
+                parseInt(month, 10) - 1,
+                parseInt(day, 10),
+                hours,
+                minutes
+              );
+            }
+            // Fallback to filename for non-standard names
+            return new Date(0);
+          };
+          return extractDateTime(a).getTime() - extractDateTime(b).getTime();
+        }); // Sort files by date/time, with initial-schema first
       
       if (migrationFiles.length === 0) {
         throw new Error('No migration files found in migrations directory');
