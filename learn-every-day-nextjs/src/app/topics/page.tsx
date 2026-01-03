@@ -256,7 +256,7 @@ export default function TopicsPage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-2">
-                Your Topics
+                 - 2026-01-03 - 14:00:00
               </h2>
               <p className="text-muted-foreground">
                 Add topics of interest to start your personalized learning journey and receive daily educational content.
