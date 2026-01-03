@@ -1,6 +1,6 @@
 import { DatabaseManager } from '../database/DatabaseManager';
 import { AIPromptExecutorFactory } from '../adapters/ai/AIPromptExecutorFactory';
-import { LoggerFactory } from '../factories/LoggerFactory';
+import { LoggerFactory } from '../adapters/loggers/LoggerFactory';
 import { PromptBuilder } from '../../features/topic-histoy/domain/PromptBuilder';
 
 // Repositories
@@ -12,9 +12,9 @@ import { SQLAuthenticationAttemptRepository } from '../adapters/repositories/SQL
 import { SQLLogRepository } from '../adapters/repositories/SQLLogRepository';
 
 // Ports
-import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
-import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
-import { NodemailerTopicClosedEmailSender } from '../adapters/NodemailerTopicClosedEmailSender';
+import { NodemailerTopicHistoryEmailSender } from '../adapters/email/NodemailerTopicHistoryEmailSender';
+import { NodemailerVerificationCodeSender } from '../adapters/email/NodemailerVerificationCodeSender';
+import { NodemailerTopicClosedEmailSender } from '../adapters/email/NodemailerTopicClosedEmailSender';
 
 // Infrastructure Services
 import { ProcessInfrastuctureWorkflow } from '../services/ProcessInfrastuctureWorkflow';

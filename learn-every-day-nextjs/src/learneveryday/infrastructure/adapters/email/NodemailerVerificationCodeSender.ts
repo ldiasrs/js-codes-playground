@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
-import { SendVerificationCodePort, SendVerificationCodePortData } from '../../features/auth/application/ports/SendVerificationCodePort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { EmailConfiguration } from '../config/email.config';
+import { SendVerificationCodePort, SendVerificationCodePortData } from '../../../features/auth/application/ports/SendVerificationCodePort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { EmailConfiguration } from '../../config/email.config';
 
 export class NodemailerVerificationCodeSender implements SendVerificationCodePort {
   private transporter: nodemailer.Transporter;

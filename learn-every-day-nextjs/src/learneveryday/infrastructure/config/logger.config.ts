@@ -1,4 +1,4 @@
-import { LoggerConfig } from '../factories/LoggerFactory';
+import { LoggerConfig } from '../adapters/loggers/LoggerFactory';
 
 export const loggerConfig: LoggerConfig = {
   type: 'composite',

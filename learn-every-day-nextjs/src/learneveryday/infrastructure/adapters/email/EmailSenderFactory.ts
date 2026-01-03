@@ -1,8 +1,8 @@
 import { SendTopicHistoryByEmailPort } from '../../../features/topic-histoy/application/ports/SendTopicHistoryByEmailPort';
 import { SendVerificationCodePort } from '../../../features/auth/application/ports/SendVerificationCodePort';
-import { NodemailerTopicHistoryEmailSender } from '../adapters/NodemailerTopicHistoryEmailSender';
-import { NodemailerVerificationCodeSender } from '../adapters/NodemailerVerificationCodeSender';
-import { LoggerFactory } from '../../factories/LoggerFactory';
+import { NodemailerTopicHistoryEmailSender } from './NodemailerTopicHistoryEmailSender';
+import { NodemailerVerificationCodeSender } from './NodemailerVerificationCodeSender';
+import { LoggerFactory } from '../loggers/LoggerFactory';
 
 export class EmailSenderFactory {
   /**

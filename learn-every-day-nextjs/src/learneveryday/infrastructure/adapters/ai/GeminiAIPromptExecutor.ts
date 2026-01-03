@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import { AIPromptExecutorPort } from '../../features/topic-histoy/application/ports/AIPromptExecutorPort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { GeminiConfiguration } from '../config/gemini.config';
+import { AIPromptExecutorPort } from '../../../features/topic-histoy/application/ports/AIPromptExecutorPort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { GeminiConfiguration } from '../../config/gemini.config';
 
 export class GeminiAIPromptExecutor implements AIPromptExecutorPort {
   private readonly genAI: GoogleGenerativeAI;

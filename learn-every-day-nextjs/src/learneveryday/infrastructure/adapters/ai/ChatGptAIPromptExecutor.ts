@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
-import { AIPromptExecutorPort } from '../../features/topic-histoy/application/ports/AIPromptExecutorPort';
-import { LoggerPort } from '../../shared/ports/LoggerPort';
-import { OpenAIConfiguration } from '../config/openai.config';
+import { AIPromptExecutorPort } from '../../../features/topic-histoy/application/ports/AIPromptExecutorPort';
+import { LoggerPort } from '../../../shared/ports/LoggerPort';
+import { OpenAIConfiguration } from '../../config/openai.config';
 
 export class ChatGptAIPromptExecutor implements AIPromptExecutorPort {
   private readonly openai: OpenAI;

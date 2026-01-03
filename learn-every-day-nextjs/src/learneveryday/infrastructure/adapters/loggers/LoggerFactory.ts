@@ -1,9 +1,9 @@
-import { LoggerPort } from "../../shared/ports/LoggerPort";
-import { ConsoleLogger } from "../adapters/loggers/ConsoleLogger";
-import { DBLogger } from "../adapters/loggers/DBLogger";
-import { CompositeLogger } from "../adapters/loggers/CompositeLogger";
-import { SQLLogRepository } from "../adapters/repositories/SQLLogRepository";
-import { loggerConfig } from "../config/logger.config";
+import { LoggerPort } from "../../../shared/ports/LoggerPort";
+import { ConsoleLogger } from "./ConsoleLogger";
+import { DBLogger } from "./DBLogger";
+import { CompositeLogger } from "./CompositeLogger";
+import { SQLLogRepository } from "../repositories/SQLLogRepository";
+import { loggerConfig } from "../../config/logger.config";
 
 
 export interface LoggerConfig {

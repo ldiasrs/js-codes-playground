@@ -1,6 +1,6 @@
 import { AIPromptExecutorPort } from '../../../features/topic-histoy/application/ports/AIPromptExecutorPort';
-import { ChatGptAIPromptExecutor } from '../adapters/ChatGptAIPromptExecutor';
-import { GeminiAIPromptExecutor } from '../adapters/GeminiAIPromptExecutor';
+import { ChatGptAIPromptExecutor } from './ChatGptAIPromptExecutor';
+import { GeminiAIPromptExecutor } from './GeminiAIPromptExecutor';
 import { LoggerPort } from '../../../shared/ports/LoggerPort';
 
 export class AIPromptExecutorFactory {
