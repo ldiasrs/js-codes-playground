@@ -199,10 +199,6 @@ export class SQLTopicHistoryRepository implements TopicHistoryRepositoryPort {
       'DELETE FROM topic_histories WHERE topic_id = $1',
       [topicId]
     );
-
-    if (result.rowCount === 0) {
-      throw new Error(`No topic history found with topic_id: ${topicId}`);
-    }
   }
 
   async count(): Promise<number> {
