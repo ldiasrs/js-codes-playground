@@ -39,12 +39,12 @@ import { FilterReprocessableTasksProcessor } from '@/learneveryday/features/task
 import { GetStuckTasksProcessor } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/GetStuckTasksProcessor';
 import { ReprocessStuckTasksProcessor } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/ReprocessStuckTasksProcessor';
 import { ProcessWorkFlowFeature } from '@/learneveryday/features/taskprocess/application/use-cases/ProcessWorkFlowFeature';
-import { AnalyzeTasksProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
-import { CreateConfigProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/CreateConfigProcessor';
+import { AnalyzeTasksService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/AnalyzeTasksService';
+import { CreateConfigService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/CreateConfigService';
 import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
-import { SelectTopicsProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/SelectTopicsProcessor';
-import { ValidateCustomerProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/processor/ValidateCustomerProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ScheduleGenerateTasksBatchService';
+import { SelectTopicsService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/SelectTopicsService';
+import { ValidateCustomerService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ValidateCustomerService';
 import { ScheduleTopicHistoryGenerationTaskRunner } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner';
 import { SendTopicHistoryTaskRunner } from '@/learneveryday/features/taskprocess/domain/SendTopicHistoryTaskRunner';
 import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
@@ -369,15 +369,15 @@ export class NextJSContainer implements Container {
     ));
 
     // Re-generate-topic-history features
-    this.registerSingleton('ValidateCustomerProcessor', () => new ValidateCustomerProcessor(
+    this.registerSingleton('ValidateCustomerProcessor', () => new ValidateCustomerService(
       this.get('CustomerRepository'),
       LoggerFactory.createLoggerForClass('ValidateCustomerFeature')
     ));
-    this.registerSingleton('CreateConfigProcessor', () => new CreateConfigProcessor(
+    this.registerSingleton('CreateConfigProcessor', () => new CreateConfigService(
       LoggerFactory.createLoggerForClass('CreateConfigFeature'),
       50
     ));
-    this.registerSingleton('AnalyzeTasksProcessor', () => new AnalyzeTasksProcessor(
+    this.registerSingleton('AnalyzeTasksProcessor', () => new AnalyzeTasksService(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('AnalyzeTasksFeature')
     ));
@@ -389,7 +389,7 @@ export class NextJSContainer implements Container {
       this.get('DeleteTopicFeature'),
       LoggerFactory.createLoggerForClass('CreateNewSimilarTopicsProcessor')
     ));
-    this.registerSingleton('SelectTopicsProcessor', () => new SelectTopicsProcessor(
+    this.registerSingleton('SelectTopicsProcessor', () => new SelectTopicsService(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
       LoggerFactory.createLoggerForClass('SelectTopicsForProcessingFeature'),

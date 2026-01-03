@@ -1,8 +1,8 @@
-import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
-import { Topic } from "../../../../topic/domain/Topic";
-import { TopicRepositoryPort } from "../../../../topic/application/ports/TopicRepositoryPort";
-import { CreateNewSimilarTopicsProcessor } from "../../../../topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor";
-import { TopicHistoryRepositoryPort } from "../../../../topic-histoy/application/ports/TopicHistoryRepositoryPort";
+import { LoggerPort } from "../../../../shared/ports/LoggerPort";
+import { Topic } from "../../../topic/domain/Topic";
+import { TopicRepositoryPort } from "../../../topic/application/ports/TopicRepositoryPort";
+import { CreateNewSimilarTopicsProcessor } from "../../../topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor";
+import { TopicHistoryRepositoryPort } from "../../../topic-histoy/application/ports/TopicHistoryRepositoryPort";
 
 interface TopicWithHistoryCount {
   topic: Topic;
@@ -12,7 +12,7 @@ interface TopicWithHistoryCount {
 /**
  * Selects eligible topics to process next, considering limits and history counts.
  */
-export class SelectTopicsProcessor {
+export class SelectTopicsService {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicHistoryRepository: TopicHistoryRepositoryPort,

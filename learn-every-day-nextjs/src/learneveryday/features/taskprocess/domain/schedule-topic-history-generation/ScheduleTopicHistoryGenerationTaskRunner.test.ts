@@ -1,9 +1,9 @@
 import { ScheduleTopicHistoryGeneration } from './ScheduleTopicHistoryGenerationTaskRunner';
-import { ValidateCustomerProcessor } from './processor/ValidateCustomerProcessor';
-import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './processor/CreateConfigProcessor';
-import { AnalyzeTasksProcessor, TaskAnalysis } from './processor/AnalyzeTasksProcessor';
-import { SelectTopicsProcessor } from './processor/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from './processor/ScheduleGenerateTasksBatchProcessor';
+import { ValidateCustomerProcessor } from './processor/ValidateCustomerService';
+import { CreateConfigProcessor, ReGenerateTopicHistoryConfig } from './CreateConfigService';
+import { AnalyzeTasksService, TaskAnalysis } from './AnalyzeTasksService';
+import { SelectTopicsProcessor } from './SelectTopicsService';
+import { ScheduleGenerateTasksBatchProcessor } from './ScheduleGenerateTasksBatchService';
 import { TaskProcess } from '../../../taskprocess/domain/TaskProcess';
 import { Topic } from '../../../topic/domain/Topic';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
@@ -13,7 +13,7 @@ describe('ScheduleTopicHistoryGeneration', () => {
   let taskRunner: ScheduleTopicHistoryGeneration;
   let mockValidateCustomer: jest.Mocked<ValidateCustomerProcessor>;
   let mockCreateConfig: jest.Mocked<CreateConfigProcessor>;
-  let mockAnalyzeTasks: jest.Mocked<AnalyzeTasksProcessor>;
+  let mockAnalyzeTasks: jest.Mocked<AnalyzeTasksService>;
   let mockSelectTopics: jest.Mocked<SelectTopicsProcessor>;
   let mockScheduleBatch: jest.Mocked<ScheduleGenerateTasksBatchProcessor>;
   let mockLogger: jest.Mocked<LoggerPort>;
@@ -28,7 +28,7 @@ describe('ScheduleTopicHistoryGeneration', () => {
 
     mockValidateCustomer = ({ execute: jest.fn() } as unknown) as jest.Mocked<ValidateCustomerProcessor>;
     mockCreateConfig = ({ execute: jest.fn() } as unknown) as jest.Mocked<CreateConfigProcessor>;
-    mockAnalyzeTasks = ({ execute: jest.fn() } as unknown) as jest.Mocked<AnalyzeTasksProcessor>;
+    mockAnalyzeTasks = ({ execute: jest.fn() } as unknown) as jest.Mocked<AnalyzeTasksService>;
     mockSelectTopics = ({ execute: jest.fn() } as unknown) as jest.Mocked<SelectTopicsProcessor>;
     mockScheduleBatch = ({ execute: jest.fn() } as unknown) as jest.Mocked<ScheduleGenerateTasksBatchProcessor>;
 
