@@ -1,5 +1,5 @@
 import { DatabaseManager } from '../database/DatabaseManager';
-import { AIPromptExecutorFactory } from '../factories/AIPromptExecutorFactory';
+import { AIPromptExecutorFactory } from '../adapters/ai/AIPromptExecutorFactory';
 import { LoggerFactory } from '../factories/LoggerFactory';
 import { PromptBuilder } from '../../features/topic-histoy/domain/PromptBuilder';
 
