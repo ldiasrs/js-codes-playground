@@ -2,10 +2,7 @@ import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicCreationPolicy } from '../../domain/TopicCreationPolicy';
 import { CustomerValidationService } from '../../../auth/application/services/CustomerValidationService';
-import { GenerateTopicHistoryPort } from '../ports/GenerateTopicHistoryPort';
-import { TopicCreationSaga } from '../sagas/TopicCreationSaga';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { DomainError } from '../../../../shared/errors/DomainError';
 import { TopicDTO } from '../dto/TopicDTO';
 import { TopicMapper } from '../dto/TopicMapper';
 
@@ -24,8 +21,6 @@ export class AddTopicFeature {
     private readonly topicRepository: TopicRepositoryPort,
     private readonly customerValidationService: CustomerValidationService,
     private readonly topicCreationPolicy: TopicCreationPolicy,
-    private readonly generateTopicHistoryPort: GenerateTopicHistoryPort,
-    private readonly topicCreationSaga: TopicCreationSaga,
     private readonly logger: LoggerPort
   ) {}
 
@@ -42,16 +37,6 @@ export class AddTopicFeature {
     await this.topicCreationPolicy.canCreateTopic(customer, subject);
 
     const topic = await this.createTopic(customerId, subject);
-
-    try {
-      await this.generateTopicHistoryPort.generate(topic.id, customerId);
-    } catch (error) {
-      await this.topicCreationSaga.compensate(topic.id, error);
-      throw new DomainError(
-        DomainError.HISTORY_SCHEDULING_FAILED,
-        `Topic creation failed due to history scheduling error: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
 
     return TopicMapper.toDTO(topic);
   }

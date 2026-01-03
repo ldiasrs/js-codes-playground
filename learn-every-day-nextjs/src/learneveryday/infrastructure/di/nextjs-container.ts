@@ -35,9 +35,9 @@ import { ProcessFailedTopicsTaskScheduler } from '@/learneveryday/features/taskp
 import { ReGenerateTopicsTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/ReGenerateTopicsTaskScheduler';
 import { SendTopicHistoryTaskScheduler } from '@/learneveryday/features/taskprocess/domain/services/schedulers/SendTopicHistoryTaskScheduler';
 import { ProcessFailedTopicsTaskRunner } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { FilterReprocessableTasksProcessor } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/FilterReprocessableTasksProcessor';
-import { GetStuckTasksProcessor } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/GetStuckTasksProcessor';
-import { ReprocessStuckTasksProcessor } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/ReprocessStuckTasksProcessor';
+import { FilterReprocessableTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/FilterReprocessableTasksService';
+import { GetStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/GetStuckTasksService';
+import { ReprocessStuckTasksService } from '@/learneveryday/features/taskprocess/domain/process-failed-topics/processor/ReprocessStuckTasksService';
 import { ProcessWorkFlowFeature } from '@/learneveryday/features/taskprocess/application/use-cases/ProcessWorkFlowFeature';
 import { AnalyzeTasksService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/AnalyzeTasksService';
 import { CreateConfigService } from '@/learneveryday/features/taskprocess/domain/schedule-topic-history-generation/CreateConfigService';
@@ -56,12 +56,8 @@ import { SearchTopicsFeature } from '@/learneveryday/features/topic/application/
 import { UpdateTopicFeature } from '@/learneveryday/features/topic/application/use-cases/UpdateTopicFeature';
 import { TopicCreationPolicy } from '@/learneveryday/features/topic/domain/TopicCreationPolicy';
 import { TopicUpdatePolicy } from '@/learneveryday/features/topic/domain/TopicUpdatePolicy';
-import { TopicCreationSaga } from '@/learneveryday/features/topic/application/sagas/TopicCreationSaga';
-import { TopicDeletionSaga } from '@/learneveryday/features/topic/application/sagas/TopicDeletionSaga';
 import { TopicClosedNotificationService } from '@/learneveryday/features/topic/application/services/TopicClosedNotificationService';
 import { TopicDeletionService } from '@/learneveryday/features/topic/application/services/TopicDeletionService';
-import { TopicLifecycleCleanupService } from '@/learneveryday/features/taskprocess/domain/services/TopicLifecycleCleanupService';
-import { TopicHistorySchedulingService } from '@/learneveryday/features/taskprocess/domain/services/TopicHistorySchedulingService';
 import { CustomerValidationService } from '@/learneveryday/features/auth/application/services/CustomerValidationService';
 import { CustomerCreationPolicy } from '@/learneveryday/features/auth/domain/CustomerCreationPolicy';
 import { CustomerDeletionService } from '@/learneveryday/features/auth/application/services/CustomerDeletionService';
@@ -161,14 +157,9 @@ export class NextJSContainer implements Container {
       this.get('SendTopicClosedEmailPort'),
       LoggerFactory.createLoggerForClass('TopicClosedNotificationService')
     ));
-    this.registerSingleton('TopicLifecycleCleanup', () => new TopicLifecycleCleanupService(
-      this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('TopicLifecycleCleanupService')
-    ));
     this.registerSingleton('TopicDeletionService', () => new TopicDeletionService(
       this.get('TopicRepository'),
       this.get('TopicHistoryRepository'),
-      this.get('TopicLifecycleCleanup'),
       LoggerFactory.createLoggerForClass('TopicDeletionService')
     ));
     this.registerSingleton('CustomerDeletionService', () => new CustomerDeletionService(
@@ -193,22 +184,8 @@ export class NextJSContainer implements Container {
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('TopicHistoryTaskScheduler')
     ));
-    this.registerSingleton('TopicHistoryScheduling', () => new TopicHistorySchedulingService(
-      this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('TopicHistorySchedulingService')
-    ));
 
-    // Register sagas
-    this.registerSingleton('TopicCreationSaga', () => new TopicCreationSaga(
-      this.get('TopicRepository'),
-      LoggerFactory.createLoggerForClass('TopicCreationSaga')
-    ));
-    this.registerSingleton('TopicDeletionSaga', () => new TopicDeletionSaga(
-      this.get('TopicRepository'),
-      this.get('TopicHistoryRepository'),
-      this.get('TopicLifecycleCleanup'),
-      LoggerFactory.createLoggerForClass('TopicDeletionSaga')
-    ));
+
     this.registerSingleton('CustomerDeletionSaga', () => new CustomerDeletionSaga(
       this.get('CustomerRepository'),
       this.get('TopicRepository'),
@@ -219,8 +196,6 @@ export class NextJSContainer implements Container {
       this.get('TopicRepository'),
       this.get('CustomerValidationService'),
       this.get('TopicCreationPolicy'),
-      this.get('TopicHistoryScheduling'),
-      this.get('TopicCreationSaga'),
       LoggerFactory.createLoggerForClass('AddTopicFeature')
     ));
 
@@ -239,7 +214,6 @@ export class NextJSContainer implements Container {
     this.registerSingleton('DeleteTopicFeature', () => new DeleteTopicFeature(
       this.get('TopicRepository'),
       this.get('TopicDeletionService'),
-      this.get('TopicDeletionSaga'),
       LoggerFactory.createLoggerForClass('DeleteTopicFeature')
     ));
 
@@ -349,14 +323,14 @@ export class NextJSContainer implements Container {
     ));
 
     // Process-failed-topics features
-    this.registerSingleton('GetStuckTasksProcessor', () => new GetStuckTasksProcessor(
+    this.registerSingleton('GetStuckTasksProcessor', () => new GetStuckTasksService(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('GetStuckTasksFeature')
     ));
-    this.registerSingleton('FilterReprocessableTasksProcessor', () => new FilterReprocessableTasksProcessor(
+    this.registerSingleton('FilterReprocessableTasksProcessor', () => new FilterReprocessableTasksService(
       LoggerFactory.createLoggerForClass('FilterReprocessableTasksFeature')
     ));
-    this.registerSingleton('ReprocessStuckTasksProcessor', () => new ReprocessStuckTasksProcessor(
+    this.registerSingleton('ReprocessStuckTasksProcessor', () => new ReprocessStuckTasksService(
       this.get('TaskProcessRepository'),
       LoggerFactory.createLoggerForClass('ReprocessStuckTasksFeature')
     ));

@@ -1,7 +1,6 @@
 import { Topic } from '../../domain/Topic';
 import { TopicRepositoryPort } from '../ports/TopicRepositoryPort';
 import { TopicDeletionService } from '../services/TopicDeletionService';
-import { TopicDeletionSaga } from '../sagas/TopicDeletionSaga';
 import { LoggerPort } from '../../../../shared/ports/LoggerPort';
 import { DomainError } from '../../../../shared/errors/DomainError';
 
@@ -13,7 +12,6 @@ export class DeleteTopicFeature {
   constructor(
     private readonly topicRepository: TopicRepositoryPort,
     private readonly topicDeletionService: TopicDeletionService,
-    private readonly topicDeletionSaga: TopicDeletionSaga,
     private readonly logger: LoggerPort
   ) {}
 
@@ -32,7 +30,11 @@ export class DeleteTopicFeature {
       await this.topicDeletionService.deleteRelatedEntities(id);
       await this.deleteTopic(id);
     } catch (error) {
-      await this.topicDeletionSaga.compensate(id, error);
+     this.logger.error(`Failed to delete topic ${id}`, error instanceof Error ? error : new Error(String(error)), {
+      topicId: id,
+      topicSubject: existingTopic.subject,
+      customerId: existingTopic.customerId
+     });
       throw error;
     }
 

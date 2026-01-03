@@ -4,7 +4,7 @@ import { TaskProcess } from "../../TaskProcess";
 /**
  * Filters stuck tasks to find which ones are eligible for reprocessing.
  */
-export class FilterReprocessableTasksProcessor {
+export class FilterReprocessableTasksService {
   private static readonly ALLOW_REPROCESS_ERRORS: ReadonlyArray<string> = [
     'The model is overloaded. Please try again later.',
   ] as const;
@@ -41,7 +41,7 @@ export class FilterReprocessableTasksProcessor {
     if (!errorMsg) {
       return false;
     }
-    return FilterReprocessableTasksProcessor.ALLOW_REPROCESS_ERRORS.some(msg => errorMsg.includes(msg));
+    return FilterReprocessableTasksService.ALLOW_REPROCESS_ERRORS.some(msg => errorMsg.includes(msg));
   }
 
   private getTaskTypesCount(tasks: TaskProcess[]): Record<string, number> {

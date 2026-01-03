@@ -5,7 +5,7 @@ import { TaskProcess } from "../../TaskProcess";
 /**
  * Retrieves all stuck tasks (failed or running) for a customer.
  */
-export class GetStuckTasksProcessor {
+export class GetStuckTasksService {
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort

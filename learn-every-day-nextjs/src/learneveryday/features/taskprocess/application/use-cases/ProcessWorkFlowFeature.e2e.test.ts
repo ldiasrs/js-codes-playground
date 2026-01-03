@@ -1,32 +1,3 @@
-import { ProcessWorkFlowFeature } from './ProcessWorkFlowFeature';
-import { TaskProcess } from '../../domain/TaskProcess';
-import { TaskProcessRepositoryPort } from '../ports/TaskProcessRepositoryPort';
-import { LoggerPort } from '../../../../shared/ports/LoggerPort';
-import { ProcessFailedTopicsTaskRunner } from './process-failed-topics/ProcessFailedTopicsTaskRunner';
-import { GetStuckTasksProcessor } from './process-failed-topics/processor/GetStuckTasksProcessor';
-import { FilterReprocessableTasksProcessor } from './process-failed-topics/processor/FilterReprocessableTasksProcessor';
-import { ReprocessStuckTasksProcessor } from './process-failed-topics/processor/ReprocessStuckTasksProcessor';
-import { CloseTopicsTaskRunner } from './CloseTopicsTaskRunner';
-import { CheckAndCloseTopicsWithManyHistoriesProcessor } from './close-topic/processor/CheckAndCloseTopicsWithManyHistoriesProcessor';
-import { RemoveTasksFromClosedTopicsProcessor } from './close-topic/processor/RemoveTasksFromClosedTopicsProcessor';
-import { CloseTopicFeature } from '../../../topic/application/use-cases/CloseTopicFeature';
-import { ScheduleTopicHistoryGeneration } from './schedule-topic-history-generation/ScheduleTopicHistoryGeneration';
-import { ValidateCustomerProcessor } from './schedule-topic-history-generation/processor/ValidateCustomerProcessor';
-import { CreateConfigProcessor } from './schedule-topic-history-generation/processor/CreateConfigProcessor';
-import { AnalyzeTasksProcessor } from './schedule-topic-history-generation/processor/AnalyzeTasksProcessor';
-import { SelectTopicsProcessor } from './schedule-topic-history-generation/processor/SelectTopicsProcessor';
-import { ScheduleGenerateTasksBatchProcessor } from './schedule-topic-history-generation/processor/ScheduleGenerateTasksBatchProcessor';
-import { ExecuteTopicHistoryGenerationTaskRunner } from '../../domain/ExecuteTopicHistoryGenerationTaskRunner';
-import { GenerateAndSaveTopicHistoryFeature } from './generate-topic-history/GenerateAndSaveTopicHistory';
-import { PromptBuilder } from '../../domain/PromptBuilder';
-import { SendTopicHistoryTaskScheduler } from '../services/schedulers/SendTopicHistoryTaskScheduler';
-import { ReGenerateTopicsTaskScheduler } from '../services/schedulers/ReGenerateTopicsTaskScheduler';
-import { CloseTopicTaskScheduler } from '../services/schedulers/CloseTopicTaskScheduler';
-import { ProcessFailedTopicsTaskScheduler } from '../services/schedulers/ProcessFailedTopicsTaskScheduler';
-import { SendTopicHistoryTaskRunner } from '../../domain/SendTopicHistoryTaskRunner';
-import { CreateNewSimilarTopicsProcessor } from './CreateNewSimilarTopicsProcessor';
-import { AddTopicFeature } from '../../../topic/application/use-cases/AddTopicFeature';
-import { DeleteTopicFeature } from '../../../topic/application/use-cases/DeleteTopicFeature';
 
 // Domain ports
 import { TopicRepositoryPort } from '../../../topic/application/ports/TopicRepositoryPort';
@@ -38,6 +9,29 @@ import { AIPromptExecutorPort } from '@/learneveryday/features/topic-histoy/appl
 import { SendTopicHistoryByEmailPort } from '@/learneveryday/features/topic-histoy/application/ports/SendTopicHistoryByEmailPort';
 import { TopicHistoryRepositoryPort } from '@/learneveryday/features/topic-histoy/application/ports/TopicHistoryRepositoryPort';
 import { TopicHistory } from '@/learneveryday/features/topic-histoy/domain/TopicHistory';
+import { CreateNewSimilarTopicsProcessor } from '@/learneveryday/features/topic-histoy/application/use-cases/CreateNewSimilarTopicsProcessor';
+import { PromptBuilder } from '@/learneveryday/features/topic-histoy/domain/PromptBuilder';
+import { AddTopicFeature } from '@/learneveryday/features/topic/application/use-cases/AddTopicFeature';
+import { CloseTopicFeature } from '@/learneveryday/features/topic/application/use-cases/CloseTopicFeature';
+import { DeleteTopicFeature } from '@/learneveryday/features/topic/application/use-cases/DeleteTopicFeature';
+import { LoggerPort } from '@/learneveryday/shared';
+import { CheckAndCloseTopicsWithManyHistoriesProcessor } from '../../domain/CheckAndCloseTopicsWithManyHistoriesProcessor';
+import { CloseTopicsTaskRunner } from '../../domain/CloseTopicsTaskRunner';
+import { ExecuteTopicHistoryGenerationTaskRunner } from '../../domain/ExecuteTopicHistoryGenerationTaskRunner';
+import { ProcessFailedTopicsTaskRunner } from '../../domain/process-failed-topics/ProcessFailedTopicsTaskRunner';
+import { FilterReprocessableTasksService } from '../../domain/process-failed-topics/processor/FilterReprocessableTasksService';
+import { GetStuckTasksService } from '../../domain/process-failed-topics/processor/GetStuckTasksService';
+import { ReprocessStuckTasksProcessor } from '../../domain/process-failed-topics/processor/ReprocessStuckTasksProcessor';
+import { RemoveTasksFromClosedTopicsProcessor } from '../../domain/RemoveTasksFromClosedTopicsProcessor';
+import { ScheduleGenerateTasksBatchProcessor } from '../../domain/schedule-topic-history-generation/ScheduleGenerateTasksBatchService';
+import { SendTopicHistoryTaskRunner } from '../../domain/SendTopicHistoryTaskRunner';
+import { CloseTopicTaskScheduler } from '../../domain/services/schedulers/CloseTopicTaskScheduler';
+import { ProcessFailedTopicsTaskScheduler } from '../../domain/services/schedulers/ProcessFailedTopicsTaskScheduler';
+import { ReGenerateTopicsTaskScheduler } from '../../domain/services/schedulers/ReGenerateTopicsTaskScheduler';
+import { SendTopicHistoryTaskScheduler } from '../../domain/services/schedulers/SendTopicHistoryTaskScheduler';
+import { TaskProcess } from '../../domain/TaskProcess';
+import { TaskProcessRepositoryPort } from '../../ports/TaskProcessRepositoryPort';
+import { ProcessWorkFlowFeature } from './ProcessWorkFlowFeature';
 
 describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
   let logger: jest.Mocked<LoggerPort>;
@@ -241,8 +235,8 @@ describe('ProcessTopicHistoryWorkflowFeature (e2e)', () => {
   });
 
   function buildWorkflow(): ProcessWorkFlowFeature {
-    const getStuck = new GetStuckTasksProcessor(taskProcessRepository, logger);
-    const filterReprocess = new FilterReprocessableTasksProcessor(logger);
+    const getStuck = new GetStuckTasksService(taskProcessRepository, logger);
+    const filterReprocess = new FilterReprocessableTasksService(logger);
     const reprocess = new ReprocessStuckTasksProcessor(taskProcessRepository, logger);
     const processFailedRunner = new ProcessFailedTopicsTaskRunner(getStuck, filterReprocess, reprocess, logger);
 

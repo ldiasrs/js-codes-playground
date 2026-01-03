@@ -5,7 +5,7 @@ import { TaskProcess } from "../../TaskProcess";
 /**
  * Reprocess stuck tasks by setting them back to pending.
  */
-export class ReprocessStuckTasksProcessor {
+export class ReprocessStuckTasksService {
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
     private readonly logger: LoggerPort
