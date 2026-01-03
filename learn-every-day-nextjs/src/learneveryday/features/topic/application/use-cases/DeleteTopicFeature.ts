@@ -67,9 +67,6 @@ export class DeleteTopicFeature {
    * @throws DomainError if deletion fails
    */
   private async deleteTopic(topicId: string): Promise<void> {
-    const deleted = await this.topicRepository.delete(topicId);
-    if (!deleted) {
-      throw new DomainError(DomainError.TOPIC_DELETION_FAILED, `Failed to delete topic with ID ${topicId}`);
-    }
+    await this.topicRepository.delete(topicId);
   }
 } 
