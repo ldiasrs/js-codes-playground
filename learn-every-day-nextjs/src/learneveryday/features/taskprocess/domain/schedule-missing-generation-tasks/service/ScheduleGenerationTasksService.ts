@@ -76,6 +76,8 @@ export class ScheduleGenerationTasksService {
    * @returns TaskProcess The created task
    */
   private createGenerationTask(topic: Topic): TaskProcess {
+    const now = new Date();
+    const scheduledTo = new Date(now.getTime() + 1000);
     return new TaskProcess(
       topic.id,
       topic.customerId,
@@ -83,8 +85,9 @@ export class ScheduleGenerationTasksService {
       'pending',
       undefined,
       undefined,
+      scheduledTo,
       undefined,
-      undefined
+      now
     );
   }
 }
