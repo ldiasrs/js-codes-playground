@@ -225,6 +225,29 @@ export class SQLTopicRepository implements TopicRepositoryPort {
     return this.findByDateRange(monthStart.toDate(), monthEnd.toDate());
   }
 
+  async findTopicsWithoutGenerationTasks(hoursAgo: number = 48): Promise<Topic[]> {
+    const connection = await this.dbManager.getConnection('topics');
+    
+    const dateFrom = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+    
+    const sql = `
+      SELECT t.*
+      FROM topics t
+      WHERE t.date_created >= $1
+        AND t.closed = false
+        AND NOT EXISTS (
+          SELECT 1
+          FROM task_processes tp
+          WHERE tp.entity_id = t.id
+            AND tp.type = 'generate-topic-history'
+        )
+      ORDER BY t.date_created ASC
+    `;
+
+    const result = await connection.query(sql, [dateFrom.toISOString()]);
+    return result.rows.map(row => this.mapToTopic(row as unknown as TopicData));
+  }
+
   private mapToTopic(data: TopicData): Topic {
     return new Topic(
       data.customer_id,

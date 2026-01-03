@@ -6,6 +6,8 @@ import { ExecuteTopicHistoryGenerationTaskRunner } from "../../domain/generate-t
 import { ReProcessFailedTopicsTaskRunner } from "../../domain/process-failed-topics/ReProcessFailedTopicsTaskRunner";
 import { ScheduleTopicHistoryGenerationTaskRunner } from "../../domain/schedule-topic-history-generation/ScheduleTopicHistoryGenerationTaskRunner";
 import { SendTopicHistoryTaskRunner } from "../../domain/send-topic-history/SendTopicHistoryTaskRunner";
+import { CleanupOrphanTasksRunner } from "../../domain/cleanup-orphan-tasks/CleanupOrphanTasksRunner";
+import { ScheduleMissingGenerationTasksRunner } from "../../domain/schedule-missing-generation-tasks/ScheduleMissingGenerationTasksRunner";
 import { TaskProcessRepositoryPort } from "../../ports/TaskProcessRepositoryPort";
 
 export interface ProcessWorkFlowFeatureInput {
@@ -17,6 +19,8 @@ export class ProcessWorkFlowFeature {
 
   constructor(
     private readonly taskProcessRepository: TaskProcessRepositoryPort,
+    private readonly cleanupOrphanTasksRunner: CleanupOrphanTasksRunner,
+    private readonly scheduleMissingGenerationTasksRunner: ScheduleMissingGenerationTasksRunner,
     private readonly reProcessFailedTopicsTaskRunner: ReProcessFailedTopicsTaskRunner,
     private readonly closeTopicsTaskRunner: CloseTopicsTaskRunner,
     private readonly scheduleTopicHistoryGenerationTaskRunner: ScheduleTopicHistoryGenerationTaskRunner,
@@ -39,7 +43,23 @@ export class ProcessWorkFlowFeature {
 
     const executor = new TasksProcessExecutor(this.taskProcessRepository, this.logger);
     
-   
+    try {
+      await this.cleanupOrphanTasksRunner.execute();
+    } catch (error) {
+      this.logger.error(
+        'Failed to cleanup orphan tasks, continuing with workflow',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    }
+
+    try {
+      await this.scheduleMissingGenerationTasksRunner.execute();
+    } catch (error) {
+      this.logger.error(
+        'Failed to schedule missing generation tasks, continuing with workflow',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    }
 
     await executor.execute(
       {

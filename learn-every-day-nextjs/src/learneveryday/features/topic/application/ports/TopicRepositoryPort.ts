@@ -40,4 +40,11 @@ export interface TopicRepositoryPort {
    * @returns Promise<Topic[]> Array of topics that need new histories
    */
   findTopicsWithOldestHistories(limit?: number, hoursSinceLastUpdate?: number): Promise<Topic[]>;
+
+  /**
+   * Finds topics created in the last 48h that don't have GENERATE_TOPIC_HISTORY tasks and aren't closed.
+   * @param hoursAgo Number of hours to look back (default: 48)
+   * @returns Promise<Topic[]> Array of eligible topics
+   */
+  findTopicsWithoutGenerationTasks(hoursAgo?: number): Promise<Topic[]>;
 } 

@@ -1,7 +1,7 @@
+import { LoggerPort } from '@/learneveryday/shared';
+import { TaskProcessRepositoryPort } from '../../ports/TaskProcessRepositoryPort';
 import { TaskProcessType } from './TaskProcess';
-import { TaskProcessRepositoryPort } from '../ports/TaskProcessRepositoryPort';
 import { TaskProcessRunner } from './TaskProcessRunner';
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
 
 export interface TasksProcessExecutorData {
   processType: TaskProcessType;

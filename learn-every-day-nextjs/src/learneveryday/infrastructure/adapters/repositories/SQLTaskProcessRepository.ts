@@ -351,6 +351,39 @@ export class SQLTaskProcessRepository implements TaskProcessRepositoryPort {
     return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
   }
 
+  async findTasksBatch(limit: number, offset: number): Promise<TaskProcess[]> {
+    const connection = await this.dbManager.getConnection('task_processes');
+    
+    const result = await connection.query(
+      'SELECT * FROM task_processes ORDER BY created_at ASC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
+
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
+  }
+
+  async findOrphanTasks(): Promise<TaskProcess[]> {
+    const connection = await this.dbManager.getConnection('task_processes');
+    
+    const sql = `
+      SELECT tp.*
+      FROM task_processes tp
+      WHERE (
+        -- Tasks that reference topics but topic doesn't exist
+        (tp.type IN ('generate-topic-history', 'close-topic', 'regenerate-topics-histories')
+         AND NOT EXISTS (SELECT 1 FROM topics t WHERE t.id = tp.entity_id))
+        OR
+        -- Tasks that reference topic histories but history doesn't exist
+        (tp.type = 'send-topic-history'
+         AND NOT EXISTS (SELECT 1 FROM topic_histories th WHERE th.id = tp.entity_id))
+      )
+      ORDER BY tp.created_at ASC
+    `;
+
+    const result = await connection.query(sql, []);
+    return result.rows.map(row => this.mapToTaskProcess(row as unknown as TaskProcessData));
+  }
+
   private mapToTaskProcess(data: TaskProcessData): TaskProcess {
     return new TaskProcess(
       data.entity_id,

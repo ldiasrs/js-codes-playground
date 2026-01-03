@@ -4,7 +4,7 @@ import { LoggerPort } from "@/learneveryday/shared";
 import { TaskProcess } from "../../api/TaskProcess";
 
 /**
- * Schedules PROCESS_FAILED_TOPICS tasks when needed.
+ * Schedules REPROCESS_FAILED_TOPICS tasks when needed.
  */
 export class ProcessFailedTopicsTaskScheduler {
   constructor(
@@ -27,7 +27,7 @@ export class ProcessFailedTopicsTaskScheduler {
   private async hasPendingProcessFailedTopicTask(customerId: string): Promise<boolean> {
     const existingTasks = await this.taskProcessRepository.searchProcessedTasks({
       customerId,
-      type: TaskProcess.PROCESS_FAILED_TOPICS,
+      type: TaskProcess.REPROCESS_FAILED_TOPICS,
       status: 'pending'
     });
     return existingTasks.length > 0;
@@ -41,7 +41,7 @@ export class ProcessFailedTopicsTaskScheduler {
       topicId: topic.id,
       customerId: topic.customerId,
       scheduledTime: scheduledTime.toISOString(),
-      taskType: TaskProcess.PROCESS_FAILED_TOPICS
+      taskType: TaskProcess.REPROCESS_FAILED_TOPICS
     });
   }
 
@@ -49,7 +49,7 @@ export class ProcessFailedTopicsTaskScheduler {
     return new TaskProcess(
       topic.id,
       topic.customerId,
-      TaskProcess.PROCESS_FAILED_TOPICS,
+      TaskProcess.REPROCESS_FAILED_TOPICS,
       'pending',
       undefined,
       undefined,

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type TaskProcessType = typeof TaskProcess.GENERATE_TOPIC_HISTORY | typeof TaskProcess.SEND_TOPIC_HISTORY | typeof TaskProcess.REGENERATE_TOPICS_HISTORIES | typeof TaskProcess.CLOSE_TOPIC | typeof TaskProcess.PROCESS_FAILED_TOPICS;
+export type TaskProcessType = typeof TaskProcess.GENERATE_TOPIC_HISTORY | typeof TaskProcess.SEND_TOPIC_HISTORY | typeof TaskProcess.REGENERATE_TOPICS_HISTORIES | typeof TaskProcess.CLOSE_TOPIC | typeof TaskProcess.REPROCESS_FAILED_TOPICS;
 
 export type TaskProcessStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
@@ -21,7 +21,6 @@ export class TaskProcess {
   public readonly scheduledTo?: Date;
   public readonly processAt?: Date;
   public readonly createdAt: Date;
-  static PROCESS_FAILED_TOPICS: any;
 
   constructor(
     entityId: string,

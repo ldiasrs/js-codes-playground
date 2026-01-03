@@ -1,4 +1,4 @@
-import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../domain/TaskProcess';
+import { TaskProcess, TaskProcessType, TaskProcessStatus } from '../domain/api/TaskProcess';
 
 export interface TaskProcessSearchCriteria {
   entityId?: string;
@@ -37,4 +37,6 @@ export interface TaskProcessRepositoryPort {
   getTasksCreatedThisMonth(): Promise<TaskProcess[]>;
   getTasksScheduledForDate(date: Date): Promise<TaskProcess[]>;
   getTasksScheduledForDateRange(dateFrom: Date, dateTo: Date): Promise<TaskProcess[]>;
+  findTasksBatch(limit: number, offset: number): Promise<TaskProcess[]>;
+  findOrphanTasks(): Promise<TaskProcess[]>;
 } 

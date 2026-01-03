@@ -1,8 +1,8 @@
-import { LoggerPort } from '../../../shared/ports/LoggerPort';
-import { Topic } from '../../topic/domain/Topic';
-import { TopicRepositoryPort } from '../../topic/application/ports/TopicRepositoryPort';
-import { TopicHistoryRepositoryPort } from '../../topic-histoy/application/ports/TopicHistoryRepositoryPort';
-import { CloseTopicFeature } from '../../topic/application/use-cases/CloseTopicFeature';
+import { TopicHistoryRepositoryPort } from "@/learneveryday/features/topic-histoy/application/ports/TopicHistoryRepositoryPort";
+import { TopicRepositoryPort } from "@/learneveryday/features/topic/application/ports/TopicRepositoryPort";
+import { CloseTopicFeature } from "@/learneveryday/features/topic/application/use-cases/CloseTopicFeature";
+import { Topic } from "@/learneveryday/features/topic/domain/Topic";
+import { LoggerPort } from "@/learneveryday/shared";
 
 const MAX_HISTORIES_BEFORE_CLOSE = 4 as const;
 

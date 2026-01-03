@@ -66,6 +66,12 @@ import { ReprocessStuckTasksService } from '@/learneveryday/features/taskprocess
 import { CheckAndCloseTopicsWithManyHistoriesService } from '@/learneveryday/features/taskprocess/domain/close-topics/service/CheckAndCloseTopicsWithManyHistoriesService';
 import { RemoveTasksFromClosedTopicsService } from '@/learneveryday/features/taskprocess/domain/close-topics/service/RemoveTasksFromClosedTopicsService';
 import { TasksProcessExecutor } from '@/learneveryday/features/taskprocess/domain/api/TasksProcessExecutor';
+import { FindOrphanTasksService } from '@/learneveryday/features/taskprocess/domain/cleanup-orphan-tasks/service/FindOrphanTasksService';
+import { DeleteOrphanTasksService } from '@/learneveryday/features/taskprocess/domain/cleanup-orphan-tasks/service/DeleteOrphanTasksService';
+import { CleanupOrphanTasksRunner } from '@/learneveryday/features/taskprocess/domain/cleanup-orphan-tasks/CleanupOrphanTasksRunner';
+import { FindTopicsWithoutTasksService } from '@/learneveryday/features/taskprocess/domain/schedule-missing-generation-tasks/service/FindTopicsWithoutTasksService';
+import { ScheduleGenerationTasksService } from '@/learneveryday/features/taskprocess/domain/schedule-missing-generation-tasks/service/ScheduleGenerationTasksService';
+import { ScheduleMissingGenerationTasksRunner } from '@/learneveryday/features/taskprocess/domain/schedule-missing-generation-tasks/ScheduleMissingGenerationTasksRunner';
 
 export interface Container {
   get<T>(token: string): T;
@@ -179,11 +185,6 @@ export class NextJSContainer implements Container {
       this.get('TokenGenerationService'),
       LoggerFactory.createLoggerForClass('AuthenticationVerificationService')
     ));
-    this.registerSingleton('TopicHistoryTaskScheduler', () => new TopicHistoryTaskSchedulerService(
-      this.get('TaskProcessRepository'),
-      LoggerFactory.createLoggerForClass('TopicHistoryTaskScheduler')
-    ));
-
 
     this.registerSingleton('CustomerDeletionSaga', () => new CustomerDeletionSaga(
       this.get('CustomerRepository'),
@@ -247,9 +248,40 @@ export class NextJSContainer implements Container {
       LoggerFactory.createLoggerForClass('GenerateAndSaveTopicHistoryFeature')
     ));
 
+    // Cleanup orphan tasks services
+    this.registerSingleton('FindOrphanTasksService', () => new FindOrphanTasksService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('FindOrphanTasksService')
+    ));
+    this.registerSingleton('DeleteOrphanTasksService', () => new DeleteOrphanTasksService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('DeleteOrphanTasksService')
+    ));
+    this.registerSingleton('CleanupOrphanTasksRunner', () => new CleanupOrphanTasksRunner(
+      this.get('FindOrphanTasksService'),
+      this.get('DeleteOrphanTasksService'),
+      LoggerFactory.createLoggerForClass('CleanupOrphanTasksRunner')
+    ));
+
+    // Schedule missing generation tasks services
+    this.registerSingleton('FindTopicsWithoutTasksService', () => new FindTopicsWithoutTasksService(
+      this.get('TopicRepository'),
+      LoggerFactory.createLoggerForClass('FindTopicsWithoutTasksService')
+    ));
+    this.registerSingleton('ScheduleGenerationTasksService', () => new ScheduleGenerationTasksService(
+      this.get('TaskProcessRepository'),
+      LoggerFactory.createLoggerForClass('ScheduleGenerationTasksService')
+    ));
+    this.registerSingleton('ScheduleMissingGenerationTasksRunner', () => new ScheduleMissingGenerationTasksRunner(
+      this.get('FindTopicsWithoutTasksService'),
+      this.get('ScheduleGenerationTasksService'),
+      LoggerFactory.createLoggerForClass('ScheduleMissingGenerationTasksRunner')
+    ));
 
     this.registerSingleton('ProcessTopicHistoryWorkflowFeature', () => new ProcessWorkFlowFeature(
       this.get('TaskProcessRepository'),
+      this.get('CleanupOrphanTasksRunner'),
+      this.get('ScheduleMissingGenerationTasksRunner'),
       this.get('ProcessFailedTopicsTaskRunner'),
       this.get('CloseTopicsTaskRunner'),
       this.get('ScheduleTopicHistoryGeneration'),

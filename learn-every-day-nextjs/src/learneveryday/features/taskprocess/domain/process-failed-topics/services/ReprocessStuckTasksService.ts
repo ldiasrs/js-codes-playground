@@ -1,6 +1,6 @@
 import { LoggerPort } from "../../../../../shared/ports/LoggerPort";
 import { TaskProcessRepositoryPort } from "../../../ports/TaskProcessRepositoryPort";
-import { TaskProcess } from "../../TaskProcess";
+import { TaskProcess } from "../../api/TaskProcess";
 
 /**
  * Reprocess stuck tasks by setting them back to pending.
