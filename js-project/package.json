@@ -2,6 +2,7 @@
   "name": "js-codes-playground",
   "version": "1.0.0",
   "scripts": {
+    "despesas": "rm -f despesas.log && node --experimental-modules src/despesas-analisador/despesas-analisar.js",
     "user": "node --experimental-modules src/user-test.js",
     "pdf": "node --experimental-modules src/pdf-reader.js",
     "dollar": "node --experimental-modules src/dollar-api/consult-dollar-api.js",

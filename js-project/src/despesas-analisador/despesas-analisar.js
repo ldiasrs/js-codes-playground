@@ -2,56 +2,140 @@ import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 
-// Função para converter o valor do campo "Valor" para número.
-// Remove o "R$" e substitui a vírgula por ponto.
+const CONFIG = {
+  folderPath: "data/faturas",
+  csvSeparator: ",",
+  topEntriesPerCategory: 5,
+  categoriaPorTexto: [
+    {
+      categoria: "COMPRAS",
+      textos: [
+        "SHOPPING INTER",
+        "MERCADOLIVRE",
+        "LOJATABA",
+        "CENTAURO",
+        "CENTAURO",
+        "AMAZON MARKETPLACE",
+        "AMAZON BR",
+        "GIFT CARD",
+        "MORRODESAUDADE2",
+      ],
+    },
+    { categoria: "CARRO", 
+      textos: [
+        "ABAST SHELL",
+         "COMBUSTIV",
+        "SPONCHIADO",
+        "abastec",
+        "ABASTEC",
+        "POSTO",
+        "SEGUROS",
+        "ABAST",
+        "BUFFON",
+        "REDE FARROUPILHA"] 
+    },
+    { categoria: "SUPERMERCADO", textos: ["CESTTO"] },
+    { categoria: "REFEICOES", textos: ["ERMINDOHENRIQUEGE", "Dm2CervejariaLtda"] },
+    { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK"] },
+  ],
+  mapeamentoCategoria: {
+    VESTUARIO: "COMPRAS",
+    HOSPEDAGEM: "VIAGEM",
+    ENTRETENIMENTO: "COMPRAS",
+    CONSTRUCAO: "COMPRAS",
+    CULTURA: "COMPRAS",
+    SERVICOS: "REFEICOES",
+    BARES: "REFEICOES",
+    RESTAURANTES: "REFEICOES",
+    ENSINO: "COMPRAS",
+    LIVRARIAS: "COMPRAS",
+    SAUDE: "DROGARIA",
+    ESPORTES: "COMPRAS",
+    PAGAMENTOS: "COMPRAS"
+  },
+};
+
 function parseValor(valorStr) {
-  return parseFloat(valorStr.replace("R$", "").trim().replace(",", "."));
+  try {
+    if (!valorStr) {
+      return 0;
+    }
+    const parsed = parseFloat(
+      valorStr.replace("R$", "").trim().replace(",", ".")
+    );
+    return Number.isNaN(parsed) ? 0 : parsed;
+  } catch (error) {
+    return 0;
+  }
 }
 
-// Função que processa um arquivo CSV e retorna uma Promise com os dados agrupados.
+function normalizarTexto(texto) {
+  return texto ? texto.toUpperCase() : "";
+}
+
+function mapearCategoriaPorTexto(lancamento) {
+  const lancamentoUpper = normalizarTexto(lancamento);
+  for (const regra of CONFIG.categoriaPorTexto) {
+    if (
+      regra.textos.some((texto) =>
+        lancamentoUpper.includes(normalizarTexto(texto))
+      )
+    ) {
+      return regra.categoria;
+    }
+  }
+  return null;
+}
+
+function mapearCategoria(categoriaOriginal, lancamento) {
+  const categoriaPorTexto = mapearCategoriaPorTexto(lancamento);
+  const categoriaInicial = categoriaPorTexto ?? categoriaOriginal;
+  if (!categoriaInicial) {
+    return "OUTROS";
+  }
+  const categoriaNormalizada = categoriaInicial.trim().toUpperCase();
+  return CONFIG.mapeamentoCategoria[categoriaNormalizada] ?? categoriaInicial;
+}
+
+function prepararHeader({ header }) {
+  return header.replaceAll('"', "").replace("\ufeff", "").trim();
+}
+
+function ordenarESelecionarTop(entries) {
+  return entries
+    .sort((a, b) => b.numericValue - a.numericValue)
+    .slice(0, CONFIG.topEntriesPerCategory);
+}
+
 function processCSV(filePath) {
   return new Promise((resolve, reject) => {
     const dataByCategory = {};
     fs.createReadStream(filePath)
       .pipe(
         csv({
-          separator: ",",
-          // Remove BOM e espaços em branco dos cabeçalhos
-          mapHeaders: ({ header }) =>
-            header.replaceAll('"', "").replace("\ufeff", "").trim(),
+          separator: CONFIG.csvSeparator,
+          mapHeaders: prepararHeader,
         })
       )
       .on("data", (row) => {
-        // Redefine a categoria baseado no nome do lançamento:
-        let categoria = row["Categoria"];
-        const lancamento = row["Lançamento"];
-        if (lancamento && lancamento.toUpperCase().includes("ABAST SHELL")) {
-          categoria = "TRANSPORTE";
-        }
-        // Atualiza o campo "Categoria" no objeto row (opcional)
+        const categoria = mapearCategoria(row["Categoria"], row["Lançamento"]);
         row["Categoria"] = categoria;
 
         const valor = parseValor(row["Valor"]);
-
         if (!dataByCategory[categoria]) {
           dataByCategory[categoria] = { total: 0, entries: [] };
         }
         dataByCategory[categoria].total += valor;
-        // Armazena a linha com o valor numérico para facilitar a ordenação.
         dataByCategory[categoria].entries.push({
           ...row,
           numericValue: valor,
         });
       })
       .on("end", () => {
-        // Para cada categoria, ordena as entradas de forma decrescente e seleciona as 5 com maior valor.
         for (const categoria in dataByCategory) {
-          dataByCategory[categoria].entries.sort(
-            (a, b) => b.numericValue - a.numericValue
+          dataByCategory[categoria].top5 = ordenarESelecionarTop(
+            dataByCategory[categoria].entries
           );
-          dataByCategory[categoria].top5 = dataByCategory[
-            categoria
-          ].entries.slice(0, 5);
         }
         resolve({ filePath, dataByCategory });
       })
@@ -59,95 +143,91 @@ function processCSV(filePath) {
   });
 }
 
-// Caminho da pasta que contém os arquivos CSV.
-const folderPath = "data/faturas"; // Substitua pelo caminho da sua pasta
+function lerCsvsDoDiretorio(folderPath) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(folderPath, (err, files) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      const csvFiles = files
+        .filter((file) => path.extname(file).toLowerCase() === ".csv")
+        .map((file) => path.join(folderPath, file));
+      resolve(csvFiles);
+    });
+  });
+}
 
-// Lê o diretório e filtra apenas os arquivos CSV.
-fs.readdir(folderPath, (err, files) => {
-  if (err) {
-    return console.error("Erro ao ler o diretório:", err);
+function filtrarCategorias(sortedCategories) {
+  const filtroCategorias = process.env.FILTRO_CATEGORIA;
+  if (!filtroCategorias || filtroCategorias.length === 0) {
+    return sortedCategories;
   }
+  return sortedCategories.filter(([categoria]) =>
+    filtroCategorias.includes(categoria)
+  );
+}
 
-  const csvFiles = files
-    .filter((file) => path.extname(file).toLowerCase() === ".csv")
-    .map((file) => path.join(folderPath, file));
-
-  if (csvFiles.length === 0) {
-    return console.log("Nenhum arquivo CSV encontrado na pasta.");
-  }
-
-  // Processa todos os arquivos CSV encontrados na pasta.
-  Promise.all(csvFiles.map(processCSV))
-    .then((results) => {
-      // Exibe os relatórios individuais para cada arquivo.
-      results.forEach((result) => {
-        console.log(`\nRelatório para o arquivo: ${result.filePath}`);
-        // Ordena as categorias por total gasto, do maior para o menor.
-        const sortedCategories = Object.entries(result.dataByCategory).sort(
-          ([, a], [, b]) => b.total - a.total
-        );
-        const filtroCategorias = process.env.FILTRO_CATEGORIA;
-        // ?? [
-        //   "SUPERMERCADO",
-        //   "VESTUARIO",
-        //   "COMPRAS",
-        //   "ENTRETENIMENTO",
-        //   "CULTURA",
-        //   "CONSTRUCAO",
-        //   "SERVICOS",
-        // ];
-        sortedCategories
-          .filter(([categoria]) =>
-            filtroCategorias && filtroCategorias.length > 0
-              ? filtroCategorias.includes(categoria)
-              : true
-          )
-          .forEach(([categoria, info]) => {
-            console.log(`\nCategoria: ${categoria}`);
-            console.log(`Total gasto: R$ ${info.total.toFixed(2)}`);
-            console.log("Top 5 entradas com maior valor:");
-            info.top5.forEach((entry) => {
-              console.log(
-                `  Data: ${entry.Data} | Lançamento: ${
-                  entry["Lançamento"]
-                } | Valor: R$ ${entry.numericValue.toFixed(2)}`
-              );
-            });
-          });
-        console.log("\n============================");
-      });
-
-      // Agrega os totais de cada categoria considerando TODOS os arquivos.
-      const numFiles = results.length;
-      const overallData = {};
-      results.forEach((result) => {
-        const dataByCategory = result.dataByCategory;
-        // Para cada categoria presente no arquivo, acumula o total.
-        for (const categoria in dataByCategory) {
-          if (!overallData[categoria]) {
-            overallData[categoria] = 0;
-          }
-          overallData[categoria] += dataByCategory[categoria].total;
-        }
-      });
-
-      // Calcula a média para cada categoria dividindo pelo número de arquivos processados
-      // e ordena em ordem decrescente da média.
-      const averages = Object.entries(overallData)
-        .map(([categoria, total]) => ({
-          categoria,
-          average: total / numFiles,
-        }))
-        .sort((a, b) => b.average - a.average);
-
+function imprimirRelatorioIndividual(result) {
+  console.log(`\nRelatório para o arquivo: ${result.filePath}`);
+  const sortedCategories = Object.entries(result.dataByCategory).sort(
+    ([, a], [, b]) => b.total - a.total
+  );
+  filtrarCategorias(sortedCategories).forEach(([categoria, info]) => {
+    console.log(`\nCategoria: ${categoria}`);
+    console.log(`Total gasto: R$ ${info.total.toFixed(2)}`);
+    console.log("Top 5 entradas com maior valor:");
+    info.top5.forEach((entry) => {
       console.log(
-        "\nMédia dos valores das categorias (todos os arquivos, em ordem decrescente):"
+        `  Data: ${entry.Data} | Lançamento: ${entry["Lançamento"]} | Valor: R$ ${entry.numericValue.toFixed(2)}`
       );
-      averages.forEach(({ categoria, average }) => {
-        console.log(
-          `  Categoria: ${categoria} | Média: R$ ${average.toFixed(2)}`
-        );
+    });
+  });
+  console.log("\n============================");
+}
+
+function calcularMedias(results) {
+  const numFiles = results.length;
+  const overallData = {};
+  results.forEach((result) => {
+    const dataByCategory = result.dataByCategory;
+    for (const categoria in dataByCategory) {
+      if (!overallData[categoria]) {
+        overallData[categoria] = 0;
+      }
+      overallData[categoria] += dataByCategory[categoria].total;
+    }
+  });
+  return Object.entries(overallData)
+    .map(([categoria, total]) => ({
+      categoria,
+      average: total / numFiles,
+    }))
+    .sort((a, b) => b.average - a.average);
+}
+
+function imprimirMedias(averages) {
+  console.log(
+    "\nMédia dos valores das categorias (todos os arquivos, em ordem decrescente):"
+  );
+  averages.forEach(({ categoria, average }) => {
+    console.log(`  Categoria: ${categoria} | Média: R$ ${average.toFixed(2)}`);
+  });
+}
+
+function executar() {
+  lerCsvsDoDiretorio(CONFIG.folderPath)
+    .then((csvFiles) => {
+      if (csvFiles.length === 0) {
+        console.log("Nenhum arquivo CSV encontrado na pasta.");
+        return;
+      }
+      return Promise.all(csvFiles.map(processCSV)).then((results) => {
+        results.forEach(imprimirRelatorioIndividual);
+        imprimirMedias(calcularMedias(results));
       });
     })
     .catch((err) => console.error("Erro ao processar CSV:", err));
-});
+}
+
+executar();
