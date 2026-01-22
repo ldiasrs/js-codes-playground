@@ -31,7 +31,7 @@ export class StubbedAIPromptExecutor implements AIPromptExecutorPort {
   }
 
   private generateMockContent(prompt: string): string {
-    return `promptPreview:${prompt} Timestamp:${new Date()}`;
+    return `prompt Timestamp:${new Date()}`;
   }
 }
 

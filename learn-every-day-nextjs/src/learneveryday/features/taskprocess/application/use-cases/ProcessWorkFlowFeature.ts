@@ -81,14 +81,14 @@ export class ProcessWorkFlowFeature {
     );
 
 
-    await executor.execute(
-      {
-        processType: TaskProcess.REGENERATE_TOPICS_HISTORIES,
-        limit,
-        maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
-      },
-      this.scheduleTopicHistoryGenerationTaskRunner
-    );
+    // await executor.execute(
+    //   {
+    //     processType: TaskProcess.REGENERATE_TOPICS_HISTORIES,
+    //     limit,
+    //     maxExecutionTimeMs: maxExecutionTimeMs - (Date.now() - startTime)
+    //   },
+    //   this.scheduleTopicHistoryGenerationTaskRunner
+    // );
 
     await executor.execute(
       {
