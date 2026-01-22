@@ -35,8 +35,10 @@ const CONFIG = {
         "REDE FARROUPILHA"] 
     },
     { categoria: "SUPERMERCADO", textos: ["CESTTO"] },
-    { categoria: "REFEICOES", textos: ["ERMINDOHENRIQUEGE", "Dm2CervejariaLtda"] },
-    { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK"] },
+    { categoria: "VIAGEM", textos: ["Booking"] },
+    { categoria: "WINE", textos: ["WINE"] },
+    { categoria: "REFEICOES", textos: ["ERMINDOHENRIQUEGE", "Dm2CervejariaLtda", "COMIDA", "EskimoLojaDe"] },
+    { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK", "UNIFIQUE"] },
   ],
   mapeamentoCategoria: {
     VESTUARIO: "COMPRAS",
