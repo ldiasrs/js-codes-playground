@@ -2,10 +2,16 @@ import CryptoJS from 'crypto-js';
 import dotenv from 'dotenv';
 dotenv.config()
   
-const mySensitiveValue = "U2FsdGVkX1/F1LeSoRA/B9sM2zDpV6XmAtqnSkED7WE="
+const sensitiveValue = process.argv[2];
+if (!sensitiveValue) {
+  console.error('Sensitive value is required');
+  process.exit(1);
+}
 
-// const encrypt = CryptoJS.AES.encrypt(mySensitiveValue, process.env.DECRIPT_KEY)
-// console.log(`encrypt: ${encrypt}`)
+if (!process.env.DECRIPT_KEY) {
+  console.error('DECRIPT_KEY is required');
+  process.exit(1);
+}
 
-const decrypt = CryptoJS.AES.decrypt(mySensitiveValue, process.env.DECRIPT_KEY).toString(CryptoJS.enc.Utf8)
+const decrypt = CryptoJS.AES.decrypt(sensitiveValue, process.env.DECRIPT_KEY).toString(CryptoJS.enc.Utf8)
 console.log(`decrypt: ${decrypt}`)
