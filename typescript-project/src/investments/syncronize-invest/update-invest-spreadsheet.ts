@@ -31,9 +31,10 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
       );
       process.exit(1);
     }
+    const googleKey = config.update_invest_spread_sheet.google_json_key;
     const jwt = new JWT({
-      email: config.update_invest_spread_sheet.client_email,
-      key: config.update_invest_spread_sheet.private_key,
+      email: googleKey.client_email,
+      key: googleKey.private_key,
       scopes: SCOPES,
     });
     debug("ATENTION: Remeber to update base tab...");

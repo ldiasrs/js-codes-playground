@@ -2,7 +2,20 @@ import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 
-const CONFIG = {
+interface CategoriaPorTextoRule {
+  categoria: string;
+  textos: string[];
+}
+
+interface DespesasConfig {
+  folderPath: string;
+  csvSeparator: string;
+  topEntriesPerCategory: number;
+  categoriaPorTexto: CategoriaPorTextoRule[];
+  mapeamentoCategoria: Record<string, string>;
+}
+
+const CONFIG: DespesasConfig = {
   folderPath: "data/faturas",
   csvSeparator: ",",
   topEntriesPerCategory: 5,
@@ -10,21 +23,56 @@ const CONFIG = {
     {
       categoria: "COMPRAS",
       textos: [
-        "SHOPPING INTER",
-        "MERCADOLIVRE",
         "LOJATABA",
-        "CENTAURO",
-        "CENTAURO",
-        "AMAZON MARKETPLACE",
-        "AMAZON BR",
-        "GIFT CARD",
         "MORRODESAUDADE2",
       ],
     },
-    { categoria: "CARRO", 
+    {
+      categoria: "COMPRAS-MERCADOLIVRE",
       textos: [
+        "MERCADOLIVRE",
+        "MERCADOPAGO",
+      ],
+    },
+    {
+      categoria: "COMPRAS-DECATHLON",
+      textos: [
+        "DECATHLON",
+      ],
+    },
+    {
+      categoria: "COMPRAS-AMAZON",
+      textos: [
+        "AMAZON MARKETPLACE",
+        "AMAZONMKTPLC",
+        "AMAZON BR",
+      ],
+    },
+    {
+      categoria: "COMPRAS-STEAM",
+      textos: [
+        "STEAM"
+      ],
+    },
+    {
+      categoria: "COMPRAS-CENTAURO",
+      textos: [
+        "CENTAURO"
+      ],
+    },
+    {
+      categoria: "COMPRAS-SHOPPING-INTER",
+      textos: [
+        "SHOPPING INTER",
+      ],
+    },
+    {
+      categoria: "CARRO",
+      textos: [
+        "GIFT CARD",
+        "GIFT CARD PARCELAMENTO",
         "ABAST SHELL",
-         "COMBUSTIV",
+        "COMBUSTIV",
         "SPONCHIADO",
         "abastec",
         "ABASTEC",
@@ -32,12 +80,13 @@ const CONFIG = {
         "SEGUROS",
         "ABAST",
         "BUFFON",
-        "REDE FARROUPILHA"] 
+        "REDE FARROUPILHA"
+      ],
     },
-    { categoria: "SUPERMERCADO", textos: ["CESTTO"] },
+    { categoria: "SUPERMERCADO", textos: ["CESTTO", "RISSUL"] },
     { categoria: "VIAGEM", textos: ["Booking"] },
     { categoria: "WINE", textos: ["WINE"] },
-    { categoria: "REFEICOES", textos: ["ERMINDOHENRIQUEGE", "Dm2CervejariaLtda", "COMIDA", "EskimoLojaDe"] },
+    { categoria: "REFEICOES", textos: ["Restaurante", "ERMINDOHENRIQUEGE", "Dm2CervejariaLtda", "COMIDA", "EskimoLojaDe"] },
     { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK", "UNIFIQUE"] },
   ],
   mapeamentoCategoria: {
@@ -57,7 +106,7 @@ const CONFIG = {
   },
 };
 
-function parseValor(valorStr) {
+function parseValor(valorStr: string | undefined): number {
   try {
     if (!valorStr) {
       return 0;
@@ -66,16 +115,16 @@ function parseValor(valorStr) {
       valorStr.replace("R$", "").trim().replace(",", ".")
     );
     return Number.isNaN(parsed) ? 0 : parsed;
-  } catch (error) {
+  } catch {
     return 0;
   }
 }
 
-function normalizarTexto(texto) {
+function normalizarTexto(texto: string | undefined): string {
   return texto ? texto.toUpperCase() : "";
 }
 
-function mapearCategoriaPorTexto(lancamento) {
+function mapearCategoriaPorTexto(lancamento: string): string | null {
   const lancamentoUpper = normalizarTexto(lancamento);
   for (const regra of CONFIG.categoriaPorTexto) {
     if (
@@ -89,7 +138,7 @@ function mapearCategoriaPorTexto(lancamento) {
   return null;
 }
 
-function mapearCategoria(categoriaOriginal, lancamento) {
+function mapearCategoria(categoriaOriginal: string | undefined, lancamento: string): string {
   const categoriaPorTexto = mapearCategoriaPorTexto(lancamento);
   const categoriaInicial = categoriaPorTexto ?? categoriaOriginal;
   if (!categoriaInicial) {
@@ -99,19 +148,38 @@ function mapearCategoria(categoriaOriginal, lancamento) {
   return CONFIG.mapeamentoCategoria[categoriaNormalizada] ?? categoriaInicial;
 }
 
-function prepararHeader({ header }) {
+function prepararHeader({ header }: { header: string }): string {
   return header.replaceAll('"', "").replace("\ufeff", "").trim();
 }
 
-function ordenarESelecionarTop(entries) {
+interface CsvRow {
+  [key: string]: string;
+}
+
+interface CategoryEntry extends Record<string, string | number> {
+  numericValue: number;
+}
+
+interface CategoryInfo {
+  total: number;
+  entries: CategoryEntry[];
+  top5: CategoryEntry[];
+}
+
+interface ProcessCsvResult {
+  filePath: string;
+  dataByCategory: Record<string, CategoryInfo>;
+}
+
+function ordenarESelecionarTop(entries: CategoryEntry[]): CategoryEntry[] {
   return entries
     .sort((a, b) => b.numericValue - a.numericValue)
     .slice(0, CONFIG.topEntriesPerCategory);
 }
 
-function processCSV(filePath) {
+function processCSV(filePath: string): Promise<ProcessCsvResult> {
   return new Promise((resolve, reject) => {
-    const dataByCategory = {};
+    const dataByCategory: Record<string, Omit<CategoryInfo, "top5"> & { top5?: CategoryEntry[] }> = {};
     fs.createReadStream(filePath)
       .pipe(
         csv({
@@ -119,7 +187,7 @@ function processCSV(filePath) {
           mapHeaders: prepararHeader,
         })
       )
-      .on("data", (row) => {
+      .on("data", (row: CsvRow) => {
         const categoria = mapearCategoria(row["Categoria"], row["Lançamento"]);
         row["Categoria"] = categoria;
 
@@ -139,13 +207,13 @@ function processCSV(filePath) {
             dataByCategory[categoria].entries
           );
         }
-        resolve({ filePath, dataByCategory });
+        resolve({ filePath, dataByCategory: dataByCategory as Record<string, CategoryInfo> });
       })
-      .on("error", (error) => reject(error));
+      .on("error", (error: Error) => reject(error));
   });
 }
 
-function lerCsvsDoDiretorio(folderPath) {
+function lerCsvsDoDiretorio(folderPath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     fs.readdir(folderPath, (err, files) => {
       if (err) {
@@ -160,7 +228,9 @@ function lerCsvsDoDiretorio(folderPath) {
   });
 }
 
-function filtrarCategorias(sortedCategories) {
+function filtrarCategorias(
+  sortedCategories: [string, CategoryInfo][]
+): [string, CategoryInfo][] {
   const filtroCategorias = process.env.FILTRO_CATEGORIA;
   if (!filtroCategorias || filtroCategorias.length === 0) {
     return sortedCategories;
@@ -170,7 +240,7 @@ function filtrarCategorias(sortedCategories) {
   );
 }
 
-function imprimirRelatorioIndividual(result) {
+function imprimirRelatorioIndividual(result: ProcessCsvResult): void {
   console.log(`\nRelatório para o arquivo: ${result.filePath}`);
   const sortedCategories = Object.entries(result.dataByCategory).sort(
     ([, a], [, b]) => b.total - a.total
@@ -188,9 +258,14 @@ function imprimirRelatorioIndividual(result) {
   console.log("\n============================");
 }
 
-function calcularMedias(results) {
+interface CategoryAverage {
+  categoria: string;
+  average: number;
+}
+
+function calcularMedias(results: ProcessCsvResult[]): CategoryAverage[] {
   const numFiles = results.length;
-  const overallData = {};
+  const overallData: Record<string, number> = {};
   results.forEach((result) => {
     const dataByCategory = result.dataByCategory;
     for (const categoria in dataByCategory) {
@@ -208,7 +283,7 @@ function calcularMedias(results) {
     .sort((a, b) => b.average - a.average);
 }
 
-function imprimirMedias(averages) {
+function imprimirMedias(averages: CategoryAverage[]): void {
   console.log(
     "\nMédia dos valores das categorias (todos os arquivos, em ordem decrescente):"
   );
@@ -217,7 +292,7 @@ function imprimirMedias(averages) {
   });
 }
 
-function executar() {
+function executar(): void {
   lerCsvsDoDiretorio(CONFIG.folderPath)
     .then((csvFiles) => {
       if (csvFiles.length === 0) {
@@ -229,7 +304,7 @@ function executar() {
         imprimirMedias(calcularMedias(results));
       });
     })
-    .catch((err) => console.error("Erro ao processar CSV:", err));
+    .catch((err: unknown) => console.error("Erro ao processar CSV:", err));
 }
 
 executar();

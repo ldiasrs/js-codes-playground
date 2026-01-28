@@ -11,7 +11,8 @@
     "start": "node dist/index.js",
     "dev": "nodemon --exec \"ts-node --project tsconfig.node.json\" src/index.ts",
     "clean": "rm -rf dist",
-    "update-spreadsheet": "npx ts-node --project tsconfig.node.json src/investments/syncronize-invest/update-invest-spreadsheet.ts"
+    "update-spreadsheet": "npx ts-node --project tsconfig.node.json src/investments/syncronize-invest/update-invest-spreadsheet.ts",
+    "despesas-analisar": "npx ts-node --project tsconfig.node.json src/despesas-analisador/despesas-analisar.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "csv-parser": "^3.2.0",
     "@types/commander": "^2.12.0",
     "@types/dinero.js": "^1.9.4",
     "@types/moment": "^2.11.29",
