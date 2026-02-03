@@ -24,7 +24,7 @@ export const updateInvestSpreadSheet = async (): Promise<void> => {
   try {
     if (!process.argv[2]) {
       console.error(
-        "\nERROR: Please provide the input file with the bank data"
+        "\nERROR: Please provide the input file with the bank data."
       );
       console.log(
         "Example: npm run update-invest ./data/investimentos-2024-06-17.json"
