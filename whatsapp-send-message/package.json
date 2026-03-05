@@ -1,0 +1,32 @@
+{
+  "name": "whatsapp-send-message",
+  "version": "1.0.0",
+  "description": "Send a WhatsApp message to a contact at a scheduled time via Chrome automation",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "login": "node dist/login.js",
+    "login:ts": "npx ts-node --project tsconfig.json src/login.ts",
+    "send": "node dist/index.js",
+    "send:ts": "npx ts-node --project tsconfig.json src/index.ts",
+    "cron:send": "npm run build && npm run send"
+  },
+  "keywords": [
+    "whatsapp",
+    "automation",
+    "cron"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "puppeteer": "^24.38.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
