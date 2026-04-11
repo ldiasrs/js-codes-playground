@@ -1,0 +1,23 @@
+{
+  "name": "temporal-nexus-test",
+  "version": "1.0.0",
+  "description": "Temporal workflow for Brazilian stock portfolio financial analysis",
+  "private": true,
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "start:worker": "ts-node src/worker.ts",
+    "start:client": "ts-node src/client.ts"
+  },
+  "dependencies": {
+    "@temporalio/activity": "^1.11.0",
+    "@temporalio/client": "^1.11.0",
+    "@temporalio/worker": "^1.11.0",
+    "@temporalio/workflow": "^1.11.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0",
+    "@tsconfig/node20": "^20.1.0"
+  }
+}

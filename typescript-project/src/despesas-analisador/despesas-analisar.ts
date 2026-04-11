@@ -85,9 +85,9 @@ const CONFIG: DespesasConfig = {
     },
     { categoria: "SUPERMERCADO", textos: ["CESTTO", "RISSUL"] },
     { categoria: "VIAGEM", textos: ["Booking"] },
-    { categoria: "WINE", textos: ["WINE"] },
+    { categoria: "WINE", textos: ["WINE", "ClubeWPrePago"] },
     { categoria: "REFEICOES", textos: ["Restaurante", "ERMINDOHENRIQUEGE", "Dm2CervejariaLtda", "COMIDA", "EskimoLojaDe"] },
-    { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK", "UNIFIQUE"] },
+    { categoria: "INTERNET", textos: ["Starlink", "CLARO", "STARLINK", "UNIFIQUE", "Google One"] },
   ],
   mapeamentoCategoria: {
     VESTUARIO: "COMPRAS",
