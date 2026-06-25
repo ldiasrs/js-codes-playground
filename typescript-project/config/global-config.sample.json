@@ -21,5 +21,30 @@
         "user": "your-gmail@gmail.com",
         "pass": "your-16-character-app-password",
         "from": "your-gmail@gmail.com"
+    },
+    "stock_analysis": {
+        "default_provider": "claude-cli",
+        "providers": {
+            "claude-cli": {
+                "command": "claude",
+                "model": ""
+            },
+            "gemini-cli": {
+                "command": "gemini",
+                "model": ""
+            },
+            "claude": {
+                "api_key": "your-anthropic-api-key-here",
+                "model": "claude-opus-4-8"
+            },
+            "gemini": {
+                "api_key": "your-google-gemini-api-key-here",
+                "model": "gemini-2.5-flash"
+            },
+            "openai": {
+                "api_key": "your-openai-api-key-here",
+                "model": "gpt-4o-mini"
+            }
+        }
     }
 }
