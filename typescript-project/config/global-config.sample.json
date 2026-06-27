@@ -37,8 +37,36 @@
             "efficiency": 15
         },
         "scored_fields": {
-            "grossMargin": true,
-            "peg": false
+            "dy": false,
+            "pl": true,
+            "peg": true,
+            "pvp": true,
+            "evEbitda": true,
+            "evEbit": false,
+            "pEbitda": false,
+            "pEbit": false,
+            "vpa": false,
+            "pAtivo": false,
+            "lpa": false,
+            "psr": true,
+            "pCapGiro": false,
+            "pAtivCircLiq": false,
+            "netDebtEquity": false,
+            "netDebtEbitda": true,
+            "netDebtEbit": false,
+            "equityAssets": false,
+            "liabilitiesAssets": true,
+            "currentRatio": true,
+            "grossMargin": false,
+            "ebitdaMargin": false,
+            "ebitMargin": true,
+            "netMargin": true,
+            "roe": true,
+            "roa": true,
+            "roic": true,
+            "assetTurnover": false,
+            "revenueCagr5y": true,
+            "earningsCagr5y": true
         },
         "providers": {
             "statusinvest": {
