@@ -23,8 +23,29 @@
         "from": "your-gmail@gmail.com"
     },
     "stock_analysis": {
-        "default_provider": "claude-cli",
+        "default_source": "api",
+        "fetch_enabled": false,
+        "sources_by_market": {
+            "BR": "statusinvest",
+            "US": "fmp"
+        },
+        "fss_weights": {
+            "profitability": 30,
+            "debt": 20,
+            "valuation": 20,
+            "growth": 15,
+            "efficiency": 15
+        },
         "providers": {
+            "statusinvest": {
+                "cookie": ""
+            },
+            "brapi": {
+                "token": "your-brapi-token-here"
+            },
+            "fmp": {
+                "api_key": "your-fmp-api-key-here"
+            },
             "claude-cli": {
                 "command": "claude",
                 "model": ""

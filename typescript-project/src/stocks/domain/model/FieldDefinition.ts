@@ -1,153 +1,112 @@
 /**
- * The 13 fundamental fields, in display order, with a plain-language meaning, a
- * concrete example, and the consultation index (good / caution / weak thresholds).
- * Single source of truth used both to parse LLM output and to render the report.
+ * The Status Invest indicator set, grouped by category, with English + pt-BR labels.
+ * `scored` fields feed the Fundamental Strength Score (see StockRanker); the rest are
+ * display-only. Single source of truth for parsing, scoring, and the report.
  */
+export type FieldGroup = "valuation" | "debt" | "efficiency" | "profitability" | "growth";
+
 export type FieldKey =
-  | "pe"
+  // valuation
+  | "dy"
+  | "pl"
   | "peg"
-  | "pb"
-  | "dividendYield"
-  | "payoutRatio"
-  | "roe"
-  | "netMargin"
-  | "debtEquity"
+  | "pvp"
+  | "evEbitda"
+  | "evEbit"
+  | "pEbitda"
+  | "pEbit"
+  | "vpa"
+  | "pAtivo"
+  | "lpa"
+  | "psr"
+  | "pCapGiro"
+  | "pAtivCircLiq"
+  // debt
+  | "netDebtEquity"
+  | "netDebtEbitda"
+  | "netDebtEbit"
+  | "equityAssets"
+  | "liabilitiesAssets"
   | "currentRatio"
-  | "freeCashFlow"
-  | "revenueGrowth"
-  | "epsGrowth"
-  | "moat";
+  // efficiency
+  | "grossMargin"
+  | "ebitdaMargin"
+  | "ebitMargin"
+  | "netMargin"
+  // profitability
+  | "roe"
+  | "roa"
+  | "roic"
+  | "assetTurnover"
+  // growth
+  | "revenueCagr5y"
+  | "earningsCagr5y";
 
 export interface FieldDefinition {
   readonly key: FieldKey;
-  readonly label: string;
-  /** Plain-language explanation anyone can follow. */
+  readonly group: FieldGroup;
+  readonly labelEn: string;
+  readonly labelPt: string;
+  /** Feeds the FSS score (has a band in FieldScorer). */
+  readonly scored: boolean;
   readonly meaning: string;
-  /** A concrete, worked example of the metric. */
   readonly example: string;
-  readonly good: string;
-  readonly caution: string;
-  readonly weak: string;
 }
 
+const F = (
+  key: FieldKey,
+  group: FieldGroup,
+  labelEn: string,
+  labelPt: string,
+  scored: boolean,
+  meaning: string,
+  example: string,
+): FieldDefinition => ({ key, group, labelEn, labelPt, scored, meaning, example });
+
 export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
-  {
-    key: "pe",
-    label: "P/E",
-    meaning: "How many years of today's profit you pay for the share. Lower = cheaper.",
-    example: "Share $20, earns $2/yr → P/E 10 (you pay 10× one year of profit).",
-    good: "< 15",
-    caution: "15–25",
-    weak: "> 40 / negative",
-  },
-  {
-    key: "peg",
-    label: "PEG",
-    meaning: "The P/E weighed against how fast profit is growing. Under 1 means growth is cheap.",
-    example: "P/E 20 with profit growing 20%/yr → PEG 1.0 (fairly priced).",
-    good: "< 1",
-    caution: "1–2",
-    weak: "> 2",
-  },
-  {
-    key: "pb",
-    label: "P/B",
-    meaning: "Price versus the company's net worth on paper (assets minus debts).",
-    example: "P/B 1 = paying exactly book value; P/B 3 = paying 3× what it's worth on paper.",
-    good: "< 1.5",
-    caution: "1.5–3",
-    weak: "> 5",
-  },
-  {
-    key: "dividendYield",
-    label: "Dividend Yield",
-    meaning: "The yearly dividend as a percentage of the share price — your cash return.",
-    example: "$2 dividend on a $50 share → 4% yield.",
-    good: "3–6%",
-    caution: "1–3%",
-    weak: "0% / > 8% (trap)",
-  },
-  {
-    key: "payoutRatio",
-    label: "Payout Ratio",
-    meaning: "How much of the profit is handed out as dividends (the rest is reinvested).",
-    example: "Earns $1, pays $0.50 → 50% payout (keeps half to grow).",
-    good: "< 60%",
-    caution: "60–80%",
-    weak: "> 90%",
-  },
-  {
-    key: "roe",
-    label: "ROE",
-    meaning: "Profit produced for each $1 of shareholders' money. Higher = more efficient.",
-    example: "ROE 20% = $0.20 profit per year for every $1 of equity.",
-    good: "> 15%",
-    caution: "8–15%",
-    weak: "< 8%",
-  },
-  {
-    key: "netMargin",
-    label: "Net Margin",
-    meaning: "How much of every dollar of sales is left as profit after all costs.",
-    example: "$100 in sales → $15 profit = 15% margin.",
-    good: "> 15%",
-    caution: "5–15%",
-    weak: "< 5% / negative",
-  },
-  {
-    key: "debtEquity",
-    label: "Debt / Equity",
-    meaning: "Debt compared to the owners' money — how leveraged (risky) the company is.",
-    example: "D/E 0.5 = $0.50 of debt for every $1 of equity (low leverage).",
-    good: "< 0.5",
-    caution: "0.5–1.5",
-    weak: "> 2",
-  },
-  {
-    key: "currentRatio",
-    label: "Current Ratio",
-    meaning: "Cash and near-cash versus bills due within a year — can it pay short-term?",
-    example: "Ratio 2 = $2 available for every $1 owed this year.",
-    good: "1.5–3",
-    caution: "1–1.5",
-    weak: "< 1",
-  },
-  {
-    key: "freeCashFlow",
-    label: "Free Cash Flow",
-    meaning: "Real cash left after running the business and investing in it.",
-    example: "Operating cash $10M − $4M spent on equipment = $6M free cash.",
-    good: "Positive & growing",
-    caution: "Flat",
-    weak: "Negative",
-  },
-  {
-    key: "revenueGrowth",
-    label: "Revenue Growth (YoY)",
-    meaning: "How fast total sales grow versus the same period last year.",
-    example: "Sales $100M → $112M = 12% growth.",
-    good: "> 10%",
-    caution: "3–10%",
-    weak: "< 0%",
-  },
-  {
-    key: "epsGrowth",
-    label: "EPS Growth",
-    meaning: "How fast profit per share grows — earnings rising for each owner.",
-    example: "EPS $2.00 → $2.30 = 15% growth.",
-    good: "> 10%",
-    caution: "0–10%",
-    weak: "negative",
-  },
-  {
-    key: "moat",
-    label: "Moat",
-    meaning: "A durable edge that keeps rivals out and protects profits for years.",
-    example: "Strong brand, patents, or network effects (e.g. a dominant chipmaker).",
-    good: "Wide",
-    caution: "Narrow",
-    weak: "None",
-  },
+  // ---- Valuation ----
+  F("dy", "valuation", "Dividend Yield", "D.Y", false, "Yearly dividend ÷ price.", "$2 on a $50 share → 4%."),
+  F("pl", "valuation", "P/E", "P/L", true, "Years of profit you pay for the share (lower = cheaper).", "Price 20 ÷ EPS 2 → 10."),
+  F("peg", "valuation", "PEG Ratio", "PEG Ratio", true, "P/E vs. profit growth (under 1 = growth is cheap).", "P/E 20, growth 20% → 1.0."),
+  F("pvp", "valuation", "P/B", "P/VP", true, "Price vs. book value.", "P/VP 3 = 3× book value."),
+  F("evEbitda", "valuation", "EV/EBITDA", "EV/EBITDA", true, "Enterprise value vs. operating cash earnings.", "Lower is cheaper; <8 attractive."),
+  F("evEbit", "valuation", "EV/EBIT", "EV/EBIT", false, "Enterprise value vs. operating profit.", "Used to derive earnings yield."),
+  F("pEbitda", "valuation", "P/EBITDA", "P/EBITDA", false, "Price vs. EBITDA.", "—"),
+  F("pEbit", "valuation", "P/EBIT", "P/EBIT", false, "Price vs. EBIT.", "—"),
+  F("vpa", "valuation", "Book Value / Share", "VPA", false, "Equity per share.", "Equity ÷ shares."),
+  F("pAtivo", "valuation", "Price / Assets", "P/Ativo", false, "Price vs. total assets.", "—"),
+  F("lpa", "valuation", "EPS", "LPA", false, "Earnings per share.", "Profit ÷ shares."),
+  F("psr", "valuation", "Price / Sales", "P/SR", true, "Price vs. revenue.", "P/SR 1 = 1× annual sales."),
+  F("pCapGiro", "valuation", "Price / Working Capital", "P/Cap. Giro", false, "Price vs. working capital.", "—"),
+  F("pAtivCircLiq", "valuation", "Price / Net Current Assets", "P/Ativo Circ. Liq.", false, "Price vs. net current assets.", "—"),
+  // ---- Debt / Health ----
+  F("netDebtEquity", "debt", "Net Debt / Equity", "Dív. líquida/PL", false, "Net debt vs. equity (negative = net cash).", "−0.2 = net cash."),
+  F("netDebtEbitda", "debt", "Net Debt / EBITDA", "Dív. líquida/EBITDA", true, "Years of EBITDA to repay net debt.", "<1 strong; <0 net cash."),
+  F("netDebtEbit", "debt", "Net Debt / EBIT", "Dív. líquida/EBIT", false, "Net debt vs. operating profit.", "—"),
+  F("equityAssets", "debt", "Equity / Assets", "PL/Ativos", false, "Share of assets funded by equity.", "0.5 = half equity-funded."),
+  F("liabilitiesAssets", "debt", "Liabilities / Assets", "Passivos/Ativos", true, "Share of assets funded by debt.", "0.3 low; 0.85 high."),
+  F("currentRatio", "debt", "Current Ratio", "Liq. corrente", true, "Short-term assets vs. short-term bills.", "2 = $2 per $1 due."),
+  // ---- Efficiency ----
+  F("grossMargin", "efficiency", "Gross Margin", "M. Bruta", false, "Revenue left after cost of goods.", "33% gross margin."),
+  F("ebitdaMargin", "efficiency", "EBITDA Margin", "M. EBITDA", false, "EBITDA ÷ revenue.", "22% EBITDA margin."),
+  F("ebitMargin", "efficiency", "EBIT Margin", "M. EBIT", true, "Operating profit ÷ revenue.", "20% operating margin."),
+  F("netMargin", "efficiency", "Net Margin", "M. Líquida", true, "Profit kept per dollar of sales.", "$100 sales → $15 profit = 15%."),
+  // ---- Profitability ----
+  F("roe", "profitability", "ROE", "ROE", true, "Profit per $1 of equity.", "ROE 20% = $0.20 per $1 equity."),
+  F("roa", "profitability", "ROA", "ROA", true, "Profit per $1 of assets.", "ROA 10% = efficient asset use."),
+  F("roic", "profitability", "ROIC", "ROIC", true, "Return on invested capital.", "ROIC 15%+ = value-creating."),
+  F("assetTurnover", "profitability", "Asset Turnover", "Giro ativos", false, "Revenue per $1 of assets.", "0.9 = $0.90 sales per $1 assets."),
+  // ---- Growth ----
+  F("revenueCagr5y", "growth", "Revenue CAGR 5y", "CAGR Receitas 5 anos", true, "5-year revenue growth rate.", "18% per year."),
+  F("earningsCagr5y", "growth", "Earnings CAGR 5y", "CAGR Lucros 5 anos", true, "5-year profit growth rate.", "21% per year."),
 ];
 
 export const FIELD_KEYS: readonly FieldKey[] = FIELD_DEFINITIONS.map((f) => f.key);
+
+export const FIELD_GROUPS: readonly { group: FieldGroup; labelEn: string; labelPt: string }[] = [
+  { group: "profitability", labelEn: "Profitability", labelPt: "Rentabilidade" },
+  { group: "efficiency", labelEn: "Efficiency", labelPt: "Eficiência" },
+  { group: "debt", labelEn: "Debt / Health", labelPt: "Endividamento" },
+  { group: "growth", labelEn: "Growth", labelPt: "Crescimento" },
+  { group: "valuation", labelEn: "Valuation", labelPt: "Valuation" },
+];

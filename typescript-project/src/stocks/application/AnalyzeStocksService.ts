@@ -1,6 +1,4 @@
 import { MarketDetector } from "../domain/service/MarketDetector";
-import { PromptBuilder } from "../domain/service/PromptBuilder";
-import { StockAnalysisParser } from "../domain/service/StockAnalysisParser";
 import { Stock } from "../domain/model/Stock";
 import { AnalysisResult, failedAnalysis } from "../domain/model/StockAnalysis";
 import {
@@ -9,49 +7,46 @@ import {
   AnalyzeStocksUseCase,
 } from "./port/AnalyzeStocksUseCase";
 import { Clock } from "./port/Clock";
-import { LlmGateway } from "./port/LlmGateway";
 import { Logger } from "./port/Logger";
-import { PromptProvider } from "./port/PromptProvider";
 import { ReportWriter } from "./port/ReportWriter";
+import { StockAnalyzer } from "./port/StockAnalyzer";
 import { StockListProvider } from "./port/StockListProvider";
 import { mapWithConcurrency } from "./support/concurrency";
 
 export interface AnalyzeStocksDeps {
   readonly stockListProvider: StockListProvider;
-  readonly promptProvider: PromptProvider;
-  readonly llmGateway: LlmGateway;
+  readonly analyzer: StockAnalyzer;
   readonly reportWriter: ReportWriter;
   readonly clock: Clock;
   readonly logger: Logger;
-  readonly model: string;
+  /** Human-readable source label for logs/report, e.g. "BR=statusinvest, US=claude-cli". */
+  readonly source: string;
   readonly concurrency: number;
+  /** Cache date (YYYY-MM-DD) shown in the report. */
+  readonly cacheDate: string;
+  /** Whether data fetching is enabled (false = cache-only). */
+  readonly fetchEnabled: boolean;
 }
 
 /** Application service implementing the analyze-stocks use case. */
 export class AnalyzeStocksService implements AnalyzeStocksUseCase {
   private readonly marketDetector = new MarketDetector();
-  private readonly parser = new StockAnalysisParser();
 
   constructor(private readonly deps: AnalyzeStocksDeps) {}
 
   async execute(command: AnalyzeStocksCommand): Promise<AnalyzeStocksResult> {
-    const { llmGateway, logger, model, concurrency } = this.deps;
+    const { source, logger, concurrency } = this.deps;
 
     const stocks = await this.resolveStocks(command);
-    const promptBuilder = new PromptBuilder(await this.deps.promptProvider.basePrompt());
+    logger.info(`Analyzing ${stocks.length} tickers via ${source} (concurrency ${concurrency})...`);
 
-    logger.info(
-      `Analyzing ${stocks.length} tickers with ${llmGateway.name}/${model} (concurrency ${concurrency})...`,
-    );
-
-    const results = await mapWithConcurrency(stocks, concurrency, (stock) =>
-      this.analyzeOne(stock, promptBuilder),
-    );
+    const results = await mapWithConcurrency(stocks, concurrency, (stock) => this.analyzeOne(stock));
 
     const written = await this.deps.reportWriter.write(results, {
-      provider: llmGateway.name,
-      model,
+      source,
       generatedAt: this.deps.clock.now(),
+      cacheDate: this.deps.cacheDate,
+      fetchEnabled: this.deps.fetchEnabled,
     });
 
     const failed = results.filter((r) => r.kind === "failed").length;
@@ -67,10 +62,9 @@ export class AnalyzeStocksService implements AnalyzeStocksUseCase {
     return this.deps.stockListProvider.load();
   }
 
-  private async analyzeOne(stock: Stock, promptBuilder: PromptBuilder): Promise<AnalysisResult> {
+  private async analyzeOne(stock: Stock): Promise<AnalysisResult> {
     try {
-      const raw = await this.deps.llmGateway.complete(promptBuilder.build(stock));
-      const analysis = this.parser.parse(raw, stock);
+      const analysis = await this.deps.analyzer.analyze(stock);
       this.deps.logger.info(`  ✓ ${stock.ticker}`);
       return analysis;
     } catch (err) {

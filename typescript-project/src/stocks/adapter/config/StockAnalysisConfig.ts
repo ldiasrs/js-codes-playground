@@ -1,19 +1,25 @@
 import * as fs from "fs";
+import { Market } from "../../domain/model/Market";
+import { DEFAULT_PILLAR_WEIGHTS, PillarWeights } from "../../domain/service/StockRanker";
 import { ApiProvider, LlmGatewaySpec } from "../llm/LlmGatewayFactory";
 
 interface ProviderConfig {
-  // API providers
   api_key?: string;
   model?: string;
-  // CLI providers
-  command?: string;
+  token?: string; // brapi
+  cookie?: string; // statusinvest
+  command?: string; // cli
   args?: string[];
   model_flag?: string;
   prompt_via?: "arg" | "stdin";
 }
 
 interface StockAnalysisSection {
-  default_provider?: string;
+  default_source?: string;
+  default_provider?: string; // legacy fallback
+  sources_by_market?: Partial<Record<Market, string>>;
+  fetch_enabled?: boolean;
+  fss_weights?: Partial<PillarWeights>;
   providers?: Record<string, ProviderConfig>;
 }
 
@@ -22,19 +28,13 @@ type Mode = "api" | "cli";
 interface ProviderDefault {
   mode: Mode;
   model?: string;
-  // api
-  keyEnv?: string;
-  // cli
-  command?: string;
+  keyEnv?: string; // api
+  command?: string; // cli
   args?: string[];
   modelFlag?: string;
   promptVia?: "arg" | "stdin";
 }
 
-/**
- * Built-in defaults per provider. CLI providers ("*-cli") need no API key — they
- * shell out to a locally-authenticated tool. The default is claude-cli (keyless).
- */
 const PROVIDER_DEFAULTS: Record<string, ProviderDefault> = {
   claude: { mode: "api", model: "claude-opus-4-8", keyEnv: "ANTHROPIC_API_KEY" },
   gemini: { mode: "api", model: "gemini-2.5-flash", keyEnv: "GEMINI_API_KEY" },
@@ -43,53 +43,96 @@ const PROVIDER_DEFAULTS: Record<string, ProviderDefault> = {
   "gemini-cli": { mode: "cli", command: "gemini", args: ["-p"], modelFlag: "-m", promptVia: "arg", model: "" },
 };
 
-const DEFAULT_PROVIDER = "claude-cli";
+/** Non-LLM data sources (no provider entry needed). */
+const DATA_SOURCES = ["api", "statusinvest", "fundamentus", "brapi", "fmp"];
+const DEFAULT_SOURCE = "api";
+const TRUTHY = /^(1|true|yes|on)$/i;
 const PLACEHOLDER = /^your-.*-here$/;
 
-export interface ResolvedConfig {
-  readonly spec: LlmGatewaySpec;
-  /** Model label for logs/report (CLI default shown when no model pinned). */
-  readonly displayModel: string;
-  readonly concurrency: number;
+export interface LlmSource {
+  spec: LlmGatewaySpec;
+  displayModel: string;
 }
 
 /**
- * Resolves the LLM gateway spec + concurrency from config + environment.
- * Precedence: env override > config file > built-in default.
+ * Resolves which source to use per market plus all credentials.
+ * Per-market precedence (highest first):
+ *   env STOCKS_SOURCE_<MKT> → sources_by_market.<MKT> → env STOCKS_SOURCE →
+ *   default_source → built-in default ("api").
  */
 export class StockAnalysisConfig {
+  private readonly section: StockAnalysisSection;
+  readonly concurrency: number;
+
   constructor(
-    private readonly configFile: string,
+    configFile: string,
     private readonly env: NodeJS.ProcessEnv = process.env,
-  ) {}
-
-  resolve(): ResolvedConfig {
-    const section = this.readSection();
-    const provider = (this.env.STOCKS_PROVIDER || section.default_provider || DEFAULT_PROVIDER)
-      .trim()
-      .toLowerCase();
-
-    const def = PROVIDER_DEFAULTS[provider];
-    if (!def) {
-      throw new Error(
-        `Unknown provider "${provider}". Use one of: ${Object.keys(PROVIDER_DEFAULTS).join(", ")}.`,
-      );
-    }
-
-    const cfg = section.providers?.[provider] ?? {};
-    const concurrency = Number(this.env.STOCKS_CONCURRENCY || 4);
-
-    return def.mode === "cli"
-      ? this.resolveCli(provider, cfg, def, concurrency)
-      : this.resolveApi(provider, cfg, def, concurrency);
+  ) {
+    this.section = StockAnalysisConfig.readSection(configFile);
+    this.concurrency = Number(env.STOCKS_CONCURRENCY || 4);
   }
 
-  private resolveCli(
-    provider: string,
-    cfg: ProviderConfig,
-    def: ProviderDefault,
-    concurrency: number,
-  ): ResolvedConfig {
+  /** The source name configured for a given market. */
+  sourceForMarket(market: Market): string {
+    const perMarketEnv = market === "BR" ? this.env.STOCKS_SOURCE_BR : this.env.STOCKS_SOURCE_US;
+    const source =
+      perMarketEnv ||
+      this.section.sources_by_market?.[market] ||
+      this.env.STOCKS_SOURCE ||
+      this.env.STOCKS_PROVIDER ||
+      this.section.default_source ||
+      this.section.default_provider ||
+      DEFAULT_SOURCE;
+    return source.trim().toLowerCase();
+  }
+
+  brapiToken(): string {
+    return this.env.BRAPI_TOKEN || this.clean(this.section.providers?.brapi?.token) || "";
+  }
+
+  fmpKey(): string {
+    return this.env.FMP_API_KEY || this.clean(this.section.providers?.fmp?.api_key) || "";
+  }
+
+  statusInvestCookie(): string {
+    return this.env.STATUSINVEST_COOKIE || this.clean(this.section.providers?.statusinvest?.cookie) || "";
+  }
+
+  /** Whether to hit data sources. Default OFF (cache-only). Enable with STOCKS_FETCH=1. */
+  fetchEnabled(): boolean {
+    if (this.env.STOCKS_FETCH !== undefined) return TRUTHY.test(this.env.STOCKS_FETCH);
+    return this.section.fetch_enabled === true;
+  }
+
+  /** Configured FSS pillar weights, each falling back to the built-in default. */
+  pillarWeights(): PillarWeights {
+    const w = this.section.fss_weights ?? {};
+    const pick = (k: keyof PillarWeights) =>
+      typeof w[k] === "number" ? (w[k] as number) : DEFAULT_PILLAR_WEIGHTS[k];
+    return {
+      profitability: pick("profitability"),
+      debt: pick("debt"),
+      valuation: pick("valuation"),
+      growth: pick("growth"),
+      efficiency: pick("efficiency"),
+    };
+  }
+
+  /** Resolves an LLM provider source name to a gateway spec + display model. */
+  llmSource(source: string): LlmSource {
+    const def = PROVIDER_DEFAULTS[source];
+    if (!def) {
+      throw new Error(`Unknown source "${source}". Use one of: ${this.validSources().join(", ")}.`);
+    }
+    const cfg = this.section.providers?.[source] ?? {};
+    return def.mode === "cli" ? this.cliSource(source, cfg, def) : this.apiSource(source, cfg, def);
+  }
+
+  validSources(): string[] {
+    return [...DATA_SOURCES, ...Object.keys(PROVIDER_DEFAULTS)];
+  }
+
+  private cliSource(provider: string, cfg: ProviderConfig, def: ProviderDefault): LlmSource {
     const model = this.env.STOCKS_MODEL || this.clean(cfg.model) || def.model || "";
     const command = cfg.command || def.command!;
     const spec: LlmGatewaySpec = {
@@ -101,29 +144,19 @@ export class StockAnalysisConfig {
       model,
       promptVia: cfg.prompt_via || def.promptVia || "arg",
     };
-    return { spec, displayModel: model || `${command} (cli default)`, concurrency };
+    return { spec, displayModel: model || `${command} (cli default)` };
   }
 
-  private resolveApi(
-    provider: string,
-    cfg: ProviderConfig,
-    def: ProviderDefault,
-    concurrency: number,
-  ): ResolvedConfig {
+  private apiSource(provider: string, cfg: ProviderConfig, def: ProviderDefault): LlmSource {
     const model = this.env.STOCKS_MODEL || this.clean(cfg.model) || def.model!;
     const apiKey = (def.keyEnv ? this.env[def.keyEnv] : "") || this.clean(cfg.api_key) || "";
-    const spec: LlmGatewaySpec = {
-      kind: "api",
-      provider: provider as ApiProvider,
-      apiKey,
-      model,
-    };
-    return { spec, displayModel: model, concurrency };
+    const spec: LlmGatewaySpec = { kind: "api", provider: provider as ApiProvider, apiKey, model };
+    return { spec, displayModel: model };
   }
 
-  private readSection(): StockAnalysisSection {
+  private static readSection(configFile: string): StockAnalysisSection {
     try {
-      const cfg = JSON.parse(fs.readFileSync(this.configFile, "utf8"));
+      const cfg = JSON.parse(fs.readFileSync(configFile, "utf8"));
       return (cfg.stock_analysis as StockAnalysisSection) ?? {};
     } catch {
       return {};

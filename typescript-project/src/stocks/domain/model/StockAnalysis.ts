@@ -3,9 +3,11 @@ import { FieldStatus } from "./FieldStatus";
 import { Market } from "./Market";
 import { StockProfile } from "./StockProfile";
 
-/** A single scored field: a display value plus its health status. */
+/** A single field: display value, the raw number (for re-scoring), plus its status. */
 export interface StockField {
   readonly value: string;
+  /** Raw numeric value, when known — lets the FSS recompute in code from cache. */
+  readonly numeric?: number;
   readonly status: FieldStatus;
 }
 

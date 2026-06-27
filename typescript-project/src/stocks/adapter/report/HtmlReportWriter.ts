@@ -6,6 +6,7 @@ import {
   ReportWriter,
   WrittenReport,
 } from "../../application/port/ReportWriter";
+import { StockRanker } from "../../domain/service/StockRanker";
 import { HtmlReportRenderer } from "./HtmlReportRenderer";
 
 /**
@@ -14,9 +15,15 @@ import { HtmlReportRenderer } from "./HtmlReportRenderer";
  *  - data.json    (raw results, for auditing / re-rendering)
  */
 export class HtmlReportWriter implements ReportWriter {
-  private readonly renderer = new HtmlReportRenderer();
+  private readonly renderer: HtmlReportRenderer;
 
-  constructor(private readonly reportsDir: string) {}
+  /** `ranker` carries the configured FSS weights used for ranking + the formula tab. */
+  constructor(
+    private readonly reportsDir: string,
+    ranker: StockRanker,
+  ) {
+    this.renderer = new HtmlReportRenderer(ranker);
+  }
 
   async write(results: AnalysisResult[], meta: ReportMeta): Promise<WrittenReport> {
     const stamp = this.timestamp(meta.generatedAt);
@@ -26,7 +33,7 @@ export class HtmlReportWriter implements ReportWriter {
     const reportPath = path.join(outDir, "report.html");
     const dataPath = path.join(outDir, "data.json");
 
-    const html = this.renderer.render(results, stamp, `${meta.provider}/${meta.model}`);
+    const html = this.renderer.render(results, stamp, meta);
     fs.writeFileSync(reportPath, html, "utf8");
     fs.writeFileSync(dataPath, JSON.stringify(results, null, 2), "utf8");
 
