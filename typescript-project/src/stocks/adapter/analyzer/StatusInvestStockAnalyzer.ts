@@ -1,12 +1,13 @@
 import { StockAnalyzer } from "../../application/port/StockAnalyzer";
 import { FieldKey } from "../../domain/model/FieldDefinition";
+import { marketCurrency } from "../../domain/model/Market";
 import { Stock } from "../../domain/model/Stock";
 import { StockAnalysis } from "../../domain/model/StockAnalysis";
 import { StockProfile } from "../../domain/model/StockProfile";
 import { FieldScorer } from "../../domain/service/FieldScorer";
 import { BROWSER_HEADERS, emptyFields, overallFrom, setDisplay, setScored } from "./financeApiSupport";
 
-const URL = "https://statusinvest.com.br/acoes/";
+const BASE = "https://statusinvest.com.br";
 
 /** Status Invest label → field key (+ whether it feeds the score). */
 const LABEL_MAP: Array<{ label: string; key: FieldKey; scored: boolean }> = [
@@ -60,7 +61,7 @@ export class StatusInvestStockAnalyzer implements StockAnalyzer {
   constructor(private readonly cookie: string = "") {}
 
   async analyze(stock: Stock): Promise<StockAnalysis> {
-    const html = await this.fetchPage(stock.ticker);
+    const html = await this.fetchPage(stock);
     const lookup = this.parsePairs(html);
 
     if (lookup.size === 0) {
@@ -85,7 +86,7 @@ export class StatusInvestStockAnalyzer implements StockAnalyzer {
       ticker: stock.ticker,
       company: this.parseCompany(html, stock.ticker),
       market: stock.market,
-      currency: "BRL",
+      currency: marketCurrency(stock.market),
       sector: "—",
       profiles: dy !== undefined && dy >= 3 ? (["dividend"] as StockProfile[]) : [],
       fields,
@@ -94,8 +95,14 @@ export class StatusInvestStockAnalyzer implements StockAnalyzer {
     };
   }
 
-  private async fetchPage(ticker: string): Promise<string> {
-    const url = `${URL}${encodeURIComponent(ticker.toLowerCase())}`;
+  /** BR → /acoes/<ticker> ; US → /acoes/eua/<ticker>. */
+  private pageUrl(stock: Stock): string {
+    const slug = encodeURIComponent(stock.ticker.toLowerCase());
+    return stock.market === "US" ? `${BASE}/acoes/eua/${slug}` : `${BASE}/acoes/${slug}`;
+  }
+
+  private async fetchPage(stock: Stock): Promise<string> {
+    const url = this.pageUrl(stock);
     const headers: Record<string, string> = { ...BROWSER_HEADERS, Referer: url };
     if (this.cookie) headers["Cookie"] = this.cookie;
     const res = await fetch(url, { headers });
@@ -103,7 +110,7 @@ export class StatusInvestStockAnalyzer implements StockAnalyzer {
       if (res.status === 403) {
         throw new Error("Status Invest blocked (Cloudflare 403) — set STATUSINVEST_COOKIE and retry");
       }
-      throw new Error(`Status Invest ${res.status} for ${ticker}`);
+      throw new Error(`Status Invest ${res.status} for ${stock.ticker}`);
     }
     return res.text();
   }
@@ -130,8 +137,14 @@ export class StatusInvestStockAnalyzer implements StockAnalyzer {
   }
 
   private parseCompany(html: string, fallback: string): string {
-    const m = html.match(/<title>[^-]*-\s*([^:<]+?)\s*:/i);
-    return m ? this.clean(m[1]) : fallback;
+    const title = html.match(/<title>(.*?)<\/title>/is)?.[1] ?? "";
+    const head = this.clean(title.split("|")[0]); // drop " | Status Invest"
+    // BR: "WEGE3 - WEG ON: …"  ·  US: "JPM: JP MORGAN CHASE & CO., …"
+    const br = head.match(/-\s*(.+?)\s*:/);
+    if (br) return br[1].trim();
+    const us = head.match(/:\s*(.+?)\s*,/);
+    if (us) return us[1].trim();
+    return fallback;
   }
 
   /** pt-BR number → JS number ("35,43%" → 35.43, "4.092.480" → 4092480, "-0,19" → -0.19). */

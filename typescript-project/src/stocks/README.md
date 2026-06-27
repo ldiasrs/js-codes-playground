@@ -121,7 +121,7 @@ Each market's source is one of:
 | Source | Data | Needs |
 |--------|------|-------|
 | `api` | market default: BR→Status Invest, US→FMP | (per below) |
-| `statusinvest` | BR scrape — full indicator set (~30) | nothing (Cloudflare; optional cookie) |
+| `statusinvest` | BR + US scrape — full indicator set (~30); BR `/acoes/<t>`, US `/acoes/eua/<t>` | nothing (Cloudflare; optional cookie) |
 | `fundamentus` | BR scrape — most indicators + computed | nothing |
 | `fmp` | US FMP `stable/` ratios + key-metrics + growth + profile | free key |
 | `brapi` | BR brapi.dev (free tier ≈ P/E only) | token |
