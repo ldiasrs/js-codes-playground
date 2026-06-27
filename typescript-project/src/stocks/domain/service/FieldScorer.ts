@@ -16,22 +16,33 @@ type Band = (v: number) => number;
 export class FieldScorer {
   private static readonly BANDS: Partial<Record<FieldKey, Band>> = {
     // valuation (lower price = better; P/L scored via earnings yield)
+    dy: (v) => (v <= 0 ? 0 : v > 12 ? 0.3 : clamp01(v / 6)),
     pl: (v) => (v > 0 ? up(100 / v, 2, 12) : 0),
     peg: (v) => (v > 0 ? down(v, 1, 3) : 0),
     pvp: (v) => (v > 0 ? down(v, 1, 6) : 0),
     evEbitda: (v) => (v > 0 ? down(v, 6, 18) : 0),
+    evEbit: (v) => (v > 0 ? down(v, 6, 20) : 0),
+    pEbitda: (v) => (v > 0 ? down(v, 4, 16) : 0),
+    pEbit: (v) => (v > 0 ? down(v, 6, 20) : 0),
+    pAtivo: (v) => (v > 0 ? down(v, 0.3, 5) : 0),
     psr: (v) => (v > 0 ? down(v, 0.5, 6) : 0),
     // debt / health
+    netDebtEquity: (v) => (v <= 0 ? 1 : down(v, 0, 2)),
     netDebtEbitda: (v) => (v <= 0 ? 1 : down(v, 0, 3.5)),
+    netDebtEbit: (v) => (v <= 0 ? 1 : down(v, 0, 4)),
+    equityAssets: (v) => up(v, 0.2, 0.7),
     liabilitiesAssets: (v) => down(v, 0.3, 0.8),
     currentRatio: (v) => up(v, 0.8, 2.0),
     // efficiency
+    grossMargin: (v) => up(v, 0, 50),
+    ebitdaMargin: (v) => up(v, 0, 30),
     ebitMargin: (v) => up(v, 0, 25),
     netMargin: (v) => up(v, 0, 20),
     // profitability
     roe: (v) => up(v, 0, 20),
     roa: (v) => up(v, 0, 15),
     roic: (v) => up(v, 0, 15),
+    assetTurnover: (v) => up(v, 0.2, 1.5),
     // growth
     revenueCagr5y: (v) => up(v, 0, 15),
     earningsCagr5y: (v) => up(v, 0, 15),

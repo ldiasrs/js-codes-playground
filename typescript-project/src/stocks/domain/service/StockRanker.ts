@@ -1,4 +1,5 @@
 import { FIELD_DEFINITIONS, FieldGroup, FieldKey } from "../model/FieldDefinition";
+import { FieldStatus } from "../model/FieldStatus";
 import { RankedStock } from "../model/RankedStock";
 import { StockAnalysis } from "../model/StockAnalysis";
 import { FieldScorer } from "./FieldScorer";
@@ -46,12 +47,27 @@ export class StockRanker {
   private readonly scorer = new FieldScorer();
   /** Scored field keys grouped by pillar (a pillar == a field group). */
   readonly fieldsByPillar: Record<Pillar, FieldKey[]>;
+  private readonly scoredSet: Set<FieldKey>;
 
-  constructor(readonly weights: PillarWeights = DEFAULT_PILLAR_WEIGHTS) {
+  /**
+   * @param weights     pillar weights (config-overridable).
+   * @param scoredKeys  which fields feed the score (config-overridable). Defaults to the
+   *                    `scored` flag in FIELD_DEFINITIONS. A field only counts if it also
+   *                    has a band in FieldScorer.
+   */
+  constructor(
+    readonly weights: PillarWeights = DEFAULT_PILLAR_WEIGHTS,
+    scoredKeys?: Iterable<FieldKey>,
+  ) {
+    const enabled = new Set<FieldKey>(
+      scoredKeys ?? FIELD_DEFINITIONS.filter((d) => d.scored).map((d) => d.key),
+    );
     const byGroup = {} as Record<FieldGroup, FieldKey[]>;
+    this.scoredSet = new Set<FieldKey>();
     for (const d of FIELD_DEFINITIONS) {
-      if (!d.scored) continue;
+      if (!enabled.has(d.key) || !this.scorer.isScored(d.key)) continue;
       (byGroup[d.group] ||= []).push(d.key);
+      this.scoredSet.add(d.key);
     }
     this.fieldsByPillar = {
       profitability: byGroup.profitability ?? [],
@@ -60,6 +76,21 @@ export class StockRanker {
       growth: byGroup.growth ?? [],
       efficiency: byGroup.efficiency ?? [],
     };
+  }
+
+  /** Whether a field currently feeds the score (after config + band filtering). */
+  isScored(key: FieldKey): boolean {
+    return this.scoredSet.has(key);
+  }
+
+  /** Graded 0–1 for a field's raw value (NaN if not scored / no band). */
+  fieldScore(key: FieldKey, value: number): number {
+    return this.isScored(key) ? this.scorer.score(key, value) : NaN;
+  }
+
+  /** Field status badge from a 0–1 score. */
+  statusFromScore(score: number): FieldStatus {
+    return this.scorer.statusFromScore(score);
   }
 
   /** Ranks weakest-first (worst score at position 1). */

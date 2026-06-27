@@ -41,7 +41,7 @@ async function main(): Promise<void> {
   const clock = new SystemClock();
   const cache = new FileDailyAnalysisCache(CACHE_DIR, clock);
   const fetchEnabled = config.fetchEnabled();
-  const ranker = new StockRanker(config.pillarWeights());
+  const ranker = new StockRanker(config.pillarWeights(), config.scoredFields());
 
   const br = factory.create(config.sourceForMarket("BR"), "BR");
   const us = factory.create(config.sourceForMarket("US"), "US");

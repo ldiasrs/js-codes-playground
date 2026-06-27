@@ -153,6 +153,15 @@ Default weights — **Profitability 30 · Debt/Health 20 · Valuation 20 · Grow
 tune them via `fss_weights` (the Overview tab's formula always shows the configured weights
 and a live worked example). e.g. WEGE3 ≈ **72** (elite quality/growth, expensive valuation).
 
+**Pick which fields count** via `scored_fields` — a per-field on/off map that overrides each
+field's default. Disabling a field drops it from its pillar; enabling a display-only field
+adds it (only fields that have a scoring rule can be scored — value-only fields like VPA/LPA
+stay out). The Index tab's "Scored ✓" column and the cards' status badges reflect the result.
+
+```json
+"scored_fields": { "grossMargin": true, "peg": false }
+```
+
 ## Usage
 
 ```bash

@@ -110,13 +110,13 @@ export class HtmlReportRenderer {
     const rows = ranked
       .map((r) => {
         const s = r.analysis;
-        const o = STATUS_META[s.overall];
+        const o = STATUS_META[this.overallOf(s)];
         return `<tr>
         <td class="text-center text-muted fw-semibold">${r.position}</td>
         <td class="fw-semibold">${this.esc(s.ticker)}</td>
         <td>${marketLabel(s.market)}</td>
         <td><span class="badge ${this.scoreBg(r.score)}">${r.score}</span></td>
-        <td>${this.pillarDots(s)}</td>
+        <td><div class="d-flex flex-wrap gap-1">${this.pillarBadges(s)}</div></td>
         <td class="num">${this.esc(s.fields.roe.value)}</td>
         <td class="num">${this.esc(s.fields.roic.value)}</td>
         <td><span class="badge ${o.bg}">${o.icon} ${o.label}</span></td>
@@ -125,7 +125,7 @@ export class HtmlReportRenderer {
       .join("\n");
     return `<section class="card shadow-sm mb-4"><div class="card-body">
       <h2 class="h5 card-title">🏆 Ranking — Fundamental Strength Score (weakest first)</h2>
-      <p class="text-muted small">0–100, weakest at the top. The "Pillars" squares show each pillar's strength (green/amber/red); grey = no data.</p>
+      <p class="text-muted small">0–100, weakest at the top. The "Pillars" column shows each pillar's own 0–100 score (Prof · Debt · Val · Grw · Eff); grey "—" = no data.</p>
       <div class="table-responsive"><table class="table table-sm table-hover align-middle">
         <thead><tr><th class="text-center">#</th><th>Ticker</th><th>Market</th><th>FSS</th><th>Pillars</th><th class="num">ROE</th><th class="num">ROIC</th><th>Overall</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -196,7 +196,7 @@ export class HtmlReportRenderer {
         (d) =>
           `<tr><th class="fw-normal">${this.esc(d.labelEn)} <span class="text-muted">(${this.esc(d.labelPt)})</span></th>
          <td>${this.esc(d.meaning)}</td><td class="fst-italic text-muted small">${this.esc(d.example)}</td>
-         <td class="text-center">${d.scored ? "✓" : ""}</td></tr>`,
+         <td class="text-center">${this.ranker.isScored(d.key) ? "✓" : ""}</td></tr>`,
       ),
     ]).join("\n");
     return `<section class="card shadow-sm mb-4"><div class="card-body">
@@ -233,12 +233,12 @@ export class HtmlReportRenderer {
   }
 
   private stockCard(s: StockAnalysis, score?: number): string {
-    const o = STATUS_META[s.overall];
+    const o = STATUS_META[this.overallOf(s)];
     const body = FIELD_GROUPS.flatMap((g) => [
       `<tr class="grp"><td colspan="3">${this.esc(g.labelEn)} · ${this.esc(g.labelPt)}</td></tr>`,
       ...FIELD_DEFINITIONS.filter((d) => d.group === g.group).map((d) => {
         const f = s.fields[d.key as FieldKey];
-        const meta = STATUS_META[f?.status ?? "na"];
+        const meta = STATUS_META[this.fieldStatus(d.key, f)];
         return `<tr><th>${this.esc(d.labelEn)} <span class="text-muted">(${this.esc(d.labelPt)})</span></th>
           <td class="num">${this.esc(f?.value ?? "N/A")}</td><td class="st ${meta.text}">${meta.icon}</td></tr>`;
       }),
@@ -250,6 +250,8 @@ export class HtmlReportRenderer {
         <div class="small text-muted mb-2">${marketLabel(s.market)} · ${this.esc(s.sector)} · ${this.esc(s.currency)}
           <span class="badge ${o.bg}">${o.icon} ${o.label}</span> ${scoreBadge}</div>
         <div class="mb-2">${this.profiles(s.profiles)}</div>
+        <div class="small text-muted">Pillar scores</div>
+        <div class="mb-2 d-flex flex-wrap gap-1">${this.pillarBadges(s)}</div>
         <table class="table table-sm field-table mb-2"><tbody>${body}</tbody></table>
         <p class="small mb-0"><strong>Verdict:</strong> ${this.esc(s.verdict)}</p>
       </div></div></div>`;
@@ -257,22 +259,43 @@ export class HtmlReportRenderer {
 
   // ---- helpers ----
 
-  private pillarDots(analysis: StockAnalysis): string {
+  /** Field status computed from the configured scored-set: scored+numeric → graded band;
+   *  otherwise the stored status (LLM fallback) or N/A. */
+  private fieldStatus(key: FieldKey, f?: StockField): FieldStatus {
+    if (f && f.numeric !== undefined && this.ranker.isScored(key)) {
+      const sc = this.ranker.fieldScore(key, f.numeric);
+      if (Number.isFinite(sc)) return this.ranker.statusFromScore(sc);
+    }
+    return f?.status ?? "na";
+  }
+
+  /** Overall recomputed from scored fields so it reflects the current config. */
+  private overallOf(s: StockAnalysis): FieldStatus {
+    const statuses = FIELD_DEFINITIONS.map((d) => this.fieldStatus(d.key, s.fields[d.key])).filter(
+      (st) => st !== "na",
+    );
+    if (!statuses.length) return "na";
+    if (statuses.every((st) => st === "good")) return "good";
+    const weak = statuses.filter((st) => st === "weak").length;
+    return weak * 2 >= statuses.length ? "weak" : "caution";
+  }
+
+  /** Per-pillar 0–100 score badges (abbreviated label + number, colored by band). */
+  private pillarBadges(analysis: StockAnalysis): string {
     return this.ranker
       .breakdown(analysis)
       .map((b) => {
-        const color =
-          b.score === null
-            ? "#adb5bd"
-            : b.score >= 0.66
-              ? "#16a34a"
-              : b.score >= 0.33
-                ? "#d97706"
-                : "#dc2626";
-        const title = `${this.pillarLabel(b.pillar)}: ${b.score === null ? "n/a" : b.score.toFixed(2)}`;
-        return `<span class="pill" style="background:${color}" title="${this.esc(title)}"></span>`;
+        const v = b.score === null ? null : Math.round(b.score * 100);
+        const cls =
+          v === null ? "text-bg-secondary" : v >= 66 ? "text-bg-success" : v >= 33 ? "text-bg-warning" : "text-bg-danger";
+        const title = `${this.pillarLabel(b.pillar)} — weight ${b.weight}`;
+        return `<span class="badge ${cls}" title="${this.esc(title)}">${this.pillarAbbrev(b.pillar)} ${v === null ? "—" : v}</span>`;
       })
-      .join("");
+      .join(" ");
+  }
+
+  private pillarAbbrev(pillar: Pillar): string {
+    return { profitability: "Prof", debt: "Debt", valuation: "Val", growth: "Grw", efficiency: "Eff" }[pillar] ?? pillar;
   }
 
   private pillarLabel(pillar: Pillar): string {

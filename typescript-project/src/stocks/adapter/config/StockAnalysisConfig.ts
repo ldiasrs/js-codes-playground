@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { FIELD_DEFINITIONS, FieldKey } from "../../domain/model/FieldDefinition";
 import { Market } from "../../domain/model/Market";
 import { DEFAULT_PILLAR_WEIGHTS, PillarWeights } from "../../domain/service/StockRanker";
 import { ApiProvider, LlmGatewaySpec } from "../llm/LlmGatewayFactory";
@@ -20,6 +21,7 @@ interface StockAnalysisSection {
   sources_by_market?: Partial<Record<Market, string>>;
   fetch_enabled?: boolean;
   fss_weights?: Partial<PillarWeights>;
+  scored_fields?: Partial<Record<FieldKey, boolean>>;
   providers?: Record<string, ProviderConfig>;
 }
 
@@ -102,6 +104,14 @@ export class StockAnalysisConfig {
   fetchEnabled(): boolean {
     if (this.env.STOCKS_FETCH !== undefined) return TRUTHY.test(this.env.STOCKS_FETCH);
     return this.section.fetch_enabled === true;
+  }
+
+  /** Which fields feed the score: per-field `scored_fields` overrides the FIELD_DEFINITIONS default. */
+  scoredFields(): FieldKey[] {
+    const overrides = this.section.scored_fields ?? {};
+    return FIELD_DEFINITIONS.filter((d) =>
+      typeof overrides[d.key] === "boolean" ? (overrides[d.key] as boolean) : d.scored,
+    ).map((d) => d.key);
   }
 
   /** Configured FSS pillar weights, each falling back to the built-in default. */

@@ -36,6 +36,10 @@
             "growth": 15,
             "efficiency": 15
         },
+        "scored_fields": {
+            "grossMargin": true,
+            "peg": false
+        },
         "providers": {
             "statusinvest": {
                 "cookie": ""
