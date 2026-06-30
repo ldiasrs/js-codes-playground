@@ -20,9 +20,16 @@ interface StockAnalysisSection {
   default_provider?: string; // legacy fallback
   sources_by_market?: Partial<Record<Market, string>>;
   fetch_enabled?: boolean;
+  sheet_export?: boolean;
   fss_weights?: Partial<PillarWeights>;
   scored_fields?: Partial<Record<FieldKey, boolean>>;
   providers?: Record<string, ProviderConfig>;
+}
+
+export interface GoogleSheetConfig {
+  readonly spreadsheetId: string;
+  readonly clientEmail: string;
+  readonly privateKey: string;
 }
 
 type Mode = "api" | "cli";
@@ -63,6 +70,7 @@ export interface LlmSource {
  *   default_source → built-in default ("api").
  */
 export class StockAnalysisConfig {
+  private readonly raw: any;
   private readonly section: StockAnalysisSection;
   readonly concurrency: number;
 
@@ -70,8 +78,26 @@ export class StockAnalysisConfig {
     configFile: string,
     private readonly env: NodeJS.ProcessEnv = process.env,
   ) {
-    this.section = StockAnalysisConfig.readSection(configFile);
+    this.raw = StockAnalysisConfig.readFile(configFile);
+    this.section = this.raw.stock_analysis ?? {};
     this.concurrency = Number(env.STOCKS_CONCURRENCY || 4);
+  }
+
+  /** Whether to also export to Google Sheets. Enable with STOCKS_SHEET=1 or sheet_export. */
+  sheetExportEnabled(): boolean {
+    if (this.env.STOCKS_SHEET !== undefined) return TRUTHY.test(this.env.STOCKS_SHEET);
+    return this.section.sheet_export === true;
+  }
+
+  /** Google Sheets doc + service-account auth, reused from `update_invest_spread_sheet`. */
+  googleSheetConfig(): GoogleSheetConfig {
+    const s = this.raw.update_invest_spread_sheet ?? {};
+    const key = s.google_json_key ?? {};
+    return {
+      spreadsheetId: s.spread_sheet_id ?? "",
+      clientEmail: key.client_email ?? "",
+      privateKey: key.private_key ?? "",
+    };
   }
 
   /** The source name configured for a given market. */
@@ -164,10 +190,9 @@ export class StockAnalysisConfig {
     return { spec, displayModel: model };
   }
 
-  private static readSection(configFile: string): StockAnalysisSection {
+  private static readFile(configFile: string): any {
     try {
-      const cfg = JSON.parse(fs.readFileSync(configFile, "utf8"));
-      return (cfg.stock_analysis as StockAnalysisSection) ?? {};
+      return JSON.parse(fs.readFileSync(configFile, "utf8"));
     } catch {
       return {};
     }

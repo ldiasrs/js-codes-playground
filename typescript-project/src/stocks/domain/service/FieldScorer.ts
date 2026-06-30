@@ -16,7 +16,8 @@ type Band = (v: number) => number;
 export class FieldScorer {
   private static readonly BANDS: Partial<Record<FieldKey, Band>> = {
     // valuation (lower price = better; P/L scored via earnings yield)
-    dy: (v) => (v <= 0 ? 0 : v > 12 ? 0.3 : clamp01(v / 6)),
+    // ≥3% → good (✅); >8% treated as a likely-unsustainable "trap".
+    dy: (v) => (v <= 0 ? 0 : v > 8 ? 0.4 : clamp01(v / 4.5)),
     pl: (v) => (v > 0 ? up(100 / v, 2, 12) : 0),
     peg: (v) => (v > 0 ? down(v, 1, 3) : 0),
     pvp: (v) => (v > 0 ? down(v, 1, 6) : 0),

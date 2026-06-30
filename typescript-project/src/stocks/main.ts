@@ -22,6 +22,7 @@ import { ConsoleLogger } from "./adapter/logging/ConsoleLogger";
 import { FilePromptProvider } from "./adapter/persistence/FilePromptProvider";
 import { FileStockListProvider } from "./adapter/persistence/FileStockListProvider";
 import { HtmlReportWriter } from "./adapter/report/HtmlReportWriter";
+import { GoogleSheetExporter } from "./adapter/sheet/GoogleSheetExporter";
 import { SystemClock } from "./adapter/time/SystemClock";
 import { StockRanker } from "./domain/service/StockRanker";
 
@@ -50,10 +51,15 @@ async function main(): Promise<void> {
     US: new CachingStockAnalyzer(us.analyzer, cache, fetchEnabled),
   });
 
+  const sheetExporter = config.sheetExportEnabled()
+    ? new GoogleSheetExporter(config.googleSheetConfig(), ranker)
+    : undefined;
+
   const service = new AnalyzeStocksService({
     stockListProvider: new FileStockListProvider(STOCKS_LIST_FILE),
     analyzer,
     reportWriter: new HtmlReportWriter(REPORTS_DIR, ranker),
+    sheetExporter,
     clock,
     logger: new ConsoleLogger(),
     source: `BR=${br.label}, US=${us.label}`,

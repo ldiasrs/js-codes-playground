@@ -9,6 +9,7 @@ import {
 import { Clock } from "./port/Clock";
 import { Logger } from "./port/Logger";
 import { ReportWriter } from "./port/ReportWriter";
+import { SheetExporter } from "./port/SheetExporter";
 import { StockAnalyzer } from "./port/StockAnalyzer";
 import { StockListProvider } from "./port/StockListProvider";
 import { mapWithConcurrency } from "./support/concurrency";
@@ -17,6 +18,8 @@ export interface AnalyzeStocksDeps {
   readonly stockListProvider: StockListProvider;
   readonly analyzer: StockAnalyzer;
   readonly reportWriter: ReportWriter;
+  /** Optional: also export to Google Sheets when configured. */
+  readonly sheetExporter?: SheetExporter;
   readonly clock: Clock;
   readonly logger: Logger;
   /** Human-readable source label for logs/report, e.g. "BR=statusinvest, US=claude-cli". */
@@ -52,6 +55,20 @@ export class AnalyzeStocksService implements AnalyzeStocksUseCase {
     const failed = results.filter((r) => r.kind === "failed").length;
     logger.info(`Report written: ${written.reportPath}`);
     if (failed) logger.warn(`${failed} ticker(s) failed — see report`);
+
+    if (this.deps.sheetExporter) {
+      try {
+        const url = await this.deps.sheetExporter.export(results, {
+          source,
+          generatedAt: this.deps.clock.now(),
+          cacheDate: this.deps.cacheDate,
+          fetchEnabled: this.deps.fetchEnabled,
+        });
+        logger.info(`Google Sheet: ${url}`);
+      } catch (err) {
+        logger.warn(`Sheet export failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
 
     return { ...written, total: results.length, failed };
   }

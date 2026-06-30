@@ -45,6 +45,24 @@ The report header shows the cache date + a read-only badge; the run prints
 > **First run:** with fetching off and an empty cache everything is "not cached". Run once
 > with `STOCKS_FETCH=1` to populate, then normal runs serve from cache.
 
+### Google Sheets export (optional)
+
+With `STOCKS_SHEET=1` (or `sheet_export: true`), the run writes **three new dated tabs** to
+the Google Sheet under **`update_invest_spread_sheet`** (same document + service-account
+auth, no extra setup):
+- **`Ranking US …`** and **`Ranking BR …`** — each market ranked independently (rank 1 =
+  strongest), best-FSS first, with the full indicator set, FSS, per-pillar scores and
+  Overall; header frozen, **FSS / pillar / field cells color-coded** (green/amber/red).
+- **`Index …`** — a standalone **bilingual (EN + pt-BR)** indicator index: Group, name,
+  meaning, example, and "scored ✓" for each of the 30 indicators.
+
+Failed/uncached tickers are omitted. Run:
+
+```bash
+npm run stocks-sheet                 # cache-only export
+STOCKS_FETCH=1 npm run stocks-sheet  # fetch fresh, then export
+```
+
 > ⚠️ **Educational, not financial advice.** Data depends on the provider's
 > freshness/coverage; the BR scrapers (Status Invest / Fundamentus) depend on page
 > layouts that can change; AI sources estimate from training data (may be stale).
@@ -137,6 +155,7 @@ Per-market precedence (highest first):
 | Env var | Effect |
 |---------|--------|
 | `STOCKS_FETCH` | `1`/`true` to **enable fetching** (default off = cache-only) |
+| `STOCKS_SHEET` | `1`/`true` to also export a dated tab to Google Sheets (`update_invest_spread_sheet`) |
 | `STOCKS_SOURCE_BR` / `STOCKS_SOURCE_US` | Per-market source override (highest precedence) |
 | `STOCKS_SOURCE` | Global source for both markets |
 | `STATUSINVEST_COOKIE` | Browser cookie (with `cf_clearance`) if Status Invest is Cloudflare-blocked — **never commit it** (expires ~30 min, IP-bound) |
