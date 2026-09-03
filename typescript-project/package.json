@@ -15,7 +15,8 @@
     "stocks-sheet": "STOCKS_SHEET=1 npx ts-node --project tsconfig.node.json src/stocks/main.ts",
     "update-spreadsheet": "npx ts-node --project tsconfig.node.json src/investments/syncronize-invest/update-invest-spreadsheet.ts",
     "status-invest-update": "npx ts-node --project tsconfig.node.json src/status-invest-update/index.ts",
-    "despesas-analisar": "npx ts-node --project tsconfig.node.json src/despesas-analisador/despesas-analisar.ts"
+    "despesas-analisar": "npx ts-node --project tsconfig.node.json src/despesas-analisador/despesas-analisar.ts",
+    "bank-inter-fetch": "npx ts-node --project tsconfig.node.json src/bank-inter-fetch-data/main.ts"
   },
   "keywords": [],
   "author": "",
