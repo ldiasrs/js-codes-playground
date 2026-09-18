@@ -1,107 +1,106 @@
 {
-    "update_invest_spread_sheet": {
-        "input_data_file": "data/investimentos-2024-05-20.json",
-        "snapshot_update": {
-            "enabled": true,
-            "source_folder": "data/investimentos/historico-investimentos/2026-09-17-12h53m13"
-        },
-        "spread_sheet_id": "",
-        "private_key": "",
-        "client_email": ""
+  "update_invest_spread_sheet": {
+    "input_data_file": "data/investimentos-2024-05-20.json",
+    "snapshot_update": {
+      "source_folder": "data/investimentos/historico-investimentos/2026-09-17-12h53m13"
     },
-    "find_best_investment": {
-        "input_data_file": "data/produtos-para-investir.json"
+    "spread_sheet_id": "",
+    "private_key": "",
+    "client_email": ""
+  },
+  "find_best_investment": {
+    "input_data_file": "data/produtos-para-investir.json"
+  },
+  "chatgpt_topic_history": {
+    "api_key": "your-openai-api-key-here",
+    "model": "gpt-3.5-turbo",
+    "max_tokens": 500,
+    "temperature": 0.7
+  },
+  "email": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "secure": false,
+    "user": "your-gmail@gmail.com",
+    "pass": "your-16-character-app-password",
+    "from": "your-gmail@gmail.com"
+  },
+  "stock_analysis": {
+    "default_source": "api",
+    "fetch_enabled": false,
+    "sources_by_market": {
+      "BR": "statusinvest",
+      "US": "fmp"
     },
-    "chatgpt_topic_history": {
+    "fss_weights": {
+      "profitability": 30,
+      "debt": 20,
+      "valuation": 20,
+      "growth": 15,
+      "efficiency": 15
+    },
+    "scored_fields": {
+      "dy": false,
+      "pl": true,
+      "peg": true,
+      "pvp": true,
+      "evEbitda": true,
+      "evEbit": false,
+      "pEbitda": false,
+      "pEbit": false,
+      "vpa": false,
+      "pAtivo": false,
+      "lpa": false,
+      "psr": true,
+      "pCapGiro": false,
+      "pAtivCircLiq": false,
+      "netDebtEquity": false,
+      "netDebtEbitda": true,
+      "netDebtEbit": false,
+      "equityAssets": false,
+      "liabilitiesAssets": true,
+      "currentRatio": true,
+      "grossMargin": false,
+      "ebitdaMargin": false,
+      "ebitMargin": true,
+      "netMargin": true,
+      "roe": true,
+      "roa": true,
+      "roic": true,
+      "assetTurnover": false,
+      "revenueCagr5y": true,
+      "earningsCagr5y": true
+    },
+    "providers": {
+      "statusinvest": {
+        "cookie": ""
+      },
+      "brapi": {
+        "token": "your-brapi-token-here"
+      },
+      "fmp": {
+        "api_key": "your-fmp-api-key-here"
+      },
+      "claude-cli": {
+        "command": "claude",
+        "model": ""
+      },
+      "gemini-cli": {
+        "command": "gemini",
+        "model": ""
+      },
+      "claude": {
+        "api_key": "your-anthropic-api-key-here",
+        "model": "claude-opus-4-8"
+      },
+      "gemini": {
+        "api_key": "your-google-gemini-api-key-here",
+        "model": "gemini-2.5-flash"
+      },
+      "openai": {
         "api_key": "your-openai-api-key-here",
-        "model": "gpt-3.5-turbo",
-        "max_tokens": 500,
-        "temperature": 0.7
-    },
-    "email": {
-        "host": "smtp.gmail.com",
-        "port": 587,
-        "secure": false,
-        "user": "your-gmail@gmail.com",
-        "pass": "your-16-character-app-password",
-        "from": "your-gmail@gmail.com"
-    },
-    "stock_analysis": {
-        "default_source": "api",
-        "fetch_enabled": false,
-        "sources_by_market": {
-            "BR": "statusinvest",
-            "US": "fmp"
-        },
-        "fss_weights": {
-            "profitability": 30,
-            "debt": 20,
-            "valuation": 20,
-            "growth": 15,
-            "efficiency": 15
-        },
-        "scored_fields": {
-            "dy": false,
-            "pl": true,
-            "peg": true,
-            "pvp": true,
-            "evEbitda": true,
-            "evEbit": false,
-            "pEbitda": false,
-            "pEbit": false,
-            "vpa": false,
-            "pAtivo": false,
-            "lpa": false,
-            "psr": true,
-            "pCapGiro": false,
-            "pAtivCircLiq": false,
-            "netDebtEquity": false,
-            "netDebtEbitda": true,
-            "netDebtEbit": false,
-            "equityAssets": false,
-            "liabilitiesAssets": true,
-            "currentRatio": true,
-            "grossMargin": false,
-            "ebitdaMargin": false,
-            "ebitMargin": true,
-            "netMargin": true,
-            "roe": true,
-            "roa": true,
-            "roic": true,
-            "assetTurnover": false,
-            "revenueCagr5y": true,
-            "earningsCagr5y": true
-        },
-        "providers": {
-            "statusinvest": {
-                "cookie": ""
-            },
-            "brapi": {
-                "token": "your-brapi-token-here"
-            },
-            "fmp": {
-                "api_key": "your-fmp-api-key-here"
-            },
-            "claude-cli": {
-                "command": "claude",
-                "model": ""
-            },
-            "gemini-cli": {
-                "command": "gemini",
-                "model": ""
-            },
-            "claude": {
-                "api_key": "your-anthropic-api-key-here",
-                "model": "claude-opus-4-8"
-            },
-            "gemini": {
-                "api_key": "your-google-gemini-api-key-here",
-                "model": "gemini-2.5-flash"
-            },
-            "openai": {
-                "api_key": "your-openai-api-key-here",
-                "model": "gpt-4o-mini"
-            }
-        }
+        "model": "gpt-4o-mini"
+      }
     }
+  }
 }

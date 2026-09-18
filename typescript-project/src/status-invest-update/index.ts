@@ -1,72 +1,71 @@
 import { Command } from "commander";
-import { UpdateStatusInvestUseCase } from "./application/UpdateStatusInvestUseCase";
-import { SnapshotUpdateUseCase } from "./application/SnapshotUpdateUseCase";
-import { loadGoogleSheetConfig, loadSnapshotUpdateConfig } from "./adapter/config/StatusInvestConfig";
-import { JsonTransactionFileSource } from "./adapter/file/JsonTransactionFileSource";
-import { JsonCdbFileSource } from "./adapter/file/JsonCdbFileSource";
-import { GoogleSheetExporter } from "./adapter/sheet/GoogleSheetExporter";
-import { TransactionGrouper } from "./domain/service/TransactionGrouper";
-import { TransactionRowMapper } from "./domain/service/TransactionRowMapper";
-import { CdbRowMapper } from "./domain/service/CdbRowMapper";
+import { PublishSnapshotUseCase } from "./application/PublishSnapshotUseCase";
+import { SheetPublisher } from "./application/port/SheetPublisher";
+import { loadSnapshotConfig } from "./adapter/config/SnapshotConfig";
+import { SnapshotFolder } from "./adapter/provider/status-invest/SnapshotFolder";
+import { StatusInvestSnapshotSource } from "./adapter/provider/status-invest/StatusInvestSnapshotSource";
+import { ConsoleSheetPublisher } from "./adapter/sheet/ConsoleSheetPublisher";
+import { GoogleSheetPublisher } from "./adapter/sheet/GoogleSheetPublisher";
+import { PublishedSheet } from "./domain/model/SheetDefinition";
+import { FormulaDialect } from "./domain/service/FormulaDialect";
+import { InvestmentSheetFactory } from "./domain/service/InvestmentSheetFactory";
+import { PositionReturn } from "./domain/service/PositionReturn";
+import { ReturnFormulas } from "./domain/service/ReturnFormulas";
+import { SheetTitle } from "./domain/service/SheetTitle";
+import { SummarySheetFactory } from "./domain/service/SummarySheetFactory";
 
 interface CliOptions {
-  file?: string;
-  cdb?: string;
-  snapshotUpdate?: boolean;
-  snapshotFolder?: string;
+  folder?: string;
+  dryRun?: boolean;
 }
 
+/** Composition root: reads the CLI, wires the adapters, runs the one use case. */
 async function main(): Promise<void> {
   const program = new Command()
     .name("status-invest-update")
-    .description(
-      "Exports Status Invest transactions or investment-history snapshots to the configured Google Spreadsheet",
-    )
-    .option("-f, --file <path>", "transactions JSON file (grouped by categoryId)")
-    .option("-c, --cdb <path>", "optional CDB export file (creates an extra CDB tab)")
-    .option("--snapshot-update", "export the configured investment-history snapshot")
-    .option("--snapshot-folder <path>", "investment-history folder (implies --snapshot-update)")
+    .description("Publishes a Status Invest history snapshot as dated spreadsheet tabs")
+    .option("-f, --folder <path>", "snapshot folder to publish")
+    .option("--dry-run", "print the tabs instead of writing to the spreadsheet")
     .parse(process.argv);
 
   const options = program.opts<CliOptions>();
-
-  const snapshotConfig = loadSnapshotUpdateConfig();
-  const useSnapshot = Boolean(options.snapshotUpdate || options.snapshotFolder || (!options.file && snapshotConfig?.enabled));
-  if (useSnapshot) {
-    if (options.file || options.cdb) {
-      throw new Error("--snapshot-update cannot be combined with --file or --cdb");
-    }
-    const sourceFolder = options.snapshotFolder ?? snapshotConfig?.sourceFolder;
-    if (!sourceFolder) {
-      throw new Error("snapshot folder missing: set snapshot_update.source_folder or use --snapshot-folder");
-    }
-    const results = await new SnapshotUpdateUseCase(
-      sourceFolder,
-      new GoogleSheetExporter(loadGoogleSheetConfig()),
-    ).execute();
-    printResults(results);
-    return;
+  const config = loadSnapshotConfig();
+  const sourceFolder = options.folder ?? config.defaultSourceFolder;
+  if (!sourceFolder) {
+    throw new Error(
+      'no snapshot folder: pass --folder or set "update_invest_spread_sheet.snapshot_update.source_folder"',
+    );
   }
 
-  if (!options.file) {
-    throw new Error("--file is required unless snapshot_update is enabled in the configuration");
-  }
-  const results = await new UpdateStatusInvestUseCase(
-    new JsonTransactionFileSource(options.file),
-    new GoogleSheetExporter(loadGoogleSheetConfig()),
-    new TransactionGrouper(),
-    new TransactionRowMapper(),
-    new CdbRowMapper(),
-    options.cdb ? new JsonCdbFileSource(options.cdb) : undefined,
+  const folder = new SnapshotFolder(sourceFolder);
+  const title = new SheetTitle();
+  const dialect = new FormulaDialect();
+  const published = await new PublishSnapshotUseCase(
+    new StatusInvestSnapshotSource(folder),
+    publisherFor(options, config.credentials),
+    new InvestmentSheetFactory(
+      new ReturnFormulas(folder.takenAt(), dialect),
+      new PositionReturn(folder.takenAt()),
+      title,
+    ),
+    new SummarySheetFactory(title, dialect),
   ).execute();
-  printResults(results);
+
+  report(published);
 }
 
-function printResults(results: { group: string; rowCount: number; url: string }[]): void {
-  for (const result of results) {
-    console.log(`${result.group}: ${result.rowCount} rows -> ${result.url}`);
+function publisherFor(
+  options: CliOptions,
+  credentials: ReturnType<typeof loadSnapshotConfig>["credentials"],
+): SheetPublisher {
+  return options.dryRun ? new ConsoleSheetPublisher() : new GoogleSheetPublisher(credentials);
+}
+
+function report(published: readonly PublishedSheet[]): void {
+  for (const sheet of published) {
+    console.log(`${sheet.title}: ${sheet.rowCount} rows -> ${sheet.url}`);
   }
-  console.log(`Done. Created ${results.length} sheet(s).`);
+  console.log(`Done. Published ${published.length} tab(s).`);
 }
 
 main().catch((error) => {
