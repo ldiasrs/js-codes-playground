@@ -7,6 +7,11 @@ export interface GoogleSheetConfig {
   readonly privateKey: string;
 }
 
+export interface SnapshotUpdateConfig {
+  readonly enabled: boolean;
+  readonly sourceFolder: string;
+}
+
 const DEFAULT_CONFIG_PATH = path.join(
   __dirname,
   "../../../../config/global-config.prod.json",
@@ -25,4 +30,19 @@ export function loadGoogleSheetConfig(
     clientEmail: sheetConfig.google_json_key.client_email,
     privateKey: sheetConfig.google_json_key.private_key,
   };
+}
+
+/** Loads the optional default snapshot-update settings from the shared sheet config. */
+export function loadSnapshotUpdateConfig(
+  configPath: string = DEFAULT_CONFIG_PATH,
+): SnapshotUpdateConfig | undefined {
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  const snapshot = config.update_invest_spread_sheet?.snapshot_update;
+  if (!snapshot) return undefined;
+  if (typeof snapshot.enabled !== "boolean" || typeof snapshot.source_folder !== "string") {
+    throw new Error(
+      `invalid "snapshot_update" config in ${configPath}: expected enabled and source_folder`,
+    );
+  }
+  return { enabled: snapshot.enabled, sourceFolder: snapshot.source_folder };
 }

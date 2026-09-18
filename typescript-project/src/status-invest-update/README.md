@@ -6,11 +6,33 @@ color-themed, timestamped tab per category** into the Google Spreadsheet
 configured under `update_invest_spread_sheet`. Optionally, a CDB export file
 creates an extra `CDB-<timestamp>` tab.
 
+It also supports **snapshot-update**, enabled by default through
+`update_invest_spread_sheet.snapshot_update`. With no CLI arguments it reads the
+configured history folder and creates exactly four tabs: `acoes-br`, `fundos`,
+`renda-fixa`, and a formula-driven `resumo`. The raw `*-resumo.json` file is
+not exported. Names use the compact timestamp format, such as
+`acoes-br-2026-09-18-1400`.
+
+Snapshot data keeps monetary values as numeric cells formatted as Brazilian
+currency (`R$`) and ISO dates as real cells formatted `DD/MM/YYYY`, so totals
+and formulas continue to work. The first two columns in each investment tab are
+`%-ganho-mensal` and `%-ganho-anual`: annual gain is profit divided by the
+applied value (using `valorAplicadoTotal` for fixed income), and monthly gain is
+its annual estimate divided by 12. The generated
+`resumo` tab sums invested value, current value, and both gain columns across
+the three investment tabs.
+
 ## 🚀 How to execute
 
 From the `typescript-project` root:
 
 ```bash
+# default snapshot-update folder from global-config.prod.json
+npm run status-invest-update
+
+# use a different snapshot folder once
+npm run status-invest-update -- --snapshot-folder data/investimentos/historico-investimentos/2026-09-17-12h53m13
+
 # transactions only
 npm run status-invest-update -- -f data/investimentos/transactions/transactions-2026-07-13.json
 
@@ -24,6 +46,8 @@ npm run status-invest-update -- \
 | --- | --- | --- |
 | `-f, --file <path>` | yes | Transactions JSON export (records under `[0].walletPositionHistoryModels`) |
 | `-c, --cdb <path>` | no | CDB export (flat JSON array; the file may have no extension) |
+| `--snapshot-update` | no | Export the configured four-file investment snapshot |
+| `--snapshot-folder <path>` | no | Snapshot folder override; implies `--snapshot-update` |
 
 The console prints one line per created tab with its row count and direct URL.
 

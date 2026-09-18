@@ -11,7 +11,12 @@ const SCOPES = [
   "https://www.googleapis.com/auth/drive.file",
 ];
 
-const DATE_PATTERN = /^\d{2}\/\d{2}\/\d{4}$/;
+const CURRENCY_HEADER = /(valor|custo|preco|retorno|rendimento|desconto|aplicado|liquido|bruto|ganho|ir|iof)/i;
+const PERCENTAGE_HEADER = /(^%-|percentual|taxa|rate)/i;
+const BRAZILIAN_CURRENCY_FORMAT = { type: "CURRENCY" as const, pattern: '[$R$-pt-BR] #,##0.00' };
+const BRAZILIAN_DATE_FORMAT = { type: "DATE" as const, pattern: "dd/MM/yyyy" };
+const PERCENTAGE_FORMAT = { type: "PERCENT" as const, pattern: "0.00%" };
+const NUMBER_FORMAT = { type: "NUMBER" as const, pattern: "#,##0.00" };
 
 /**
  * Renders each ExportDefinition as a new color-themed tab: colored tab +
@@ -30,7 +35,7 @@ export class GoogleSheetExporter implements ExportWriter {
     const theme = themeFor(definition.group);
 
     const sheet = await doc.addSheet({
-      title: this.namer.name(definition.group),
+      title: definition.sheetTitle ?? this.namer.name(definition.group),
       headerValues: [...definition.headers],
       tabColor: theme.header,
       gridProperties: {
@@ -88,9 +93,20 @@ export class GoogleSheetExporter implements ExportWriter {
       definition.headers.forEach((header, c) => {
         const cell = sheet.getCell(r, c);
         if (banded) cell.backgroundColor = theme.band;
+        const formula = definition.formulas?.[i]?.[header];
+        if (formula) cell.formula = formula;
         const value = row[header];
         if (typeof value === "number") cell.horizontalAlignment = "RIGHT";
-        else if (DATE_PATTERN.test(String(value))) cell.horizontalAlignment = "CENTER";
+        if (value instanceof Date) {
+          cell.horizontalAlignment = "CENTER";
+          cell.numberFormat = BRAZILIAN_DATE_FORMAT;
+        } else if ((typeof value === "number" || formula) && PERCENTAGE_HEADER.test(header)) {
+          cell.numberFormat = PERCENTAGE_FORMAT;
+        } else if ((typeof value === "number" || formula) && CURRENCY_HEADER.test(header)) {
+          cell.numberFormat = BRAZILIAN_CURRENCY_FORMAT;
+        } else if (typeof value === "number") {
+          cell.numberFormat = NUMBER_FORMAT;
+        }
       });
     });
 

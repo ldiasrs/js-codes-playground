@@ -1,6 +1,10 @@
 {
     "update_invest_spread_sheet": {
         "input_data_file": "data/investimentos-2024-05-20.json",
+        "snapshot_update": {
+            "enabled": true,
+            "source_folder": "data/investimentos/historico-investimentos/2026-09-17-12h53m13"
+        },
         "spread_sheet_id": "",
         "private_key": "",
         "client_email": ""

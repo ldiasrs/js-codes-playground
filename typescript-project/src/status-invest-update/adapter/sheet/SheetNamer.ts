@@ -9,4 +9,12 @@ export class SheetNamer {
     const time = `${p(now.getHours())}h${p(now.getMinutes())}m${p(now.getSeconds())}s`;
     return `${group}-${date}-${time}`;
   }
+
+  /** Compact snapshot title, e.g. "acoes-br-2026-09-18-1400". */
+  snapshotName(group: string): string {
+    const now = this.clock();
+    const p = (n: number) => String(n).padStart(2, "0");
+    const date = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+    return `${group}-${date}-${p(now.getHours())}${p(now.getMinutes())}`;
+  }
 }
